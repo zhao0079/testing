@@ -456,9 +456,9 @@ void main_loop_quadrotor(void)
 			else
 			{
 
-				const float kal_num = 200;
-				static float kal_mean = 0;
-				static float kal_variance = 0;
+				const float kal_num = 200;		//Anzahl der Werte über die ~ gefiltert wird
+				static float kal_mean = 0;		//Tiefpass =~ Mittelwert
+				static float kal_variance = 0;	//Varianz
 
 				if (kal_mean == 0)
 				{
@@ -492,11 +492,11 @@ void main_loop_quadrotor(void)
 				kal.z = kal_k;
 				kal.y = kal_mean;
 				kal.z = kal_variance;
-			//	debug_vect("alt_kal", kal);
+				//debug_vect("alt_kal", kal);
 
-			//	mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN],
-		//				50, kal_z);
-				//			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 51, global_data.pressure_raw);
+				mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN],
+						50, kal_z);
+		//					mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 51, global_data.pressure_raw);
 			}
 
 		}

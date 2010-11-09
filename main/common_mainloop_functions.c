@@ -80,7 +80,9 @@ void position_integrate(float_vect3* att,float_vect3 *pos,float_vect3 *vel,float
 	//static float_vect3 vel_offset;
 	float_vect3 acc_nav;
 	body2navi(acc, att, &acc_nav);
-	debug_vect("acc_navi", acc_nav);
+	mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN],
+			53, acc_nav.z);
+	//debug_vect("acc_navi", acc_nav);
 //
 //	acc_nav.x = (acc_nav.x - global_data.param[PARAM_ACC_NAVI_OFFSET_X])/100;
 //	acc_nav.y = (acc_nav.y - global_data.param[PARAM_ACC_NAVI_OFFSET_Y])/100;
