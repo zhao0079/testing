@@ -179,7 +179,7 @@ void main_loop_quadrotor(void)
 			// Prediction step of observer
 			attitude_observer_predict(global_data.gyros_si);
 
-			position_integrate(&global_data.attitude,&global_data.position,&global_data.velocity,&global_data.accel_si);
+			//position_integrate(&global_data.attitude,&global_data.position,&global_data.velocity,&global_data.accel_si);
 
 			// QUADROTOR CODE
 			// ====================================================================
@@ -514,9 +514,17 @@ void main_loop_quadrotor(void)
 				kal.z = kal_variance;
 				//debug_vect("alt_kal", kal);
 
-				mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN],
-						50, kal_z);
+				//mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN],
+					//	50, kal_z);
 		//					mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 51, global_data.pressure_raw);
+
+				float_vect3 acc_nav;
+				body2navi(&global_data.accel_si, &global_data.attitude, &acc_nav);
+				float_vect3 acc_press;
+			acc_press.x=kal_z;
+			acc_press.y=acc_nav.z;
+			acc_press.z=global_data.temperature;
+			debug_vect("press_accel", acc_press);
 			}
 
 		}

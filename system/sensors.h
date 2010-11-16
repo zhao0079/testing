@@ -167,7 +167,7 @@ static inline void sensors_pressure_bmp085_read_out(void)
 		bmp085_start_temp_measurement();
 		bmp085_measurement_mode = 0;
 		break;
-	case 50:
+	case 2:
 		global_data.pressure_raw = bmp085_get_pressure();
 		bmp085_start_temp_measurement();
 		bmp085_measurement_mode = 0;
