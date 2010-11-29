@@ -80,7 +80,9 @@ void position_integrate(float_vect3* att,float_vect3 *pos,float_vect3 *vel,float
 	//static float_vect3 vel_offset;
 	float_vect3 acc_nav;
 	body2navi(acc, att, &acc_nav);
-	debug_vect("acc_navi", acc_nav);
+//	mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN],
+//			53, acc_nav.z);
+	//debug_vect("acc_navi", acc_nav);
 //
 //	acc_nav.x = (acc_nav.x - global_data.param[PARAM_ACC_NAVI_OFFSET_X])/100;
 //	acc_nav.y = (acc_nav.y - global_data.param[PARAM_ACC_NAVI_OFFSET_Y])/100;
@@ -582,6 +584,7 @@ void send_system_state(void)
 			global_data.param[PARAM_SYSTEM_TYPE], MAV_AUTOPILOT_PIXHAWK);
 
 	// Send system status over both links
+
 	mavlink_msg_sys_status_send(MAVLINK_COMM_0, global_data.state.mav_mode, global_data.state.nav_mode,
 			global_data.state.status, global_data.cpu_usage, global_data.battery_voltage,
 			global_data.motor_block, global_data.packet_drops);

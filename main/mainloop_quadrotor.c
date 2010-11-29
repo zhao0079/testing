@@ -200,7 +200,7 @@ void main_loop_quadrotor(void)
 			// Prediction step of observer
 			attitude_observer_predict(global_data.gyros_si);
 
-			position_integrate(&global_data.attitude,&global_data.position,&global_data.velocity,&global_data.accel_si);
+			//position_integrate(&global_data.attitude,&global_data.position,&global_data.velocity,&global_data.accel_si);
 
 			// QUADROTOR CODE
 			// ====================================================================
@@ -497,9 +497,9 @@ void main_loop_quadrotor(void)
 			else
 			{
 
-				const float kal_num = 200;
-				static float kal_mean = 0;
-				static float kal_variance = 0;
+				const float kal_num = 200;		//Anzahl der Werte über die ~ gefiltert wird
+				static float kal_mean = 0;		//Tiefpass =~ Mittelwert
+				static float kal_variance = 0;	//Varianz
 
 				if (kal_mean == 0)
 				{
@@ -533,11 +533,19 @@ void main_loop_quadrotor(void)
 				kal.z = kal_k;
 				kal.y = kal_mean;
 				kal.z = kal_variance;
-			//	debug_vect("alt_kal", kal);
+				//debug_vect("alt_kal", kal);
 
-			//	mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN],
-		//				50, kal_z);
-				//			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 51, global_data.pressure_raw);
+				//mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN],
+					//	50, kal_z);
+		//					mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 51, global_data.pressure_raw);
+
+				float_vect3 acc_nav;
+				body2navi(&global_data.accel_si, &global_data.attitude, &acc_nav);
+				float_vect3 acc_press;
+			acc_press.x=kal_z;
+			acc_press.y=acc_nav.z;
+			acc_press.z=global_data.temperature;
+			debug_vect("press_accel", acc_press);
 			}
 
 		}
