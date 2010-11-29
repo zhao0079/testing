@@ -42,6 +42,7 @@
 #include "attitude_observer.h"
 #include "gps.h"
 #include "gyros.h"
+#include "buzzer.h"
 
 // Static variables - scope is limited to this file
 static const uint32_t min_mainloop_time = 5000;  ///< The minimum wait interval between two mainloop software timer calls, = 1/max rate, initialized to 1 sec = 1000000 microseconds
@@ -240,6 +241,12 @@ void main_loop_fixed_wing(void)
 				gps.y = gps_utm_east / 100.0f;//m
 				gps.z = gps_utm_zone;// gps_week;
 				debug_vect("GPS", gps);
+			}
+
+			if(global_data.battery_voltage<9000){
+				buzzer_toggle();
+			}else{
+				buzzer_off();
 			}
 
 		}

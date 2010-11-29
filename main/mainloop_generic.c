@@ -24,6 +24,7 @@
 
 #include "adc.h"
 #include "led.h"
+#include "buzzer.h"
 #include "ppm.h"
 #include "pwm.h"
 #include "sys_time.h"
@@ -94,6 +95,7 @@ void main_init_generic(void)
 	enableIRQ();
 	led_init();
 	led_on(LED_GREEN);
+	buzzer_init();
 	sys_time_init();
 	sys_time_periodic_init();
 	sys_time_clock_init();
