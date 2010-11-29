@@ -182,7 +182,7 @@ void communication_send_remote_control(void)
 	{
 		if (global_data.param[PARAM_SEND_DEBUGCHAN] == 0)
 		{
-		mavlink_msg_rc_channels_send(MAVLINK_COMM_0,
+		mavlink_msg_rc_channels_raw_send(MAVLINK_COMM_0,
 				radio_control_get_channel_raw(1),
 				radio_control_get_channel_raw(2),
 				radio_control_get_channel_raw(3),
@@ -191,20 +191,21 @@ void communication_send_remote_control(void)
 				radio_control_get_channel_raw(6),
 				radio_control_get_channel_raw(7),
 				radio_control_get_channel_raw(8),
-				rc_to_255(1),
-				rc_to_255(2),
-				rc_to_255(3),
-				rc_to_255(4),
-				rc_to_255(5),
-				rc_to_255(6),
-				rc_to_255(7),
-				rc_to_255(8),
 				((radio_control_status() > 0) ? 255 : 0));
 				// Should be global_data.rc_rssi in the future
+
+//		rc_to_255(1),
+//		rc_to_255(2),
+//		rc_to_255(3),
+//		rc_to_255(4),
+//		rc_to_255(5),
+//		rc_to_255(6),
+//		rc_to_255(7),
+//		rc_to_255(8),
 		}
 		else
 		{
-		mavlink_msg_rc_channels_send(MAVLINK_COMM_1,
+		mavlink_msg_rc_channels_raw_send(MAVLINK_COMM_1,
 				radio_control_get_channel_raw(1),
 				radio_control_get_channel_raw(2),
 				radio_control_get_channel_raw(3),
@@ -213,14 +214,6 @@ void communication_send_remote_control(void)
 				radio_control_get_channel_raw(6),
 				radio_control_get_channel_raw(7),
 				radio_control_get_channel_raw(8),
-				rc_to_255(1),
-				rc_to_255(2),
-				rc_to_255(3),
-				rc_to_255(4),
-				rc_to_255(5),
-				rc_to_255(6),
-				rc_to_255(7),
-				rc_to_255(8),
 				((radio_control_status() > 0) ? 255 : 0));
 		}
 	}
@@ -589,11 +582,11 @@ void send_system_state(void)
 			global_data.param[PARAM_SYSTEM_TYPE], MAV_AUTOPILOT_PIXHAWK);
 
 	// Send system status over both links
-	mavlink_msg_sys_status_send(MAVLINK_COMM_1, global_data.state.mav_mode, 0,
-			global_data.state.status, global_data.battery_voltage,
+	mavlink_msg_sys_status_send(MAVLINK_COMM_0, global_data.state.mav_mode, global_data.state.nav_mode,
+			global_data.state.status, global_data.cpu_usage, global_data.battery_voltage,
 			global_data.motor_block, global_data.packet_drops);
-	mavlink_msg_sys_status_send(MAVLINK_COMM_0, global_data.state.mav_mode, 0,
-			global_data.state.status, global_data.battery_voltage,
+	mavlink_msg_sys_status_send(MAVLINK_COMM_1, global_data.state.mav_mode, global_data.state.nav_mode,
+			global_data.state.status, global_data.cpu_usage, global_data.battery_voltage,
 			global_data.motor_block, global_data.packet_drops);
 
 	// Send auxiliary status over both links

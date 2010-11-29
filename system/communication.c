@@ -155,11 +155,11 @@ void handle_mavlink_message(mavlink_channel_t chan,
 			sys_set_mode(mode.mode);
 
 			// Emit current mode
-			mavlink_msg_sys_status_send(MAVLINK_COMM_1, global_data.state.mav_mode, 0,
-					global_data.state.status, global_data.battery_voltage,
+			mavlink_msg_sys_status_send(MAVLINK_COMM_0, global_data.state.mav_mode, global_data.state.nav_mode,
+					global_data.state.status, global_data.cpu_usage, global_data.battery_voltage,
 					global_data.motor_block, global_data.packet_drops);
-			mavlink_msg_sys_status_send(MAVLINK_COMM_0, global_data.state.mav_mode, 0,
-					global_data.state.status, global_data.battery_voltage,
+			mavlink_msg_sys_status_send(MAVLINK_COMM_1, global_data.state.mav_mode, global_data.state.nav_mode,
+					global_data.state.status, global_data.cpu_usage, global_data.battery_voltage,
 					global_data.motor_block, global_data.packet_drops);
 
 		}

@@ -214,11 +214,11 @@ void main_init_generic(void)
 	mavlink_msg_heartbeat_send(MAVLINK_COMM_0,
 			global_data.param[PARAM_SYSTEM_TYPE], MAV_AUTOPILOT_PIXHAWK);
 	// Send first global system status
-	mavlink_msg_sys_status_send(MAVLINK_COMM_0, global_data.state.mav_mode, 0,
-			global_data.state.status, global_data.battery_voltage,
+	mavlink_msg_sys_status_send(MAVLINK_COMM_0, global_data.state.mav_mode, global_data.state.nav_mode,
+			global_data.state.status, global_data.cpu_usage, global_data.battery_voltage,
 			global_data.motor_block, global_data.packet_drops);
-	mavlink_msg_sys_status_send(MAVLINK_COMM_1, global_data.state.mav_mode, 0,
-			global_data.state.status, global_data.battery_voltage,
+	mavlink_msg_sys_status_send(MAVLINK_COMM_1, global_data.state.mav_mode, global_data.state.nav_mode,
+			global_data.state.status, global_data.cpu_usage, global_data.battery_voltage,
 			global_data.motor_block, global_data.packet_drops);
 
 
@@ -246,11 +246,11 @@ void main_init_generic(void)
 	mavlink_msg_heartbeat_send(MAVLINK_COMM_0,
 			global_data.param[PARAM_SYSTEM_TYPE], MAV_AUTOPILOT_PIXHAWK);
 	// Send second global system status
-	mavlink_msg_sys_status_send(MAVLINK_COMM_0, global_data.state.mav_mode, 0,
-			global_data.state.status, global_data.battery_voltage,
+	mavlink_msg_sys_status_send(MAVLINK_COMM_0, global_data.state.mav_mode, global_data.state.nav_mode,
+			global_data.state.status, global_data.cpu_usage, global_data.battery_voltage,
 			global_data.motor_block, global_data.packet_drops);
-	mavlink_msg_sys_status_send(MAVLINK_COMM_1, global_data.state.mav_mode, 0,
-			global_data.state.status, global_data.battery_voltage,
+	mavlink_msg_sys_status_send(MAVLINK_COMM_1, global_data.state.mav_mode, global_data.state.nav_mode,
+			global_data.state.status, global_data.cpu_usage, global_data.battery_voltage,
 			global_data.motor_block, global_data.packet_drops);
 
 	// Lowlevel services are now initialized
@@ -267,11 +267,11 @@ void main_init_generic(void)
 	global_data.state.mav_mode = MAV_MODE_READY;
 	global_data.state.status = MAV_STATE_STANDBY;
 
-	mavlink_msg_sys_status_send(MAVLINK_COMM_0, global_data.state.mav_mode, 0,
-			global_data.state.status, global_data.battery_voltage,
+	mavlink_msg_sys_status_send(MAVLINK_COMM_0, global_data.state.mav_mode, global_data.state.nav_mode,
+			global_data.state.status, global_data.cpu_usage, global_data.battery_voltage,
 			global_data.motor_block, global_data.packet_drops);
-	mavlink_msg_sys_status_send(MAVLINK_COMM_1, global_data.state.mav_mode, 0,
-			global_data.state.status, global_data.battery_voltage,
+	mavlink_msg_sys_status_send(MAVLINK_COMM_1, global_data.state.mav_mode, global_data.state.nav_mode,
+			global_data.state.status, global_data.cpu_usage, global_data.battery_voltage,
 			global_data.motor_block, global_data.packet_drops);
 
 	debug_message_buffer("Checking if remote control is switched on:");
