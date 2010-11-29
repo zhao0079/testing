@@ -40,6 +40,8 @@
 #include "eeprom.h"
 #include "params.h"
 #include "attitude_observer.h"
+#include "gps.h"
+#include "gyros.h"
 
 // Static variables - scope is limited to this file
 static const uint32_t min_mainloop_time = 5000;  ///< The minimum wait interval between two mainloop software timer calls, = 1/max rate, initialized to 1 sec = 1000000 microseconds
@@ -74,7 +76,7 @@ void main_loop_fixed_wing(void)
 		///////////////////////////////////////////////////////////////////////////
 
 
-		if (global_data.mode == MAV_MODE_RC_TRAINING)
+		if (global_data.state.mav_mode == MAV_MODE_RC_TRAINING)
 		{
 			///////////////////////////////////////////////////////////////////////////
 			/// RC INTERFACE HACK AT 50 Hz
@@ -189,8 +191,8 @@ void main_loop_fixed_wing(void)
 			led_toggle(LED_RED); // just for green LED on alpha at the moment
 
 			// Toggle active mode led
-			if (global_data.mode == MAV_MODE_MANUAL || global_data.mode
-					== MAV_MODE_GUIDED || global_data.mode == MAV_MODE_AUTO)
+			if (global_data.state.mav_mode == MAV_MODE_MANUAL || global_data.state.mav_mode
+					== MAV_MODE_GUIDED || global_data.state.mav_mode == MAV_MODE_AUTO)
 			{
 				led_on(LED_GREEN);
 			}
@@ -271,7 +273,7 @@ void main_loop_fixed_wing(void)
 		///////////////////////////////////////////////////////////////////////////
 		else if (us_run_every(5000, COUNTER5, loop_start_time))
 		{
-			if (global_data.status == MAV_STATE_STANDBY)
+			if (global_data.state.status == MAV_STATE_STANDBY)
 			{
 				//Check if parameters should be written or read
 				param_handler();
