@@ -43,15 +43,19 @@
 
 // Please select a system type
 // Valid system types are listed above.
-//#define PX_VEHICLE_TYPE PX_GENERIC
+//#define PX_VEHICLE_TYPE PX_AIRFRAME_QUADROTOR
 
 
+#if (PX_VEHICLE_TYPE < 1) | (PX_VEHICLE_TYPE > 6)
+// If you get this error, you selected an invalid system type or misspelled
+// the system type name.
+#error INVALID SYSTEM TYPE, NOT FOUND IN LIST - ABORTING COMPILATION
+#endif
 
-
-#ifndef PX_VEHICLE_TYPE
+#if !(defined PX_VEHICLE_TYPE)
 // Uncomment the #define PX_VEHICLE_TYPE line above and select system type
 // to resolve this error
-#error PLEASE SELECT SYSTEM TYPE IN conf/user_conf.h FIRST! UNCOMMENT LINE define PX_VEHICLE_TYPE ABORTING COMPILATION
+#error PLEASE SELECT SYSTEM TYPE IN conf/user_conf.h FIRST! UNCOMMENT LINE define PX_VEHICLE_TYPE  - ABORTING COMPILATION
 #endif
 
 #endif /* _USER_CONF_H_ */

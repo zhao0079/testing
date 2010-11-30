@@ -189,8 +189,8 @@ void main_loop_ground_car(void)
 			led_toggle(LED_RED); // just for green LED on alpha at the moment
 
 			// Toggle active mode led
-			if (global_data.mode == MAV_MODE_MANUAL || global_data.mode
-					== MAV_MODE_GUIDED || global_data.mode == MAV_MODE_AUTO)
+			if (global_data.state.mav_mode == MAV_MODE_MANUAL || global_data.state.mav_mode
+					== MAV_MODE_GUIDED || global_data.state.mav_mode == MAV_MODE_AUTO)
 			{
 				led_on(LED_GREEN);
 			}
@@ -228,7 +228,7 @@ void main_loop_ground_car(void)
 		///////////////////////////////////////////////////////////////////////////
 		else if (us_run_every(5000, COUNTER5, loop_start_time))
 		{
-			if (global_data.status == MAV_STATE_STANDBY)
+			if (global_data.state.status == MAV_STATE_STANDBY)
 			{
 				//Check if parameters should be written or read
 				param_handler();
