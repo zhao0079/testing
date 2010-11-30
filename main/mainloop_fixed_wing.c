@@ -243,11 +243,7 @@ void main_loop_fixed_wing(void)
 				debug_vect("GPS", gps);
 			}
 
-			if(global_data.battery_voltage<9000){
-				buzzer_toggle();
-			}else{
-				buzzer_off();
-			}
+			beep_on_low_voltage();
 
 		}
 		///////////////////////////////////////////////////////////////////////////

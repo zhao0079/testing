@@ -426,6 +426,7 @@ void main_loop_generic(void)
 		else if (us_run_every(1000000, COUNTER9, loop_start_time))
 		{
 
+			beep_on_low_voltage();
 		}
 		///////////////////////////////////////////////////////////////////////////
 
