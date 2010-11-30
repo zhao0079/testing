@@ -111,6 +111,22 @@
 #define PPM_CAPTURE_CAPTURE_REGISTER		T0CR2
 //@}
 
+
+/*======================================================================*/
+
+
+/** @name Buzzer
+*! BUZZER_PIN. This is the pin on witch the Buzzer is connected. */
+#define BUZZER_PIN_NR			24
+/*! GPIO direction register */
+#define BUZZER_DIR		IO1DIR
+/*! GPIO clear register */
+#define BUZZER_CLEAR		IO1CLR
+/*! GPIO set register */
+#define BUZZER_SET		IO1SET
+/*! GPIO pin register */
+#define BUZZER_PIN		IO1PIN
+
 /*======================================================================*/
 #define FEATURE_SENSORS	 FEATURE_SENSORS_ENABLED
 #define FEATURE_ADC		FEATURE_ADC_PIXHAWK
