@@ -448,6 +448,7 @@ void main_loop_quadrotor(void)
 //					debug_vect("GPS local", gps_local);
 				}
 			}
+			beep_on_low_voltage();
 
 		}
 		///////////////////////////////////////////////////////////////////////////

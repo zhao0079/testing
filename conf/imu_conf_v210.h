@@ -127,6 +127,9 @@
 /*! GPIO pin register */
 #define BUZZER_PIN		IO1PIN
 
+/*! Beep at 9000 mV = 9 V for Litium Polymer Batterys */
+#define BATTERY_LOW_VOLTAGE_ALARM 9000
+
 /*======================================================================*/
 #define FEATURE_SENSORS	 FEATURE_SENSORS_ENABLED
 #define FEATURE_ADC		FEATURE_ADC_PIXHAWK

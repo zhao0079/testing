@@ -22,6 +22,7 @@
 
 #include "adc.h"
 #include "led.h"
+#include "buzzer.h"
 #include "ppm.h"
 #include "pwm.h"
 #include "sys_time.h"
@@ -671,6 +672,20 @@ void camera_shutter_handling(uint64_t loop_start_time)
 		mavlink_msg_image_triggered_send(MAVLINK_COMM_1, usec,
 				shutter_get_seq(), global_data.attitude.x,
 				global_data.attitude.y);
+	}
+}
+
+
+/** @brief Low Battery alarm to be called for example with 1 Hz */
+inline void beep_on_low_voltage(void)
+{
+	if (global_data.battery_voltage < BATTERY_LOW_VOLTAGE_ALARM)
+	{
+		buzzer_toggle();
+	}
+	else
+	{
+		buzzer_off();
 	}
 }
 
