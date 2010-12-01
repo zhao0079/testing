@@ -63,6 +63,7 @@ SRCARM += fusion/world_to_body.c
 SRCARM += fusion/position_kalman2.c
 SRCARM += fusion/position_kalman3.c
 SRCARM += math/transformation.c
+SRCARM += math/matrix.c
 SRCARM += math/geodetic/latlong.c
 SRCARM += arm7/sdfat/syscalls.c
 SRCARM += math/geodetic/gps_transformations.c
