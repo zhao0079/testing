@@ -79,6 +79,8 @@
 #include "dos.h"
 #include "fat.h"
 
+#include "outdoor_position_kalman.h"
+
 // Executiontime debugging
 float_vect3 time_debug;
 
@@ -100,6 +102,7 @@ void main_init_quadrotor(void)
 	main_init_generic();
 	control_quadrotor_position_init();
 	control_quadrotor_attitude_init();
+	outdoor_position_kalman_init();
 }
 
 /**
@@ -201,6 +204,8 @@ void main_loop_quadrotor(void)
 			}
 			// Prediction step of observer
 			attitude_observer_predict(global_data.gyros_si);
+
+			outdoor_position_kalman();
 
 			//position_integrate(&global_data.attitude,&global_data.position,&global_data.velocity,&global_data.accel_si);
 
@@ -512,7 +517,7 @@ void main_loop_quadrotor(void)
 				//Check if parameters should be written or read
 				param_handler();
 			}
-
+/*
 //debug_message_buffer("HAllo Kalman");
 
 			//altitude kalman filter
@@ -719,13 +724,13 @@ void main_loop_quadrotor(void)
 					kal_z_gain_start_part);
 
 			matrix_add(kal_z_gain_start_part,kal_z_gain_part,kal_z_gain_sum);
+
 			//gain*(z-C*xapriori)
 			matrix_mult(kal_z_gain_sum, kal_z_error, kal_z_x_update);
 
 			//xaposteriori = xapriori + update
 
 			matrix_add(kal_z_x_apriori,kal_z_x_update,kal_z_x_aposteriori);
-
 
 			float_vect3 acc_press;
 //			global_data.position.z = M(kal_z_x_aposteriori,0,0);
@@ -799,6 +804,7 @@ void main_loop_quadrotor(void)
 //				acc_press.z = global_data.temperature;
 //				debug_vect("press_accel", acc_press);
 //			}
+			*/
 
 		}
 		///////////////////////////////////////////////////////////////////////////
