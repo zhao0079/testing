@@ -290,8 +290,6 @@ void handle_controller_timeouts(uint64_t loop_start_time)
 		global_data.state.position_fix = 1;
 	}
 
-	// NO GPS YET
-	global_data.state.gps_ok = 0;
 
 	// UPDATE CONTROLLER STATES for QGroundcontrol widgets
 

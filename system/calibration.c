@@ -55,6 +55,15 @@ bool calibration_enter(void)
 		sys_set_mode(MAV_MODE_LOCKED);
 		sys_set_state(MAV_STATE_CALIBRATING);
 		debug_message_buffer("Starting calibration.");
+
+		mavlink_msg_sys_status_send(MAVLINK_COMM_0, global_data.state.mav_mode, global_data.state.nav_mode,
+				global_data.state.status, global_data.cpu_usage, global_data.battery_voltage,
+				global_data.motor_block, global_data.packet_drops);
+		mavlink_msg_sys_status_send(MAVLINK_COMM_1, global_data.state.mav_mode, global_data.state.nav_mode,
+				global_data.state.status, global_data.cpu_usage, global_data.battery_voltage,
+				global_data.motor_block, global_data.packet_drops);
+		debug_message_send_one();
+		debug_message_send_one();
 		return 1;
 	}
 	else
