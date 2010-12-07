@@ -207,20 +207,20 @@ void main_loop_quadrotor(void)
 
 			//position_integrate(&global_data.attitude,&global_data.position,&global_data.velocity,&global_data.accel_si);
 
+			if (global_data.state.gps_mode == 1)
+			{
+				outdoor_position_kalman();
+			}
+			else
+			{
+				fuse_vision_altitude_200hz();
+			}
+
 			// QUADROTOR CODE
 			// ====================================================================
 			if (global_data.param[PARAM_SYSTEM_TYPE] == MAV_QUADROTOR)
 			{
 				control_quadrotor_attitude();
-
-				if (global_data.state.gps_mode == 1)
-				{
-					outdoor_position_kalman();
-				}
-				else
-				{
-					fuse_vision_altitude_200hz();
-				}
 			}
 			// ====================================================================
 

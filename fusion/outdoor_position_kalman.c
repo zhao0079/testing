@@ -18,6 +18,8 @@ kalman_t outdoor_position_kalman_x;
 kalman_t outdoor_position_kalman_y;
 kalman_t outdoor_position_kalman_z;
 
+static float altitude_local_origin = 0;
+
 void outdoor_position_kalman_init(void)
 {
 	//X Kalmanfilter
@@ -331,8 +333,6 @@ void outdoor_position_kalman(void)
 	{
 		nopressure = 0;
 
-		static float altitude_local_origin = 0;
-
 		if (global_data.state.pressure_ok)
 		{
 			if (altitude_local_origin)
@@ -342,8 +342,7 @@ void outdoor_position_kalman(void)
 			}
 			else
 			{
-				altitude_local_origin = -calc_altitude_pressure(
-						global_data.pressure_raw);
+				altitude_set_local_origin();
 			}
 
 			z_mask[0] = 1;//we have a pressure measurement to update
@@ -369,4 +368,10 @@ void outdoor_position_kalman(void)
 	global_data.velocity.y = kalman_get_state(&outdoor_position_kalman_y,1);
 	global_data.velocity.z = kalman_get_state(&outdoor_position_kalman_z,1);
 
+
+
+}
+void altitude_set_local_origin(void){
+	altitude_local_origin = -calc_altitude_pressure(
+			global_data.pressure_raw);
 }

@@ -238,7 +238,7 @@ void communication_send_controller_feedback(void)
 	// Send position outputs
 	if (global_data.param[PARAM_SEND_SLOT_DEBUG_5] == 1)
 	{
-		debug_vect("pos", global_data.position);
+		//debug_vect("pos", global_data.position);
 		debug_vect("pos_sp", global_data.position_setpoint);
 	}
 

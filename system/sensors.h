@@ -176,7 +176,7 @@ static inline void sensors_pressure_bmp085_read_out(void)
 		global_data.pressure_raw = bmp085_get_pressure();
 		pressure_lowpass = pressure_lowpass * 0.99f + 0.01f
 				* (float) global_data.pressure_raw;
-		if (fabs(pressure_lowpass - (float) global_data.pressure_raw) > 2000)
+		if (fabs(pressure_lowpass - (float) global_data.pressure_raw) > 1500)
 		{
 			global_data.state.pressure_ok = 0;
 			debug_message_buffer("bmp085 pressure spike rejected");

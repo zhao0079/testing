@@ -48,6 +48,8 @@
 
 #include "control_quadrotor_position.h"
 #include "params.h"
+#include "gps_transformations.h"
+#include "outdoor_position_kalman.h"
 
 static uint32_t m_parameter_i = 0;
 
@@ -91,7 +93,12 @@ void execute_action(uint8_t action)
 		start_mag_calibration();
 		break;
 	case MAV_ACTION_CALIBRATE_PRESSURE:
-		start_pressure_calibration();
+//		start_pressure_calibration();
+//		break;
+//	case MAV_ACTION_SET_ORIGIN:
+		gps_set_local_origin();
+		altitude_set_local_origin();
+		outdoor_position_kalman_init();
 		break;
 	default:
 		// Should never be reached, ignore unknown commands
