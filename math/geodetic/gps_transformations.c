@@ -7,6 +7,7 @@
 #include "gps_transformations.h"
 #include "gps.h"
 #include "debug.h"
+#include "mavlink.h"
 
 static float_vect3 gps_local_origin;
 static bool gps_local_origin_init = false;
@@ -21,7 +22,7 @@ void gps_set_local_origin(void)
 	gps_cos_origin_lat = cos(gps_local_origin.x * 3.1415 / 180);
 
 	gps_local_origin_init = true;
-
+	gps_send_local_origin();
 	debug_message_buffer("GPS Local Origin saved");
 }
 
@@ -55,4 +56,13 @@ void gps_get_local_velocity(float_vect3 * gps_local_velocity)
 	gps_local_velocity->y = sin(gps_course * 10 * 3.1415 / 180) * gps_gspeed
 			* 100;
 	//don't touch z-velocity.
+}
+
+void gps_send_local_origin(void)
+{
+	if (gps_local_origin_init)
+	{
+		mavlink_msg_gps_local_origin_set_send(global_data.param[PARAM_SEND_DEBUGCHAN], gps_local_origin.x,
+				gps_local_origin.y, gps_local_origin.z, 0, 0, 0);
+	}
 }

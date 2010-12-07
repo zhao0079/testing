@@ -483,6 +483,10 @@ void main_loop_quadrotor(void)
 //					debug_vect("GPS local", gps_local);
 				}
 			}
+			if (global_data.state.gps_mode)
+			{
+				gps_send_local_origin();
+			}
 			beep_on_low_voltage();
 
 		}
