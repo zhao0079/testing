@@ -93,12 +93,15 @@ void execute_action(uint8_t action)
 		start_mag_calibration();
 		break;
 	case MAV_ACTION_CALIBRATE_PRESSURE:
-//		start_pressure_calibration();
-//		break;
-//	case MAV_ACTION_SET_ORIGIN:
-		gps_set_local_origin();
-		altitude_set_local_origin();
-		outdoor_position_kalman_init();
+		start_pressure_calibration();
+		break;
+	case MAV_ACTION_SET_ORIGIN:
+		// If not flying
+		if (!sys_state_is_flying())
+		{
+			gps_set_local_origin();
+			altitude_set_local_origin();
+		}
 		break;
 	default:
 		// Should never be reached, ignore unknown commands

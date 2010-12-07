@@ -243,7 +243,7 @@ void outdoor_position_kalman_init(void)
 
 	kalman_init(&outdoor_position_kalman_z, 4, 2, kal_z_a, kal_z_c,
 			kal_z_gain_start, kal_z_gain, kal_z_x_apriori, kal_z_x_aposteriori,
-			10000);
+			1000);
 }
 
 void outdoor_position_kalman(void)
@@ -348,8 +348,8 @@ void outdoor_position_kalman(void)
 			z_mask[0] = 1;//we have a pressure measurement to update
 
 			//debug output
-//			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 50,
-//					z_measurement[0]);
+//						mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 50,
+//								outdoor_position_kalman_z.gainfactor);
 		}
 	}
 

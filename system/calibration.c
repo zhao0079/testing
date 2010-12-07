@@ -68,8 +68,8 @@ bool calibration_enter(void)
 void calibration_exit(void)
 {
 	// Go back to old state
-	sys_set_mode(calibration_prev_state);
-	sys_set_state(calibration_prev_mode);
+	sys_set_mode(calibration_prev_mode);
+	sys_set_state(calibration_prev_state);
 
 	// Clear debug message buffers
 	for (int i = 0; i < DEBUG_COUNT; i++)
