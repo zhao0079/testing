@@ -205,8 +205,6 @@ void main_loop_quadrotor(void)
 			// Prediction step of observer
 			attitude_observer_predict(global_data.gyros_si);
 
-			outdoor_position_kalman();
-
 			//position_integrate(&global_data.attitude,&global_data.position,&global_data.velocity,&global_data.accel_si);
 
 			// QUADROTOR CODE
@@ -215,8 +213,14 @@ void main_loop_quadrotor(void)
 			{
 				control_quadrotor_attitude();
 
-				fuse_vision_altitude_200hz();
-
+				if (global_data.state.gps_mode == 1)
+				{
+					outdoor_position_kalman();
+				}
+				else
+				{
+					fuse_vision_altitude_200hz();
+				}
 			}
 			// ====================================================================
 

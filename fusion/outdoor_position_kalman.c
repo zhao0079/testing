@@ -360,14 +360,13 @@ void outdoor_position_kalman(void)
 	//Put measurements into filter
 	kalman_correct(&outdoor_position_kalman_z, z_measurement, z_mask);
 
-	//	static int i=2;
-	//	if(i++==4){
-	//		i=0;
-	//debug
-	float_vect3 out_kal_z;
-	out_kal_z.x = kalman_get_state(&outdoor_position_kalman_x,0);
-	out_kal_z.y = kalman_get_state(&outdoor_position_kalman_y,0);
-	out_kal_z.z = kalman_get_state(&outdoor_position_kalman_z,0);
-	debug_vect("out_kal", out_kal_z);
-	//}
+// save outputs
+	global_data.position.x = kalman_get_state(&outdoor_position_kalman_x,0);
+	global_data.position.y = kalman_get_state(&outdoor_position_kalman_y,0);
+	global_data.position.z = kalman_get_state(&outdoor_position_kalman_z,0);
+
+	global_data.velocity.x = kalman_get_state(&outdoor_position_kalman_x,1);
+	global_data.velocity.y = kalman_get_state(&outdoor_position_kalman_y,1);
+	global_data.velocity.z = kalman_get_state(&outdoor_position_kalman_z,1);
+
 }
