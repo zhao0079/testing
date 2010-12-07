@@ -685,12 +685,22 @@ void communication_receive(void)
 				// New GPS data received
 				//debug_message_buffer("RECEIVED NEW GPS DATA");
 				parse_gps_msg();
-				mavlink_msg_gps_raw_send(
-						global_data.param[PARAM_SEND_DEBUGCHAN],
-						sys_time_clock_get_unix_time(), gps_mode, gps_lat
-								/ 1e7f, gps_lon / 1e7f, gps_alt / 100.0f, 0.0f,
-						0.0f, gps_gspeed / 100.0f, gps_course / 10.0f);
 
+				if (gps_lat == 0)
+				{
+					global_data.state.gps_ok = 0;
+					//debug_message_buffer("GPS Signal Lost");
+				}
+				else
+				{
+					global_data.state.gps_ok = 1;
+
+					mavlink_msg_gps_raw_send(
+							global_data.param[PARAM_SEND_DEBUGCHAN],
+							sys_time_clock_get_unix_time(), gps_mode, gps_lat
+									/ 1e7f, gps_lon / 1e7f, gps_alt / 100.0f,
+							0.0f, 0.0f, gps_gspeed / 100.0f, gps_course / 10.0f);
+				}
 				//				// Output satellite info
 				//				for (int i = 0; i < gps_nb_channels; i++)
 				//				{

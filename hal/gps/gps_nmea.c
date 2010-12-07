@@ -529,6 +529,9 @@ void parse_gps_msg(void)
 		printf("parse_gps_msg() - parsing GGA gps-message \"%s\"\n",nmea_msg_buf);
 #endif 
 		parse_nmea_GPGGA();
+
+		// Tell the filter that we have a new position.
+		global_data.state.gps_new_data = 1;
 	}
 	else if (nmea_msg_len > 7 && !strncmp(nmea_msg_buf, "GPGSA", 5))
 	{
