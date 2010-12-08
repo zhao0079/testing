@@ -230,6 +230,7 @@ typedef struct
 	uint8_t ground_distance_ok;
 	uint8_t magnet_ok;
 	uint8_t pressure_ok;
+	uint8_t remote_ok;
 	uint8_t position_fix;
 	uint8_t fly;
 	uint8_t attitude_control_enabled;
@@ -639,6 +640,7 @@ static inline void global_data_reset(void)
 	global_data.state.gps_ok=0;
 	global_data.state.gps_new_data=0;
 	global_data.state.pressure_ok=0;
+	global_data.state.remote_ok=0;
 	global_data.state.magnet_ok=0;
 	global_data.state.ground_distance_ok=0;
 	global_data.state.position_fix=0;

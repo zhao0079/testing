@@ -571,6 +571,10 @@ void update_system_statemachine(uint64_t loop_start_time)
 			global_data.param[PARAM_MIX_OFFSET_WEIGHT] = 0;
 			global_data.param[PARAM_MIX_REMOTE_WEIGHT] = 0;
 	}
+	if (global_data.state.remote_ok == 0)
+	{
+		global_data.param[PARAM_MIX_REMOTE_WEIGHT] = 0;
+	}
 }
 
 void send_system_state(void)
