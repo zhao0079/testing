@@ -207,10 +207,33 @@ inline void remote_control(void)
 			{
 				//already the second time
 				// Emergency Landing
-				sys_set_state(MAV_STATE_EMERGENCY);
-				global_data.state.fly=FLY_LANDING;//start landing
+				if (global_data.state.fly != FLY_GROUNDED
+						&& global_data.state.fly != FLY_RAMP_DOWN)
+				{
+					sys_set_state(MAV_STATE_EMERGENCY);
+					global_data.state.fly = FLY_LANDING;//start landing
+					debug_message_buffer(
+							"EMERGENCY LANDING STARTED. No remote signal");
+				}
+				else
+				{
+					if (global_data.state.fly == FLY_GROUNDED)
+					{
+						sys_set_mode(MAV_MODE_LOCKED);
+						sys_set_state(MAV_STATE_STANDBY);
 
-				debug_message_buffer("EMERGENCY LANDING. No remote signal");
+						debug_message_buffer(
+								"EMERGENCY LANDING FINISHED. No remote signal");
+						debug_message_buffer(
+								"EMERGENCY LANDING NOW LOCKED");
+					}
+					else
+					{
+						//won't come here anymore if once in locked mode
+						debug_message_buffer(
+								"EMERGENCY LANDING. No remote signal");
+					}
+				}
 			}
 		}
 
