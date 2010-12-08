@@ -204,26 +204,8 @@ void main_loop_quadrotor(void)
 
 			//position_integrate(&global_data.attitude,&global_data.position,&global_data.velocity,&global_data.accel_si);
 
-			// QUADROTOR CODE
-			// ====================================================================
-			if (global_data.param[PARAM_SYSTEM_TYPE] == MAV_QUADROTOR)
-			{
-				control_quadrotor_attitude();
-
-				fuse_vision_altitude_200hz();
-
-			}
-			// ====================================================================
-
-
-			// FIXED WING CODE
-			// ====================================================================
-			if (global_data.param[PARAM_SYSTEM_TYPE] == MAV_FIXED_WING)
-			{
-				control_fixed_wing_attitude();
-			}
-			// ====================================================================
-
+			control_quadrotor_attitude();
+			fuse_vision_altitude_200hz();
 		}
 		///////////////////////////////////////////////////////////////////////////
 
@@ -385,6 +367,9 @@ void main_loop_quadrotor(void)
 		{
 			// Send system state, mode, battery voltage, etc.
 			send_system_state();
+
+			// Send current onboard time
+			mavlink_msg_system_time_send(MAVLINK_COMM_1, sys_time_clock_get_unix_time());
 
 			//update state from recieved parameters
 			sync_state_parameters();

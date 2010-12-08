@@ -251,6 +251,15 @@ typedef struct
 
 } sys_state_t;
 
+typedef struct
+{
+	uint32_t uart0_rx_drop_count;     /// UART0 Receive drops
+	uint32_t uart0_rx_success_count;  /// UART0 Receive successes
+	uint32_t uart1_rx_drop_count;     /// UART0 Receive drops
+	uint32_t uart1_rx_success_count;  /// UART0 Receive successes
+
+} comm_state_t;
+
 struct global_struct
 {
 	uint32_t pressure_raw;                    ///< Raw ambient pressure, in ADC units
@@ -305,7 +314,7 @@ struct global_struct
 	float_vect3 position_error;
 	sys_state_t state;                        ///< Current vehicle state representation
 	uint8_t motor_block;                      ///< Position of motor block switch
-	uint16_t packet_drops;                    ///< Packet drop rate of receiving channels
+	comm_state_t comm;                        ///< Packet drop rate of receiving channels
 	uint16_t pwm_values[PWM_NB_CHANNELS];     ///< Servo outputs
 	uint16_t ppm_values[PPM_NB_CHANNEL];      ///< RC inputs
 	uint32_t watchdog_error;
@@ -639,6 +648,12 @@ static inline void global_data_reset(void)
 	global_data.state.magnet_ok=0;
 	global_data.state.ground_distance_ok=0;
 	global_data.state.position_fix=0;
+
+	global_data.comm.uart0_rx_drop_count = 0;
+	global_data.comm.uart0_rx_success_count = 0;
+	global_data.comm.uart1_rx_drop_count = 0;
+	global_data.comm.uart1_rx_success_count = 0;
+
 	global_data.ground_distance=0;
 	global_data.ground_distance_unfiltered = 0;
 

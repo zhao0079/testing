@@ -54,7 +54,7 @@ void handle_mavlink_message(mavlink_channel_t chan, mavlink_message_t* msg);
 */
 void communication_queued_send(void);
 
-
+uint32_t communication_get_uart_drop_rate(void);
 
 void communication_init(void);
 

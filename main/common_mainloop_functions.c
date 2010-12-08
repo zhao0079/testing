@@ -13,7 +13,8 @@
 
 // Include comm
 #include "comm.h"
-#include "mavlink.h"
+#include <mavlink.h>
+#include "communication.h"
 
 // Include globals
 #include "global_data.h"
@@ -588,20 +589,20 @@ void send_system_state(void)
 
 	mavlink_msg_sys_status_send(MAVLINK_COMM_0, global_data.state.mav_mode, global_data.state.nav_mode,
 			global_data.state.status, global_data.cpu_usage, global_data.battery_voltage,
-			global_data.motor_block, global_data.packet_drops);
+			global_data.motor_block, communication_get_uart_drop_rate());
 	mavlink_msg_sys_status_send(MAVLINK_COMM_1, global_data.state.mav_mode, global_data.state.nav_mode,
 			global_data.state.status, global_data.cpu_usage, global_data.battery_voltage,
-			global_data.motor_block, global_data.packet_drops);
+			global_data.motor_block, communication_get_uart_drop_rate());
 
 	// Send auxiliary status over both links
 	mavlink_msg_aux_status_send(MAVLINK_COMM_1, global_data.cpu_usage,
 			global_data.i2c0_err_count, global_data.i2c1_err_count,
 			global_data.spi_err_count, global_data.spi_err_count,
-			global_data.packet_drops);
+			communication_get_uart_drop_rate());
 	mavlink_msg_aux_status_send(MAVLINK_COMM_0, global_data.cpu_usage,
 			global_data.i2c0_err_count, global_data.i2c1_err_count,
 			global_data.spi_err_count, global_data.spi_err_count,
-			global_data.packet_drops);
+			communication_get_uart_drop_rate());
 
 	//			mavlink_msg_raw_aux_send(MAVLINK_COMM_0, 0, 0, 0, 0,
 	//					battery_get_value(), global_data.temperature,

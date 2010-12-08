@@ -52,16 +52,16 @@ bool calibration_enter(void)
 		calibration_prev_state = sys_get_state();
 		calibration_prev_mode = sys_get_mode();
 		// Lock vehicle during calibration
-		sys_set_mode(MAV_MODE_LOCKED);
-		sys_set_state(MAV_STATE_CALIBRATING);
+		sys_set_mode((uint8_t)MAV_MODE_LOCKED);
+		sys_set_state((uint8_t)MAV_STATE_CALIBRATING);
 		debug_message_buffer("Starting calibration.");
-		return 1;
+		return true;
 	}
 	else
 	{
 		//Can't calibrate during flight
 		debug_message_buffer("Can't calibrate during flight!!!");
-		return 0;
+		return false;
 	}
 
 }
