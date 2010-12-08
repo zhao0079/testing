@@ -239,7 +239,7 @@ void communication_send_controller_feedback(void)
 	// Send position outputs
 	if (global_data.param[PARAM_SEND_SLOT_DEBUG_5] == 1)
 	{
-		debug_vect("pos", global_data.position);
+		//debug_vect("pos", global_data.position);
 		debug_vect("pos_sp", global_data.position_setpoint);
 	}
 
@@ -291,8 +291,6 @@ void handle_controller_timeouts(uint64_t loop_start_time)
 		global_data.state.position_fix = 1;
 	}
 
-	// NO GPS YET
-	global_data.state.gps_ok = 0;
 
 	// UPDATE CONTROLLER STATES for QGroundcontrol widgets
 

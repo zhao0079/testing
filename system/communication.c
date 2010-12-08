@@ -48,6 +48,8 @@
 
 #include "control_quadrotor_position.h"
 #include "params.h"
+#include "gps_transformations.h"
+#include "outdoor_position_kalman.h"
 
 static uint32_t m_parameter_i = 0;
 
@@ -92,6 +94,14 @@ void execute_action(uint8_t action)
 		break;
 	case MAV_ACTION_CALIBRATE_PRESSURE:
 		start_pressure_calibration();
+		break;
+	case MAV_ACTION_SET_ORIGIN:
+		// If not flying
+		if (!sys_state_is_flying())
+		{
+			gps_set_local_origin();
+			altitude_set_local_origin();
+		}
 		break;
 	default:
 		// Should never be reached, ignore unknown commands
@@ -690,12 +700,22 @@ void communication_receive(void)
 				// New GPS data received
 				//debug_message_buffer("RECEIVED NEW GPS DATA");
 				parse_gps_msg();
-				mavlink_msg_gps_raw_send(
-						global_data.param[PARAM_SEND_DEBUGCHAN],
-						sys_time_clock_get_unix_time(), gps_mode, gps_lat
-						/ 1e7f, gps_lon / 1e7f, gps_alt / 100.0f, 0.0f,
-						0.0f, gps_gspeed / 100.0f, gps_course / 10.0f);
 
+				if (gps_lat == 0)
+				{
+					global_data.state.gps_ok = 0;
+					//debug_message_buffer("GPS Signal Lost");
+				}
+				else
+				{
+					global_data.state.gps_ok = 1;
+
+					mavlink_msg_gps_raw_send(
+							global_data.param[PARAM_SEND_DEBUGCHAN],
+							sys_time_clock_get_unix_time(), gps_mode, gps_lat
+									/ 1e7f, gps_lon / 1e7f, gps_alt / 100.0f,
+							0.0f, 0.0f, gps_gspeed / 100.0f, gps_course / 10.0f);
+				}
 				//				// Output satellite info
 				//				for (int i = 0; i < gps_nb_channels; i++)
 				//				{
