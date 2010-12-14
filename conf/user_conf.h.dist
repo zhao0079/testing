@@ -45,7 +45,10 @@
 // Valid system types are listed above.
 //#define PX_VEHICLE_TYPE PX_GENERIC
 
-
+// Select the board: Uncomment ONLY ONE of the following lines.
+//#define IMU_PIXHAWK_V200
+#define IMU_PIXHAWK_V210
+//#define IMU_PIXHAWK_V250
 
 
 #ifndef PX_VEHICLE_TYPE
