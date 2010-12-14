@@ -159,11 +159,13 @@ inline void remote_control(void)
 			if (global_data.param[PARAM_TRIMCHAN] == 1)
 			{
 								global_data.param[PARAM_PID_ATT_P] = 0.1 * tune2;
+								global_data.param[PARAM_PID_ATT_I] = 0;
 								global_data.param[PARAM_PID_ATT_D] = 0.1 * tune3;
 			}
 			else if (global_data.param[PARAM_TRIMCHAN] == 2)
 			{
 								global_data.param[PARAM_PID_POS_P] = 0.01 * tune2;
+								global_data.param[PARAM_PID_POS_I] = 0;
 								global_data.param[PARAM_PID_POS_D] = 0.01 * tune3;
 			}
 			//this is done at 10 Hz

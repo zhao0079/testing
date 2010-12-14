@@ -3,7 +3,7 @@
 #include "conf.h"
 
 
-#if defined(IMU_PIXHAWK_V210)
+#if FEATURE_LED==FEATURE_LED_ENABLED
 void led_init(void) {
 	PINSEL2 &= ~(1<<3); //TODO Hack, this is for setting P16-P23 as GPIO ports
 	LED_RED_DIR |= (1 << LED_RED);
@@ -79,7 +79,7 @@ void led_toggle(int led) {
 
 #endif
 
-#if defined(IMU_PIXHAWK_V200)
+#if FEATURE_LED==FEATURE_LED_ENABLED_200
 void led_init(void) {
 	PINSEL2 &= ~(1<<3); //TODO Hack, this is for setting P16-P23 as GPIO ports
 	LED_RED_DIR |= (1 << LED_RED);
