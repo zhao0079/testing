@@ -60,7 +60,7 @@ inline void remote_control(void)
 	{
 		if (radio_control_status() == RADIO_CONTROL_ON)
 		{
-
+			global_data.state.remote_ok=1;
 			//get remote controll values
 			float gas_remote = PPM_SCALE_FACTOR * (ppm_get_channel(
 					global_data.param[PARAM_PPM_THROTTLE_CHANNEL]) - PPM_OFFSET);
@@ -159,11 +159,13 @@ inline void remote_control(void)
 			if (global_data.param[PARAM_TRIMCHAN] == 1)
 			{
 								global_data.param[PARAM_PID_ATT_P] = 0.1 * tune2;
+								global_data.param[PARAM_PID_ATT_I] = 0;
 								global_data.param[PARAM_PID_ATT_D] = 0.1 * tune3;
 			}
 			else if (global_data.param[PARAM_TRIMCHAN] == 2)
 			{
 								global_data.param[PARAM_PID_POS_P] = 0.01 * tune2;
+								global_data.param[PARAM_PID_POS_I] = 0;
 								global_data.param[PARAM_PID_POS_D] = 0.01 * tune3;
 			}
 			//this is done at 10 Hz
@@ -196,16 +198,45 @@ inline void remote_control(void)
 		else
 		{
 			//No Remote signal
-			//		TODO: Wait a bit and start sinking
-			//switch off motors
-			//		global_data.status = MAV_STATE_STANDBY;
 
-			//FOR NOW JUST TURN OFF MOTORS (WE HAVE A CABLE)
-			//FIXME Emergency Landing
-			sys_set_mode(MAV_MODE_LOCKED);
-			global_data.state.status = MAV_STATE_STANDBY;
+			if (global_data.state.remote_ok == 1)
+			{
+				//Wait one round and start sinking
+				global_data.state.remote_ok = 0;
+				debug_message_buffer("No remote signal (1st time)");
+			}
+			else
+			{
+				//already the second time
+				// Emergency Landing
+				if (global_data.state.fly != FLY_GROUNDED
+						&& global_data.state.fly != FLY_RAMP_DOWN)
+				{
+					sys_set_state(MAV_STATE_EMERGENCY);
+					global_data.state.fly = FLY_LANDING;//start landing
+					debug_message_buffer(
+							"EMERGENCY LANDING STARTED. No remote signal");
+				}
+				else
+				{
+					if (global_data.state.fly == FLY_GROUNDED)
+					{
+						sys_set_mode(MAV_MODE_LOCKED);
+						sys_set_state(MAV_STATE_STANDBY);
 
-			debug_message_buffer("EMERGENCY SWITCH OFF. No remote signal");
+						debug_message_buffer(
+								"EMERGENCY LANDING FINISHED. No remote signal");
+						debug_message_buffer(
+								"EMERGENCY LANDING NOW LOCKED");
+					}
+					else
+					{
+						//won't come here anymore if once in locked mode
+						debug_message_buffer(
+								"EMERGENCY LANDING. No remote signal");
+					}
+				}
+			}
 		}
 
 	}

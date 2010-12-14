@@ -35,8 +35,9 @@ This file is part of the PIXHAWK project
 #define FEATURES_H_
 
 /* LED */
-//#define FEATURE_LED_DISABLED					1
-//#define FEATURE_LED_ENABLED						2
+#define FEATURE_LED_DISABLED					1
+#define FEATURE_LED_ENABLED						2
+#define FEATURE_LED_ENABLED_200					3
 
 //#define FEATURE_EEPROM						0
 

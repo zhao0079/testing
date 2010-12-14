@@ -230,6 +230,7 @@ typedef struct
 	uint8_t ground_distance_ok;
 	uint8_t magnet_ok;
 	uint8_t pressure_ok;
+	uint8_t remote_ok;
 	uint8_t position_fix;
 	uint8_t fly;
 	uint8_t attitude_control_enabled;
@@ -377,7 +378,7 @@ static inline void global_data_reset_param_defaults(void){
 	strcpy(global_data.param_name[PARAM_PPM_SAFETY_SWITCH_CHANNEL],
 			"RC_SAFETY_CHAN");
 
-	global_data.param[PARAM_UART0_BAUD] = 115200;// 115200;
+	global_data.param[PARAM_UART0_BAUD] = 57600;// 115200;
 	strcpy(global_data.param_name[PARAM_UART0_BAUD], "UART_0_BAUD");
 
 	global_data.param[PARAM_UART1_BAUD] = 57600;//57600
@@ -648,6 +649,7 @@ static inline void global_data_reset(void)
 	global_data.state.gps_ok=0;
 	global_data.state.gps_new_data=0;
 	global_data.state.pressure_ok=0;
+	global_data.state.remote_ok=0;
 	global_data.state.magnet_ok=0;
 	global_data.state.ground_distance_ok=0;
 	global_data.state.position_fix=0;
