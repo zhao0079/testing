@@ -80,6 +80,7 @@
 #include "fat.h"
 
 #include "outdoor_position_kalman.h"
+#include "vision_position_kalman.h"
 
 // Executiontime debugging
 float_vect3 time_debug;
@@ -103,6 +104,7 @@ void main_init_quadrotor(void)
 	control_quadrotor_position_init();
 	control_quadrotor_attitude_init();
 	outdoor_position_kalman_init();
+	vision_position_kalman_init();
 }
 
 /**
@@ -213,6 +215,7 @@ void main_loop_quadrotor(void)
 			}
 			else
 			{
+//				vision_position_kalman();
 				fuse_vision_altitude_200hz();
 			}
 
