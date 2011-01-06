@@ -394,10 +394,10 @@
 #define MOT_I2C_BUS_NUMBER				0 // set back to 0
 
 // Mikrokopter default addresses
-#define MOT4_I2C_SLAVE_ADDRESS			0x52	///< I2C slave address of I2C motor controller number 1
-#define MOT3_I2C_SLAVE_ADDRESS			0x54	///< I2C slave address of I2C motor controller number 2
-#define MOT1_I2C_SLAVE_ADDRESS			0x58	///< I2C slave address of I2C motor controller number 3
-#define MOT2_I2C_SLAVE_ADDRESS			0x56	///< I2C slave address of I2C motor controller number 4
+#define MOT1_I2C_SLAVE_ADDRESS			0x52	///< I2C slave address of I2C motor controller number 1
+#define MOT2_I2C_SLAVE_ADDRESS			0x54	///< I2C slave address of I2C motor controller number 2
+#define MOT3_I2C_SLAVE_ADDRESS			0x56	///< I2C slave address of I2C motor controller number 3
+#define MOT4_I2C_SLAVE_ADDRESS			0x58	///< I2C slave address of I2C motor controller number 4
 
 
 /*  ********************************************************************/
