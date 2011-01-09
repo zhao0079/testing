@@ -168,6 +168,18 @@ inline void remote_control(void)
 								global_data.param[PARAM_PID_POS_I] = 0;
 								global_data.param[PARAM_PID_POS_D] = 0.01 * tune3;
 			}
+			else if (global_data.param[PARAM_TRIMCHAN] == 3)
+			{
+								global_data.param[PARAM_PID_POS_Z_P] = 0.01 * tune2;
+//								global_data.param[PARAM_PID_POS_Z_I] = 0;
+								global_data.param[PARAM_PID_POS_Z_D] = 0.01 * tune3;
+			}
+			else if (global_data.param[PARAM_TRIMCHAN] == 4)
+			{
+								global_data.param[PARAM_PID_YAWPOS_P] = 0.1 * tune2;
+								global_data.param[PARAM_PID_YAWPOS_I] = 0;
+								global_data.param[PARAM_PID_YAWPOS_D] = 0.1 * tune3;
+			}
 			//this is done at 10 Hz
 			//			pid_set_parameters(&nick_controller,
 			//					global_data.param[PARAM_PID_ATT_P],
