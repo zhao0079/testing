@@ -176,6 +176,12 @@ inline void remote_control(void)
 			}
 			else if (global_data.param[PARAM_TRIMCHAN] == 4)
 			{
+								global_data.param[PARAM_PID_YAWSPEED_P] = 0.1 * tune2;
+								global_data.param[PARAM_PID_YAWSPEED_I] = 0;
+								global_data.param[PARAM_PID_YAWSPEED_D] = 0.1 * tune3;
+			}
+			else if (global_data.param[PARAM_TRIMCHAN] == 5)
+			{
 								global_data.param[PARAM_PID_YAWPOS_P] = 0.1 * tune2;
 								global_data.param[PARAM_PID_YAWPOS_I] = 0;
 								global_data.param[PARAM_PID_YAWPOS_D] = 0.1 * tune3;
