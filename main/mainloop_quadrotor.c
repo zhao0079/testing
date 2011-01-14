@@ -84,6 +84,7 @@
 
 // Executiontime debugging
 float_vect3 time_debug;
+static uint32_t count = 0;
 
 // Static variables
 // these variables are used during the whole
@@ -128,43 +129,6 @@ void main_loop_quadrotor(void)
 	{
 		// Time Measurement
 		uint64_t loop_start_time = sys_time_clock_get_time_usec();
-
-		///////////////////////////////////////////////////////////////////////////
-
-
-		if (global_data.state.mav_mode == MAV_MODE_RC_TRAINING)
-		{
-			send_system_state();
-			static uint8_t uart_unconfigured = 1;
-			if (uart_unconfigured)
-			{
-				// Mode for FMSPIC adapter
-				uart1_init(19200, COMM_UART_MODE, UART_FIFO_8);
-				uart_unconfigured = 0;
-			}
-
-			while (1)
-			{
-				loop_start_time = sys_time_clock_get_time_usec();
-
-				///////////////////////////////////////////////////////////////////////////
-				/// RC INTERFACE HACK AT 50 Hz
-				///////////////////////////////////////////////////////////////////////////
-				if (us_run_every(20000, COUNTER8, loop_start_time))
-				{
-					// Write start byte
-					uart1_transmit(0xFF);
-
-					// Write channels 1-8
-					// The format works with FMS and CRRCSim model flight simulators
-					for (int i = 1; i < 9; i++)
-					{
-						uart1_transmit(clamp((radio_control_get_channel(i)+1)*127, 0, 254));
-					}
-					led_toggle(LED_RED);
-				}
-			}
-		}
 
 		///////////////////////////////////////////////////////////////////////////
 		/// CRITICAL 200 Hz functions
@@ -220,6 +184,9 @@ void main_loop_quadrotor(void)
 			}
 
 			control_quadrotor_attitude();
+
+			//debug counting number of executions
+			count++;
 		}
 		///////////////////////////////////////////////////////////////////////////
 
@@ -270,7 +237,6 @@ void main_loop_quadrotor(void)
 
 			//STARTING AND LANDING
 			quadrotor_start_land_handler(loop_start_time);
-
 		}
 		///////////////////////////////////////////////////////////////////////////
 
@@ -387,6 +353,12 @@ void main_loop_quadrotor(void)
 
 			//update state from recieved parameters
 			sync_state_parameters();
+
+			//debug number of execution
+			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN],
+					101, count);
+			count = 0;
+
 //			TESTING MATRIX MULTIPLICATION
 //			m_elem testA[4*4]={123478,2,12343,21345,
 //			1123,2,12343,6,
@@ -478,6 +450,41 @@ void main_loop_quadrotor(void)
 				gps_send_local_origin();
 			}
 			beep_on_low_voltage();
+
+
+			if (global_data.state.mav_mode == MAV_MODE_RC_TRAINING)
+					{
+						send_system_state();
+						static uint8_t uart_unconfigured = 1;
+						if (uart_unconfigured)
+						{
+							// Mode for FMSPIC adapter
+							uart1_init(19200, COMM_UART_MODE, UART_FIFO_8);
+							uart_unconfigured = 0;
+						}
+
+						while (1)
+						{
+							loop_start_time = sys_time_clock_get_time_usec();
+
+							///////////////////////////////////////////////////////////////////////////
+							/// RC INTERFACE HACK AT 50 Hz
+							///////////////////////////////////////////////////////////////////////////
+							if (us_run_every(20000, COUNTER8, loop_start_time))
+							{
+								// Write start byte
+								uart1_transmit(0xFF);
+
+								// Write channels 1-8
+								// The format works with FMS and CRRCSim model flight simulators
+								for (int i = 1; i < 9; i++)
+								{
+									uart1_transmit(clamp((radio_control_get_channel(i)+1)*127, 0, 254));
+								}
+								led_toggle(LED_RED);
+							}
+						}
+					}
 
 		}
 		///////////////////////////////////////////////////////////////////////////
