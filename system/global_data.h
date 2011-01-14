@@ -171,6 +171,10 @@ enum
 	PARAM_GPS_MODE,
 	PARAM_CAM_INTERVAL,
 	PARAM_CAM_EXP,
+	PARAM_CAM_ANGLE_X_OFFSET,
+	PARAM_CAM_ANGLE_X_FACTOR,
+	PARAM_CAM_ANGLE_Y_OFFSET,
+	PARAM_CAM_ANGLE_Y_FACTOR,
 	ONBOARD_PARAM_COUNT
 ///< Store parameters in EEPROM and expose them over MAVLink paramter interface
 } global_param_id;
@@ -628,6 +632,18 @@ static inline void global_data_reset_param_defaults(void){
 
 	strcpy(global_data.param_name[PARAM_GPS_MODE], "GPS_MODE");
 	global_data.param[PARAM_GPS_MODE] = 0; //0: MAVLINK, 960010: GPS; // 9600 1 0: 9600 baud, mode 1 = U-Blox binary, on UART 0
+
+
+
+	strcpy(global_data.param_name[PARAM_CAM_ANGLE_X_OFFSET], "CAM_ANG_X_OFF");
+	strcpy(global_data.param_name[PARAM_CAM_ANGLE_X_FACTOR], "CAM_ANG_X_FAC");
+	strcpy(global_data.param_name[PARAM_CAM_ANGLE_Y_OFFSET], "CAM_ANG_Y_OFF");
+	strcpy(global_data.param_name[PARAM_CAM_ANGLE_Y_FACTOR], "CAM_ANG_Y_FAC");
+
+	global_data.param[PARAM_CAM_ANGLE_X_OFFSET] = 0;
+	global_data.param[PARAM_CAM_ANGLE_X_FACTOR] = 0;
+	global_data.param[PARAM_CAM_ANGLE_Y_OFFSET] = 0;
+	global_data.param[PARAM_CAM_ANGLE_Y_FACTOR] = 0;
 
 	global_data.param[PARAM_IMU_RESET] = 0;
 	strcpy(global_data.param_name[PARAM_IMU_RESET], "SYS_IMU_RESET");

@@ -218,6 +218,8 @@ void main_loop_quadrotor(void)
 			control_quadrotor_position();
 			// Read remote control
 			remote_control();
+
+			control_camera_angle();
 		}
 		///////////////////////////////////////////////////////////////////////////
 
