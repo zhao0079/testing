@@ -133,12 +133,20 @@ void position_integrate(float_vect3* att,float_vect3 *pos,float_vect3 *vel,float
 
 void control_camera_angle()
 {
+//	for(int i=0;i<8;i++){
+//			servos_set(i, global_data.param[PARAM_CAM_ANGLE_X_OFFSET]
+//					+ global_data.param[PARAM_CAM_ANGLE_X_FACTOR]
+//							* global_data.attitude.x);
+//	}
+
 	servos_set(4, global_data.param[PARAM_CAM_ANGLE_X_OFFSET]
 			+ global_data.param[PARAM_CAM_ANGLE_X_FACTOR]
 					* global_data.attitude.x);
 	servos_set(5, global_data.param[PARAM_CAM_ANGLE_Y_OFFSET]
 			+ global_data.param[PARAM_CAM_ANGLE_Y_FACTOR]
 					* global_data.attitude.y);
+
+//	led_toggle(LED_YELLOW);
 }
 
 void communication_send_raw_data(uint64_t loop_start_time)
