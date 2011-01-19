@@ -106,6 +106,12 @@ void execute_action(uint8_t action)
 	default:
 		// Should never be reached, ignore unknown commands
 		debug_message_buffer("WARNING: Rejected unknown action");
+		char action_number[4];
+		action_number[0] = action/100+48;
+		action_number[1] = (action%100)/10+48;
+		action_number[2] = (action%10)+48;
+		action_number[3] = 0;
+		debug_message_buffer(action_number);
 		break;
 	}
 }
@@ -547,7 +553,7 @@ void handle_mavlink_message(mavlink_channel_t chan,
 							}
 						}
 						if (global_data.state.fly == FLY_GROUNDED && sp.z
-								< -0.69)
+								< -0.50)
 						{
 							//start if we were grounded and get a sp over 0.5m
 							global_data.state.fly = FLY_WAIT_MOTORS;
