@@ -159,13 +159,13 @@ inline void remote_control(void)
 			if (global_data.param[PARAM_TRIMCHAN] == 1)
 			{
 								global_data.param[PARAM_PID_ATT_P] = 0.1 * tune2;
-								global_data.param[PARAM_PID_ATT_I] = 0;
+//								global_data.param[PARAM_PID_ATT_I] = 0;
 								global_data.param[PARAM_PID_ATT_D] = 0.1 * tune3;
 			}
 			else if (global_data.param[PARAM_TRIMCHAN] == 2)
 			{
 								global_data.param[PARAM_PID_POS_P] = 0.01 * tune2;
-								global_data.param[PARAM_PID_POS_I] = 0;
+//								global_data.param[PARAM_PID_POS_I] = 0;
 								global_data.param[PARAM_PID_POS_D] = 0.01 * tune3;
 			}
 			else if (global_data.param[PARAM_TRIMCHAN] == 3)
@@ -177,13 +177,13 @@ inline void remote_control(void)
 			else if (global_data.param[PARAM_TRIMCHAN] == 4)
 			{
 								global_data.param[PARAM_PID_YAWSPEED_P] = 0.1 * tune2;
-								global_data.param[PARAM_PID_YAWSPEED_I] = 0;
+//								global_data.param[PARAM_PID_YAWSPEED_I] = 0;
 								global_data.param[PARAM_PID_YAWSPEED_D] = 0.1 * tune3;
 			}
 			else if (global_data.param[PARAM_TRIMCHAN] == 5)
 			{
 								global_data.param[PARAM_PID_YAWPOS_P] = 0.1 * tune2;
-								global_data.param[PARAM_PID_YAWPOS_I] = 0;
+//								global_data.param[PARAM_PID_YAWPOS_I] = 0;
 								global_data.param[PARAM_PID_YAWPOS_D] = 0.1 * tune3;
 			}
 			//this is done at 10 Hz
@@ -211,7 +211,13 @@ inline void remote_control(void)
 
 			//global_data.param_name[PARAM_MIX_REMOTE_WEIGHT] = 1;// add position only keep - tune3;
 			//global_data.param[PARAM_MIX_POSITION_WEIGHT] = 1;
-
+			if (global_data.param[PARAM_PPM_TUNE1_CHANNEL] != -1)
+			{
+				global_data.param[PARAM_CAM_ANGLE_Y_OFFSET]
+						= ((float) (ppm_get_channel(
+								global_data.param[PARAM_PPM_TUNE1_CHANNEL]))
+								- 1000.0f) / 1000.0f;
+			}
 		}
 		else
 		{
