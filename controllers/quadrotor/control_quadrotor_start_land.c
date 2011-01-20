@@ -113,7 +113,7 @@ void quadrotor_start_land_handler(uint64_t loop_start_time)
 
 	if (global_data.state.fly == FLY_SINKING)
 	{
-		global_data.position_setpoint.z = -0.4;// is done already in communication.h
+//		global_data.position_setpoint.z = -0.4;// is done already in communication.h
 		if (global_data.position.z > global_data.position_setpoint.z - 0.1)
 		{
 			global_data.state.fly = FLY_WAIT_LANDING;
@@ -134,7 +134,8 @@ void quadrotor_start_land_handler(uint64_t loop_start_time)
 	{
 		landing_counter += 50;
 		if (landing_counter > 3000 || (global_data.ground_distance_unfiltered
-				< 0.3 && global_data.state.ground_distance_ok == 1))
+				< 0.3 && global_data.state.ground_distance_ok == 1)
+				|| global_data.position.z>0.3)
 		{
 			global_data.state.fly = FLY_RAMP_DOWN;
 			debug_message_buffer("LANDING ramp down");

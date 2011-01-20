@@ -698,7 +698,7 @@ static inline void global_data_reset(void)
 	//safe corridor
 	global_data.position_setpoint_min.x=-20;
 	global_data.position_setpoint_min.y=-20;
-	global_data.position_setpoint_min.z=-1.2;
+	global_data.position_setpoint_min.z=-1.6;
 	global_data.position_setpoint_max.x=20;
 	global_data.position_setpoint_max.y=20;
 	global_data.position_setpoint_max.z=0;

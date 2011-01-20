@@ -535,24 +535,24 @@ void handle_mavlink_message(mavlink_channel_t chan,
 							if (!(global_data.state.fly == FLY_GROUNDED
 									|| global_data.state.fly == FLY_SINKING
 									|| global_data.state.fly
-									== FLY_WAIT_LANDING
+											== FLY_WAIT_LANDING
 									|| global_data.state.fly == FLY_LANDING
 									|| global_data.state.fly == FLY_RAMP_DOWN))
 							{
 								//if setpoint is lower that ground iate landing
 								global_data.state.fly = FLY_SINKING;
 								global_data.param[PARAM_POSITION_SETPOINT_Z]
-								                  = -0.7;//with lowpass
+										= -0.4;//with lowpass
 								debug_message_buffer(
 										"Sinking for LANDING. (z-sp lower than 10cm)");
 							}
-							else if(!(global_data.state.fly == FLY_GROUNDED))
+							else if (!(global_data.state.fly == FLY_GROUNDED))
 							{
 								global_data.param[PARAM_POSITION_SETPOINT_Z]
-								                  = -0.7;//with lowpass
+										= -0.4;//with lowpass
 							}
 						}
-						if (global_data.state.fly == FLY_GROUNDED && sp.z
+						else if (global_data.state.fly == FLY_GROUNDED && sp.z
 								< -0.50)
 						{
 							//start if we were grounded and get a sp over 0.5m
