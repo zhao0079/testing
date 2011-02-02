@@ -542,14 +542,14 @@ void handle_mavlink_message(mavlink_channel_t chan,
 								//if setpoint is lower that ground iate landing
 								global_data.state.fly = FLY_SINKING;
 								global_data.param[PARAM_POSITION_SETPOINT_Z]
-										= -0.4;//with lowpass
+										= -0.2;//with lowpass
 								debug_message_buffer(
 										"Sinking for LANDING. (z-sp lower than 10cm)");
 							}
 							else if (!(global_data.state.fly == FLY_GROUNDED))
 							{
 								global_data.param[PARAM_POSITION_SETPOINT_Z]
-										= -0.4;//with lowpass
+										= -0.2;//with lowpass
 							}
 						}
 						else if (global_data.state.fly == FLY_GROUNDED && sp.z
