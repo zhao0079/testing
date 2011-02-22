@@ -43,8 +43,21 @@
 
 // Please select a system type
 // Valid system types are listed above.
-//#define PX_VEHICLE_TYPE PX_AIRFRAME_QUADROTOR
 
+//#define PX_VEHICLE_TYPE PX_GENERIC
+
+// Select the board: Uncomment ONLY ONE of the following lines.
+//#define IMU_PIXHAWK_V200
+#define IMU_PIXHAWK_V210
+//#define IMU_PIXHAWK_V250
+
+
+
+
+
+
+
+// SANITY CHECKS
 
 #if (PX_VEHICLE_TYPE < 1) | (PX_VEHICLE_TYPE > 6)
 // If you get this error, you selected an invalid system type or misspelled

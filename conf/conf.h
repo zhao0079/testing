@@ -14,11 +14,6 @@
 #include "stdbool.h"
 #include "features.h"
 
-
-// Select the board
-// has to be IMU_PIXHAWK_V200, IMU_PIXHAWK_V210
-#define IMU_PIXHAWK_V210 // IMU_PIXHAWK_AMIRANDIIMU_PIXHAWK_V200//
-
 //############### GENERAL SETUP #####################
 
 #define ONBOARD_PARAM_NAME_LENGTH 15    ///< Parameter names are transmitted with max. 15 chars over MAVLink
@@ -72,6 +67,10 @@
 
 #ifdef IMU_PIXHAWK_V210
 #include "imu_conf_v210.h"
+#endif
+
+#ifdef IMU_PIXHAWK_V250
+#include "imu_conf_v250.h"
 #endif
 
 #endif /* _CONF_H_ */

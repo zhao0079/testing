@@ -30,6 +30,8 @@ typedef enum
 			NUM_OF_COUNTERS
 } counter_id_t; ///< Software counters for the mainloop
 
+void control_camera_angle(void);
+
 /** @brief Handle the camera shutter */
 void camera_shutter_handling(uint64_t loop_start_time);
 

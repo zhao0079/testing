@@ -13,7 +13,8 @@
 
 // Include comm
 #include "comm.h"
-#include "mavlink.h"
+#include <mavlink.h>
+#include "communication.h"
 
 // Include globals
 #include "global_data.h"
@@ -129,6 +130,25 @@ void position_integrate(float_vect3* att,float_vect3 *pos,float_vect3 *vel,float
 
 }
 
+
+void control_camera_angle()
+{
+//	for(int i=0;i<8;i++){
+//			servos_set(i, global_data.param[PARAM_CAM_ANGLE_X_OFFSET]
+//					+ global_data.param[PARAM_CAM_ANGLE_X_FACTOR]
+//							* global_data.attitude.x);
+//	}
+
+	servos_set(4, global_data.param[PARAM_CAM_ANGLE_X_OFFSET]
+			+ global_data.param[PARAM_CAM_ANGLE_X_FACTOR]
+					* global_data.attitude.x);
+	servos_set(5, global_data.param[PARAM_CAM_ANGLE_Y_OFFSET]
+			+ global_data.param[PARAM_CAM_ANGLE_Y_FACTOR]
+					* global_data.attitude.y);
+
+//	led_toggle(LED_YELLOW);
+}
+
 void communication_send_raw_data(uint64_t loop_start_time)
 {
 	if (global_data.param[PARAM_SEND_SLOT_RAW_IMU] == 1)
@@ -152,22 +172,24 @@ void communication_send_attitude_position(uint64_t loop_start_time)
 	if (global_data.param[PARAM_SEND_SLOT_ATTITUDE] == 1)
 	{
 		// Send attitude over both UART ports
-		mavlink_msg_attitude_send(MAVLINK_COMM_0,
+		mavlink_msg_attitude_send(global_data.param[PARAM_SEND_DEBUGCHAN],
 				sys_time_clock_get_unix_offset() + loop_start_time,
 				global_data.attitude.x, global_data.attitude.y,
 				global_data.attitude.z, global_data.gyros_si.x,
 				global_data.gyros_si.y, global_data.gyros_si.z);
-		mavlink_msg_attitude_send(MAVLINK_COMM_1,
+
+
+/*			mavlink_msg_attitude_send(MAVLINK_COMM_1,
 				sys_time_clock_get_unix_offset() + loop_start_time,
 				global_data.attitude.x, global_data.attitude.y,
 				global_data.attitude.z, global_data.gyros_si.x,
-				global_data.gyros_si.y, global_data.gyros_si.z);
+				global_data.gyros_si.y, global_data.gyros_si.z);*/
 	}
 
 	if (global_data.param[PARAM_SEND_SLOT_DEBUG_5] == 1)
 	{
 		// Send current position and speed
-		mavlink_msg_local_position_send(MAVLINK_COMM_0, sys_time_clock_get_unix_offset() + loop_start_time,
+		mavlink_msg_local_position_send(global_data.param[PARAM_SEND_DEBUGCHAN], sys_time_clock_get_unix_offset() + loop_start_time,
 				global_data.position.x, global_data.position.y,
 				global_data.position.z, global_data.velocity.x,
 				global_data.velocity.y, global_data.velocity.z);
@@ -183,9 +205,7 @@ void communication_send_remote_control(void)
 {
 	if (global_data.param[PARAM_SEND_SLOT_REMOTE_CONTROL] == 1)
 	{
-		if (global_data.param[PARAM_SEND_DEBUGCHAN] == 0)
-		{
-		mavlink_msg_rc_channels_raw_send(MAVLINK_COMM_0,
+		mavlink_msg_rc_channels_raw_send(global_data.param[PARAM_SEND_DEBUGCHAN],
 				radio_control_get_channel_raw(1),
 				radio_control_get_channel_raw(2),
 				radio_control_get_channel_raw(3),
@@ -205,20 +225,6 @@ void communication_send_remote_control(void)
 //		rc_to_255(6),
 //		rc_to_255(7),
 //		rc_to_255(8),
-		}
-		else
-		{
-		mavlink_msg_rc_channels_raw_send(MAVLINK_COMM_1,
-				radio_control_get_channel_raw(1),
-				radio_control_get_channel_raw(2),
-				radio_control_get_channel_raw(3),
-				radio_control_get_channel_raw(4),
-				radio_control_get_channel_raw(5),
-				radio_control_get_channel_raw(6),
-				radio_control_get_channel_raw(7),
-				radio_control_get_channel_raw(8),
-				((radio_control_status() > 0) ? 255 : 0));
-		}
 	}
 }
 
@@ -238,7 +244,7 @@ void communication_send_controller_feedback(void)
 	// Send position outputs
 	if (global_data.param[PARAM_SEND_SLOT_DEBUG_5] == 1)
 	{
-		debug_vect("pos", global_data.position);
+		//debug_vect("pos", global_data.position);
 		debug_vect("pos_sp", global_data.position_setpoint);
 	}
 
@@ -290,8 +296,6 @@ void handle_controller_timeouts(uint64_t loop_start_time)
 		global_data.state.position_fix = 1;
 	}
 
-	// NO GPS YET
-	global_data.state.gps_ok = 0;
 
 	// UPDATE CONTROLLER STATES for QGroundcontrol widgets
 
@@ -329,7 +333,7 @@ void handle_controller_timeouts(uint64_t loop_start_time)
 	}
 
 	// Output control state
-	mavlink_msg_control_status_send(MAVLINK_COMM_0,
+	mavlink_msg_control_status_send(global_data.param[PARAM_SEND_DEBUGCHAN],
 			(global_data.state.vision_ok > 0) ? 3 : global_data.state.position_fix, // Send 3D fix if vision is available
 					(global_data.state.vision_ok > 0) ? 3 : 0, // Send 3D fix for vision always
 							global_data.state.gps_ok,
@@ -338,15 +342,17 @@ void handle_controller_timeouts(uint64_t loop_start_time)
 							global_data.state.position_z_control_enabled,
 							global_data.state.position_yaw_control_enabled
 	);
-	mavlink_msg_control_status_send(MAVLINK_COMM_1,
-			(global_data.state.vision_ok > 0) ? 3 : global_data.state.position_fix, // Send 3D fix if vision is available
-					(global_data.state.vision_ok > 0) ? 3 : 0, // Send 3D fix for vision always
-							global_data.state.gps_ok,
-							global_data.state.attitude_control_enabled,
-							global_data.state.position_xy_control_enabled,
-							global_data.state.position_z_control_enabled,
-							global_data.state.position_yaw_control_enabled
-	);
+
+//		mavlink_msg_control_status_send(MAVLINK_COMM_1,
+//			(global_data.state.vision_ok > 0) ? 3 : global_data.state.position_fix, // Send 3D fix if vision is available
+//					(global_data.state.vision_ok > 0) ? 3 : 0, // Send 3D fix for vision always
+//							global_data.state.gps_ok,
+//							global_data.state.attitude_control_enabled,
+//							global_data.state.position_xy_control_enabled,
+//							global_data.state.position_z_control_enabled,
+//							global_data.state.position_yaw_control_enabled
+//		);
+
 }
 
 
@@ -573,6 +579,10 @@ void update_system_statemachine(uint64_t loop_start_time)
 			global_data.param[PARAM_MIX_OFFSET_WEIGHT] = 0;
 			global_data.param[PARAM_MIX_REMOTE_WEIGHT] = 0;
 	}
+	if (global_data.state.remote_ok == 0)
+	{
+		global_data.param[PARAM_MIX_REMOTE_WEIGHT] = 0;
+	}
 }
 
 void send_system_state(void)
@@ -588,20 +598,20 @@ void send_system_state(void)
 
 	mavlink_msg_sys_status_send(MAVLINK_COMM_0, global_data.state.mav_mode, global_data.state.nav_mode,
 			global_data.state.status, global_data.cpu_usage, global_data.battery_voltage,
-			global_data.motor_block, global_data.packet_drops);
+			global_data.motor_block, communication_get_uart_drop_rate());
 	mavlink_msg_sys_status_send(MAVLINK_COMM_1, global_data.state.mav_mode, global_data.state.nav_mode,
 			global_data.state.status, global_data.cpu_usage, global_data.battery_voltage,
-			global_data.motor_block, global_data.packet_drops);
+			global_data.motor_block, communication_get_uart_drop_rate());
 
 	// Send auxiliary status over both links
 	mavlink_msg_aux_status_send(MAVLINK_COMM_1, global_data.cpu_usage,
 			global_data.i2c0_err_count, global_data.i2c1_err_count,
 			global_data.spi_err_count, global_data.spi_err_count,
-			global_data.packet_drops);
+			communication_get_uart_drop_rate());
 	mavlink_msg_aux_status_send(MAVLINK_COMM_0, global_data.cpu_usage,
 			global_data.i2c0_err_count, global_data.i2c1_err_count,
 			global_data.spi_err_count, global_data.spi_err_count,
-			global_data.packet_drops);
+			communication_get_uart_drop_rate());
 
 	//			mavlink_msg_raw_aux_send(MAVLINK_COMM_0, 0, 0, 0, 0,
 	//					battery_get_value(), global_data.temperature,
@@ -668,10 +678,11 @@ void camera_shutter_handling(uint64_t loop_start_time)
 		// Emit timestamp of this image
 		mavlink_msg_image_triggered_send(MAVLINK_COMM_0, usec,
 				shutter_get_seq(), global_data.attitude.x,
-				global_data.attitude.y);
-		mavlink_msg_image_triggered_send(MAVLINK_COMM_1, usec,
-				shutter_get_seq(), global_data.attitude.x,
-				global_data.attitude.y);
+				global_data.attitude.y, global_data.attitude.z, global_data.ground_distance, global_data.position.x, global_data.position.y, global_data.position.z);
+
+//			mavlink_msg_image_triggered_send(MAVLINK_COMM_1, usec,
+//				shutter_get_seq(), global_data.attitude.x,
+//				global_data.attitude.y, global_data.attitude.z, global_data.ground_distance, global_data.position.x, global_data.position.y, global_data.position.z);
 	}
 }
 

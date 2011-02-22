@@ -20,4 +20,6 @@ void gps_get_local_position(float_vect3 * gps_local_position);
 /* Same for velocity. Only x-y plane.*/
 void gps_get_local_velocity(float_vect3 * gps_local_velocity);
 
+void gps_send_local_origin(void);
+
 #endif /* GPS_TRANSFORMATIONS_H_ */

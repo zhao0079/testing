@@ -218,10 +218,10 @@ void main_init_generic(void)
 	// Send first global system status
 	mavlink_msg_sys_status_send(MAVLINK_COMM_0, global_data.state.mav_mode, global_data.state.nav_mode,
 			global_data.state.status, global_data.cpu_usage, global_data.battery_voltage,
-			global_data.motor_block, global_data.packet_drops);
+			global_data.motor_block, communication_get_uart_drop_rate());
 	mavlink_msg_sys_status_send(MAVLINK_COMM_1, global_data.state.mav_mode, global_data.state.nav_mode,
 			global_data.state.status, global_data.cpu_usage, global_data.battery_voltage,
-			global_data.motor_block, global_data.packet_drops);
+			global_data.motor_block, communication_get_uart_drop_rate());
 
 
 	float_vect3 init_state_accel;
@@ -250,10 +250,10 @@ void main_init_generic(void)
 	// Send second global system status
 	mavlink_msg_sys_status_send(MAVLINK_COMM_0, global_data.state.mav_mode, global_data.state.nav_mode,
 			global_data.state.status, global_data.cpu_usage, global_data.battery_voltage,
-			global_data.motor_block, global_data.packet_drops);
+			global_data.motor_block, communication_get_uart_drop_rate());
 	mavlink_msg_sys_status_send(MAVLINK_COMM_1, global_data.state.mav_mode, global_data.state.nav_mode,
 			global_data.state.status, global_data.cpu_usage, global_data.battery_voltage,
-			global_data.motor_block, global_data.packet_drops);
+			global_data.motor_block, communication_get_uart_drop_rate());
 
 	// Lowlevel services are now initialized
 	// Send boot message
@@ -271,10 +271,10 @@ void main_init_generic(void)
 
 	mavlink_msg_sys_status_send(MAVLINK_COMM_0, global_data.state.mav_mode, global_data.state.nav_mode,
 			global_data.state.status, global_data.cpu_usage, global_data.battery_voltage,
-			global_data.motor_block, global_data.packet_drops);
+			global_data.motor_block, communication_get_uart_drop_rate());
 	mavlink_msg_sys_status_send(MAVLINK_COMM_1, global_data.state.mav_mode, global_data.state.nav_mode,
 			global_data.state.status, global_data.cpu_usage, global_data.battery_voltage,
-			global_data.motor_block, global_data.packet_drops);
+			global_data.motor_block, communication_get_uart_drop_rate());
 
 	debug_message_buffer("Checking if remote control is switched on:");
 	if (radio_control_status() == RADIO_CONTROL_ON)

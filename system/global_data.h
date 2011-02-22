@@ -171,6 +171,10 @@ enum
 	PARAM_GPS_MODE,
 	PARAM_CAM_INTERVAL,
 	PARAM_CAM_EXP,
+	PARAM_CAM_ANGLE_X_OFFSET,
+	PARAM_CAM_ANGLE_X_FACTOR,
+	PARAM_CAM_ANGLE_Y_OFFSET,
+	PARAM_CAM_ANGLE_Y_FACTOR,
 	ONBOARD_PARAM_COUNT
 ///< Store parameters in EEPROM and expose them over MAVLink paramter interface
 } global_param_id;
@@ -226,9 +230,11 @@ typedef struct
 {
 	uint8_t vision_ok;//used to switch of position controller in case of vision loss
 	uint8_t gps_ok;
+	uint8_t gps_new_data;
 	uint8_t ground_distance_ok;
 	uint8_t magnet_ok;
 	uint8_t pressure_ok;
+	uint8_t remote_ok;
 	uint8_t position_fix;
 	uint8_t fly;
 	uint8_t attitude_control_enabled;
@@ -250,6 +256,15 @@ typedef struct
 	uint8_t uart1mode;
 
 } sys_state_t;
+
+typedef struct
+{
+	uint32_t uart0_rx_drop_count;     /// UART0 Receive drops
+	uint32_t uart0_rx_success_count;  /// UART0 Receive successes
+	uint32_t uart1_rx_drop_count;     /// UART0 Receive drops
+	uint32_t uart1_rx_success_count;  /// UART0 Receive successes
+
+} comm_state_t;
 
 struct global_struct
 {
@@ -305,7 +320,7 @@ struct global_struct
 	float_vect3 position_error;
 	sys_state_t state;                        ///< Current vehicle state representation
 	uint8_t motor_block;                      ///< Position of motor block switch
-	uint16_t packet_drops;                    ///< Packet drop rate of receiving channels
+	comm_state_t comm;                        ///< Packet drop rate of receiving channels
 	uint16_t pwm_values[PWM_NB_CHANNELS];     ///< Servo outputs
 	uint16_t ppm_values[PPM_NB_CHANNEL];      ///< RC inputs
 	uint32_t watchdog_error;
@@ -367,7 +382,7 @@ static inline void global_data_reset_param_defaults(void){
 	strcpy(global_data.param_name[PARAM_PPM_SAFETY_SWITCH_CHANNEL],
 			"RC_SAFETY_CHAN");
 
-	global_data.param[PARAM_UART0_BAUD] = 115200;// 115200;
+	global_data.param[PARAM_UART0_BAUD] = 57600;// 115200;
 	strcpy(global_data.param_name[PARAM_UART0_BAUD], "UART_0_BAUD");
 
 	global_data.param[PARAM_UART1_BAUD] = 57600;//57600
@@ -618,6 +633,18 @@ static inline void global_data_reset_param_defaults(void){
 	strcpy(global_data.param_name[PARAM_GPS_MODE], "GPS_MODE");
 	global_data.param[PARAM_GPS_MODE] = 0; //0: MAVLINK, 960010: GPS; // 9600 1 0: 9600 baud, mode 1 = U-Blox binary, on UART 0
 
+
+
+	strcpy(global_data.param_name[PARAM_CAM_ANGLE_X_OFFSET], "CAM_ANG_X_OFF");
+	strcpy(global_data.param_name[PARAM_CAM_ANGLE_X_FACTOR], "CAM_ANG_X_FAC");
+	strcpy(global_data.param_name[PARAM_CAM_ANGLE_Y_OFFSET], "CAM_ANG_Y_OFF");
+	strcpy(global_data.param_name[PARAM_CAM_ANGLE_Y_FACTOR], "CAM_ANG_Y_FAC");
+
+	global_data.param[PARAM_CAM_ANGLE_X_OFFSET] = 0;
+	global_data.param[PARAM_CAM_ANGLE_X_FACTOR] = 0;
+	global_data.param[PARAM_CAM_ANGLE_Y_OFFSET] = 0;
+	global_data.param[PARAM_CAM_ANGLE_Y_FACTOR] = 0;
+
 	global_data.param[PARAM_IMU_RESET] = 0;
 	strcpy(global_data.param_name[PARAM_IMU_RESET], "SYS_IMU_RESET");
 
@@ -636,9 +663,18 @@ static inline void global_data_reset(void)
 
 	global_data.state.vision_ok=0;
 	global_data.state.gps_ok=0;
+	global_data.state.gps_new_data=0;
+	global_data.state.pressure_ok=0;
+	global_data.state.remote_ok=0;
 	global_data.state.magnet_ok=0;
 	global_data.state.ground_distance_ok=0;
 	global_data.state.position_fix=0;
+
+	global_data.comm.uart0_rx_drop_count = 0;
+	global_data.comm.uart0_rx_success_count = 0;
+	global_data.comm.uart1_rx_drop_count = 0;
+	global_data.comm.uart1_rx_success_count = 0;
+
 	global_data.ground_distance=0;
 	global_data.ground_distance_unfiltered = 0;
 
@@ -662,7 +698,7 @@ static inline void global_data_reset(void)
 	//safe corridor
 	global_data.position_setpoint_min.x=-20;
 	global_data.position_setpoint_min.y=-20;
-	global_data.position_setpoint_min.z=-1.2;
+	global_data.position_setpoint_min.z=-1.6;
 	global_data.position_setpoint_max.x=20;
 	global_data.position_setpoint_max.y=20;
 	global_data.position_setpoint_max.z=0;

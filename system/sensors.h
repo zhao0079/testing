@@ -24,10 +24,11 @@
 #include "dac.h"
 #include "hmc5843.h"
 #include <stdio.h>
+#include "math.h"
 
 #include "comm.h"
 #include "led.h"
-
+#include "debug.h"
 
 #define BURST_TIMES		1
 
@@ -161,28 +162,77 @@ static inline void sensors_read_mag(void)
 
 static inline void sensors_pressure_bmp085_read_out(void)
 {
+	static float pressure_lowpass = 100000;
+	switch (bmp085_measurement_mode)
+	{
+	case 10:
+		global_data.temperature = bmp085_get_temperature();
+		global_data.temperature_si = global_data.temperature / 10.0f;
 
-	switch (bmp085_measurement_mode){
-	case 255:
-		bmp085_start_temp_measurement();
-		bmp085_measurement_mode = 0;
+		bmp085_start_pressure_measurement();
+		bmp085_measurement_mode=11;
 		break;
-	case 2:
+	case 11:
 		global_data.pressure_raw = bmp085_get_pressure();
+		pressure_lowpass = pressure_lowpass * 0.99f + 0.01f
+				* (float) global_data.pressure_raw;
+		if (fabs(pressure_lowpass - (float) global_data.pressure_raw) > 1500)
+		{
+			global_data.state.pressure_ok = 0;
+			debug_message_buffer("bmp085 pressure spike rejected");
+		}
+		else
+		{
+			global_data.state.pressure_ok = 1;
+		}
+
 		bmp085_start_temp_measurement();
-		bmp085_measurement_mode = 0;
+		bmp085_measurement_mode = 10;
 		break;
 	default:
-		if(bmp085_measurement_mode == 0) {
-			global_data.temperature = bmp085_get_temperature();
-			global_data.temperature_si = global_data.temperature / 10.0f;
-		}
-		else{
-			global_data.pressure_raw = bmp085_get_pressure();
-		}
-		bmp085_start_pressure_measurement();
-		bmp085_measurement_mode++;
+
+		bmp085_start_temp_measurement();
+		bmp085_measurement_mode = 10;
 	}
+//	case 255:
+//		bmp085_start_temp_measurement();
+//		bmp085_measurement_mode = 0;
+//		break;
+//	case 2:
+//		global_data.pressure_raw = bmp085_get_pressure();
+//		if (global_data.temperature > 500)
+//		{
+//			global_data.state.pressure_ok = 0;
+//			debug_message_buffer("bmp085 pressure error 55°C");
+//		}
+//		else
+//		{
+//			global_data.state.pressure_ok = 1;
+//		}
+//		bmp085_start_temp_measurement();
+//		bmp085_measurement_mode = 0;
+//		break;
+//	default:
+//		if(bmp085_measurement_mode == 0) {
+//			global_data.temperature = bmp085_get_temperature();
+//			global_data.temperature_si = global_data.temperature / 10.0f;
+//
+//		}
+//		else{
+//			global_data.pressure_raw = bmp085_get_pressure();
+//			if (global_data.temperature > 500)
+//			{
+//				global_data.state.pressure_ok = 0;
+//				debug_message_buffer("bmp085 pressure error 55°C");
+//			}
+//			else
+//			{
+//				global_data.state.pressure_ok = 1;
+//			}
+//		}
+//		bmp085_start_pressure_measurement();
+//		bmp085_measurement_mode++;
+//	}
 
 }
 

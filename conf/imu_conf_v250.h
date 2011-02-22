@@ -1,7 +1,7 @@
 /**
 * @file
 *
-* 	@brief Settings for the IMU v 2.10 board
+* 	@brief Settings for the IMU v 2.50 board
 *
 **/
 
@@ -147,8 +147,8 @@
 #define SCA3100_Y_AXIS 1
 #define SCA3100_Z_AXIS 2
 
-#define SCA3100_COUNTS_PER_G 900	//+-2g Sensor
-//#define SCA3100_COUNTS_PER_G 650	//+-6g Sensor
+//#define SCA3100_COUNTS_PER_G 900	//+-2g Sensor
+#define SCA3100_COUNTS_PER_G 650	//+-6g Sensor
 //@}
 
 /*======================================================================*/

@@ -284,17 +284,18 @@ inline void control_quadrotor_attitude()
 
 	//add the yaw, nick and roll components to the basic thrust
 
-	// RIGHT (MOTOR 3)
-	motor_calc[0] = motor_thrust + yaw - roll;
-
-	// LEFT (MOTOR 4)
-	motor_calc[1] = motor_thrust + yaw + roll;
 
 	// FRONT (MOTOR 1)
-	motor_calc[2] = motor_thrust - yaw - nick;
+	motor_calc[0] = motor_thrust - yaw + nick;
 
 	// BACK (MOTOR 2)
-	motor_calc[3] = motor_thrust - yaw + nick;
+	motor_calc[1] = motor_thrust - yaw - nick;
+
+	// RIGHT (MOTOR 3)
+	motor_calc[2] = motor_thrust + yaw - roll;
+
+	// LEFT (MOTOR 4)
+	motor_calc[3] = motor_thrust + yaw + roll;
 
 
 	uint8_t i;

@@ -72,13 +72,19 @@
 #include "eeprom.h"
 #include "params.h"
 #include "attitude_observer.h"
+#include "matrix.h"
+#include "float_checks.h"
 
 #include "mmc_spi.h"
 #include "dos.h"
 #include "fat.h"
 
+#include "outdoor_position_kalman.h"
+#include "vision_position_kalman.h"
+
 // Executiontime debugging
 float_vect3 time_debug;
+static uint32_t count = 0;
 
 // Static variables
 // these variables are used during the whole
@@ -98,6 +104,8 @@ void main_init_quadrotor(void)
 	main_init_generic();
 	control_quadrotor_position_init();
 	control_quadrotor_attitude_init();
+	outdoor_position_kalman_init();
+	vision_position_kalman_init();
 }
 
 /**
@@ -121,43 +129,6 @@ void main_loop_quadrotor(void)
 	{
 		// Time Measurement
 		uint64_t loop_start_time = sys_time_clock_get_time_usec();
-
-		///////////////////////////////////////////////////////////////////////////
-
-
-		if (global_data.state.mav_mode == MAV_MODE_RC_TRAINING)
-		{
-			send_system_state();
-			static uint8_t uart_unconfigured = 1;
-			if (uart_unconfigured)
-			{
-				// Mode for FMSPIC adapter
-				uart1_init(19200, COMM_UART_MODE, UART_FIFO_8);
-				uart_unconfigured = 0;
-			}
-
-			while (1)
-			{
-				loop_start_time = sys_time_clock_get_time_usec();
-
-				///////////////////////////////////////////////////////////////////////////
-				/// RC INTERFACE HACK AT 50 Hz
-				///////////////////////////////////////////////////////////////////////////
-				if (us_run_every(20000, COUNTER8, loop_start_time))
-				{
-					// Write start byte
-					uart1_transmit(0xFF);
-
-					// Write channels 1-8
-					// The format works with FMS and CRRCSim model flight simulators
-					for (int i = 1; i < 9; i++)
-					{
-						uart1_transmit(clamp((radio_control_get_channel(i)+1)*127, 0, 254));
-					}
-					led_toggle(LED_RED);
-				}
-			}
-		}
 
 		///////////////////////////////////////////////////////////////////////////
 		/// CRITICAL 200 Hz functions
@@ -202,26 +173,20 @@ void main_loop_quadrotor(void)
 
 			//position_integrate(&global_data.attitude,&global_data.position,&global_data.velocity,&global_data.accel_si);
 
-			// QUADROTOR CODE
-			// ====================================================================
-			if (global_data.param[PARAM_SYSTEM_TYPE] == MAV_QUADROTOR)
+			if (global_data.state.gps_mode == 1)
 			{
-				control_quadrotor_attitude();
-
+				outdoor_position_kalman();
+			}
+			else
+			{
+//				vision_position_kalman();
 				fuse_vision_altitude_200hz();
-
 			}
-			// ====================================================================
 
+			control_quadrotor_attitude();
 
-			// FIXED WING CODE
-			// ====================================================================
-			if (global_data.param[PARAM_SYSTEM_TYPE] == MAV_FIXED_WING)
-			{
-				control_fixed_wing_attitude();
-			}
-			// ====================================================================
-
+			//debug counting number of executions
+			count++;
 		}
 		///////////////////////////////////////////////////////////////////////////
 
@@ -253,6 +218,8 @@ void main_loop_quadrotor(void)
 			control_quadrotor_position();
 			// Read remote control
 			remote_control();
+
+			control_camera_angle();
 		}
 		///////////////////////////////////////////////////////////////////////////
 
@@ -272,7 +239,6 @@ void main_loop_quadrotor(void)
 
 			//STARTING AND LANDING
 			quadrotor_start_land_handler(loop_start_time);
-
 		}
 		///////////////////////////////////////////////////////////////////////////
 
@@ -384,8 +350,41 @@ void main_loop_quadrotor(void)
 			// Send system state, mode, battery voltage, etc.
 			send_system_state();
 
+			// Send current onboard time
+			mavlink_msg_system_time_send(MAVLINK_COMM_1, sys_time_clock_get_unix_time());
+
 			//update state from recieved parameters
 			sync_state_parameters();
+
+			//debug number of execution
+			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN],
+					101, count);
+			count = 0;
+
+//			TESTING MATRIX MULTIPLICATION
+//			m_elem testA[4*4]={123478,2,12343,21345,
+//			1123,2,12343,6,
+//			132,234,123,3,
+//			1231234,76697,23,23};
+//			matrix_t tA = matrix_create(4,4,testA);
+//			m_elem test2[4*4]={
+//			41529137736.0000,1640232687.00000,1526122764.00000,2636165886.00000
+//			,147684720,3350694,15404202,24007614
+//			,20271816,259605,4532736,2819382
+//			,152144764001.000,4385275,16143795691.0000,26281150510.0000};
+//
+//			matrix_t t2= matrix_create(4,4,test2);
+//
+//			m_elem testr[4*4]={};
+//			matrix_t tr= matrix_create(4,4,testr);
+//			matrix_mult(tA,tA,tr);
+//			matrix_sub(t2,tr,tA);
+//			int error=0;
+//			for(int i=0;i<16;i++){
+//				//if(testA[i]){
+//					debug_message_buffer_sprintf("result %i",(int) (testA[i]*1000));
+//				//}
+//			}
 
 			//Send execution times for debugging
 			// Executiontime debugging
@@ -448,7 +447,46 @@ void main_loop_quadrotor(void)
 //					debug_vect("GPS local", gps_local);
 				}
 			}
+			if (global_data.state.gps_mode)
+			{
+				gps_send_local_origin();
+			}
 			beep_on_low_voltage();
+
+
+			if (global_data.state.mav_mode == MAV_MODE_RC_TRAINING)
+					{
+						send_system_state();
+						static uint8_t uart_unconfigured = 1;
+						if (uart_unconfigured)
+						{
+							// Mode for FMSPIC adapter
+							uart1_init(19200, COMM_UART_MODE, UART_FIFO_8);
+							uart_unconfigured = 0;
+						}
+
+						while (1)
+						{
+							loop_start_time = sys_time_clock_get_time_usec();
+
+							///////////////////////////////////////////////////////////////////////////
+							/// RC INTERFACE HACK AT 50 Hz
+							///////////////////////////////////////////////////////////////////////////
+							if (us_run_every(20000, COUNTER8, loop_start_time))
+							{
+								// Write start byte
+								uart1_transmit(0xFF);
+
+								// Write channels 1-8
+								// The format works with FMS and CRRCSim model flight simulators
+								for (int i = 1; i < 9; i++)
+								{
+									uart1_transmit(clamp((radio_control_get_channel(i)+1)*127, 0, 254));
+								}
+								led_toggle(LED_RED);
+							}
+						}
+					}
 
 		}
 		///////////////////////////////////////////////////////////////////////////
@@ -486,68 +524,294 @@ void main_loop_quadrotor(void)
 				//Check if parameters should be written or read
 				param_handler();
 			}
+/*
+//debug_message_buffer("HAllo Kalman");
 
-			sensors_pressure_bmp085_read_out();
+			//altitude kalman filter
 
-			//testing single kalman
-			float kal_z = calc_altitude_pressure(global_data.pressure_raw);
-			if (abs(kal_z) > 2000)
+			//initalize matrices
+			const float t = 1.0f / 200.0f;
+
+			m_elem kal_z_a_a[4*4] =
+			{ 1, t, t * t / 2, 0,
+			 0, 1, t, 0 ,
+			 0, 0, 1, 0 ,
+			 0, 0, 0, 1  };
+			matrix_t kal_z_a=matrix_create(4,4,kal_z_a_a);
+
+			m_elem kal_z_c_a[2*4] =
 			{
-				kal_z = 0;
-			}
-			else
+			 1, 0, 0, 0 ,
+			 0, 0, 1, 1  };
+			matrix_t kal_z_c=matrix_create(2,4,kal_z_c_a);
+
+//			m_elem kal_z_gain_a[4*2] =
+//			{
+//			 0.003309636393353, 3.737518562014015e-08 ,
+//			 0.001096997145729, 1.491062811791067e-05 ,
+//			 6.708962603091765e-06, 0.997017866024232 ,
+//			 -6.708911968356911e-06, 9.995411940282084e-11  };
+//			matrix_t kal_z_gain = matrix_create(4, 2, kal_z_gain_a);
+
+			m_elem kal_z_gain_combo_a[4 * 2] =
+									{
+										0.0148553889079401,	3.73444963864759e-08,
+										0.00555539506146299,	1.49106022715582e-05,
+										0.000421844252811475,	0.997017766710577,
+										-0.000421844052617397,	9.97097528182815e-08};
+//			{ 0.0131153410622187, 3.73751856201402e-08,
+//			0.00432570190765015, 1.49106281179107e-05,
+//			1.33518572806910e-05, 0.997017866024232,
+//			-1.33516567327080e-05, 0.001 };
+			matrix_t kal_z_gain_combo=matrix_create(4,2,kal_z_gain_combo_a);
+
+
+			m_elem kal_z_gain_start_a[4*2] =
 			{
+			 0.060188321659420, 3.566208652525075e-16 ,
+			 0.008855645697701, 1.495920063190432e-13 ,
+			 6.514669086807784e-04, 9.997000796699675e-08 ,
+			 -6.514669086807778e-04, 0.999700079925069  };
+			matrix_t kal_z_gain_start=matrix_create(4,2,kal_z_gain_start_a);
 
-				const float kal_num = 200;		//Anzahl der Werte über die ~ gefiltert wird
-				static float kal_mean = 0;		//Tiefpass =~ Mittelwert
-				static float kal_variance = 0;	//Varianz
+			m_elem kal_z_gain_start_part_a[4*2] = {};
+			matrix_t kal_z_gain_start_part=matrix_create(4,2,kal_z_gain_start_part_a);
 
-				if (kal_mean == 0)
+			m_elem kal_z_gain_part_a[4*2] = {};
+			matrix_t kal_z_gain_part=matrix_create(4,2,kal_z_gain_part_a);
+
+			m_elem kal_z_gain_sum_a[4*2] = {};
+			matrix_t kal_z_gain_sum=matrix_create(4,2,kal_z_gain_sum_a);
+
+			static m_elem kal_z_x_apriori_a[4*1] =
+			{
+			 0 ,
+			 0 ,
+			 0 ,
+			 -9.81  };
+			static matrix_t kal_z_x_apriori;
+			kal_z_x_apriori=matrix_create(4,1,kal_z_x_apriori_a);
+
+			static m_elem kal_z_x_aposteriori_a[4*1] =
+			{
+			 0 ,
+			 0 ,
+			 0 ,
+			 -9.81  };
+			static matrix_t kal_z_x_aposteriori;
+			kal_z_x_aposteriori=matrix_create(4,1,kal_z_x_aposteriori_a);
+
+			m_elem kal_z_measurement_a[2*1] =
+			{
+			 0 ,
+			 0  };
+			matrix_t kal_z_measurement=matrix_create(2,1,kal_z_measurement_a);
+
+
+			m_elem kal_z_error_a[2*1] =
+			{
+			 0 ,
+			 0  };
+			matrix_t kal_z_error=matrix_create(2,1,kal_z_error_a);
+
+			m_elem kal_z_measurement_estimate_a[2*1] =
+			{
+			 0 ,
+			 0  };
+			matrix_t kal_z_measurement_estimate=matrix_create(2,1,kal_z_measurement_estimate_a);
+
+			m_elem kal_z_x_update_a[4*1] =
+			{
+			 0 ,
+			 0 ,
+			 0 ,
+			 0  };
+			matrix_t kal_z_x_update=matrix_create(4,1,kal_z_x_update_a);
+
+			static int nopressure=0;
+			if(nopressure++==3){
+				nopressure=0;
+				//prepare measurement data
+				//measurement #1 pressure => relative altitude
+				sensors_pressure_bmp085_read_out();
+
+				static float altitude_local_origin = 0;
+
+				if (abs(calc_altitude_pressure(global_data.pressure_raw))
+						< 2000)
 				{
-					kal_mean = kal_z;
+					if (altitude_local_origin)
+					{
+						M(kal_z_measurement, 0, 0) = -calc_altitude_pressure(
+								global_data.pressure_raw)
+								- altitude_local_origin;
+					}
+					else
+					{
+						altitude_local_origin = -calc_altitude_pressure(
+								global_data.pressure_raw);
+					}
+					mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN],
+										50, M(kal_z_measurement, 0, 0));
 				}
+			}
+			if(nopressure==2){
+				//for temp measurement
+				sensors_pressure_bmp085_read_out();
+			}
 
-				kal_mean = kal_mean * (1 - 1 / kal_num) + kal_z / kal_num;
 
-				kal_variance = kal_variance * (1 - 1 / kal_num) + (kal_z
-						- kal_mean) * (kal_z - kal_mean) / kal_num;
+			//measurement #2 acceleration
+			float_vect3 acc_nav;
+			body2navi(&global_data.accel_si, &global_data.attitude,
+					&acc_nav);
+			M(kal_z_measurement,1,0)=acc_nav.z;
 
-				static float kal_x = 0;
-				static float kal_p = 100000000;
-				static float kal_k = 1;
+//			M(kal_z_measurement,0,0)=0;
+//			M(kal_z_measurement,1,0)=0;
 
-				static float kal_q = 0.00001;
-				static float kal_r = 4;
+//			if (!isnumber(M(kal_z_x_aposteriori, 0, 0))
+//				||(!isnumber(M(kal_z_x_aposteriori, 1, 0)))
+//					 ||(!isnumber(M(kal_z_x_aposteriori, 2, 0)))
+//						|| (!isnumber(M(kal_z_x_aposteriori, 3, 0)))){
+//				M(kal_z_x_aposteriori, 0, 0) = 0;
+//				M(kal_z_x_aposteriori, 1, 0) = 0;
+//				M(kal_z_x_aposteriori, 2, 0) = 0;
+//				M(kal_z_x_aposteriori, 3, 0) = 0;}
 
-				//predict
-				kal_x = kal_x;
-				kal_p = kal_p + kal_q;
+			//time update
+			//kal_z_x_apriori = kal_z_a * kal_z_x_aposteriori
+			matrix_mult(kal_z_a, kal_z_x_aposteriori, kal_z_x_apriori);
 
-				//correct
-				kal_k = kal_p / (kal_p + kal_r);
-				kal_x = kal_x + kal_k * (kal_z - kal_x);
-				kal_p = (1 - kal_k) * kal_p;
+//
+//			if (!isnumber(M(kal_z_x_apriori, 0, 0)))
+//				M(kal_z_x_apriori, 0, 0) = 0;
+//			if (!isnumber(M(kal_z_x_apriori, 1, 0)))
+//				M(kal_z_x_apriori, 1, 0) = 0;
+//			if (!isnumber(M(kal_z_x_apriori, 2, 0)))
+//				M(kal_z_x_apriori, 2, 0) = 0;
+//			if (!isnumber(M(kal_z_x_apriori, 3, 0)))
+//				M(kal_z_x_apriori, 3, 0) = 0;
 
-				float_vect3 kal;
-				kal.x = kal_x;
-				kal.y = kal_p;
-				kal.z = kal_k;
-				kal.y = kal_mean;
-				kal.z = kal_variance;
+
+			//measurement update
+			//both measurements
+			//x(:,i+1)=xapriori+(gainfactor*[M_50(:,1) M(:,2)]+(1-gainfactor)*M_start)*(z-C*xapriori);
+
+
+			//est=C*xapriori;
+			matrix_mult(kal_z_c, kal_z_x_apriori, kal_z_measurement_estimate);
+			//error=(z-C*xapriori) = measurement-estimate
+			matrix_sub(kal_z_measurement, kal_z_measurement_estimate,
+					kal_z_error);
+			if(nopressure){
+				M(kal_z_error,0,0)=0;
+			}
+//
+//				m_elem kal_z_no_pressure_a[2*2] =
+//				{
+//				 0,0 ,
+//				 0,1  };
+//				matrix_t kal_z_no_pressure=matrix_create(2,1,kal_z_no_pressure_a);
+//				matrix_mult(kal_z_no_pressure,kal_z_error,kal_z_error); //works because of the structure of matrix
+//			}
+
+//			//dont update from measurements for testing
+//			M(kal_z_error,0,0)=0;
+//			M(kal_z_error,1,0)=0;
+
+			const float gainfactor_steps = 1000;
+			static float gainfactor=0;
+			gainfactor = gainfactor * (1 - 1 / gainfactor_steps)
+					+ 1 * 1 / gainfactor_steps;
+
+			matrix_mult_scalar(gainfactor, kal_z_gain_combo, kal_z_gain_part);
+
+			matrix_mult_scalar(1 - gainfactor, kal_z_gain_start,
+					kal_z_gain_start_part);
+
+			matrix_add(kal_z_gain_start_part,kal_z_gain_part,kal_z_gain_sum);
+
+			//gain*(z-C*xapriori)
+			matrix_mult(kal_z_gain_sum, kal_z_error, kal_z_x_update);
+
+			//xaposteriori = xapriori + update
+
+			matrix_add(kal_z_x_apriori,kal_z_x_update,kal_z_x_aposteriori);
+
+			float_vect3 acc_press;
+//			global_data.position.z = M(kal_z_x_aposteriori,0,0);
+			acc_press.x = M(kal_z_x_aposteriori,0,0);
+			acc_press.y = M(kal_z_x_aposteriori,1,0);
+			acc_press.z = M(kal_z_x_aposteriori, 2, 0);
+			debug_vect("press_accel", acc_press);
+
+
+
+//			//testing old single kalman
+//			float kal_z = calc_altitude_pressure(global_data.pressure_raw);
+//			if (abs(kal_z) > 2000)
+//			{
+//				kal_z = 0;
+//			}
+//			else
+//			{
+
+//				const float kal_num = 200;		//Anzahl der Werte über die ~ gefiltert wird
+//				static float kal_mean = 0;		//Tiefpass =~ Mittelwert
+//				static float kal_variance = 0;	//Varianz
+//
+//				if (kal_mean == 0)
+//				{
+//					kal_mean = kal_z;
+//				}
+//
+//				kal_mean = kal_mean * (1 - 1 / kal_num) + kal_z / kal_num;
+//
+//				kal_variance = kal_variance * (1 - 1 / kal_num) + (kal_z
+//						- kal_mean) * (kal_z - kal_mean) / kal_num;
+
+//				static float kal_x = 0;
+//				static float kal_p = 100000000;
+//				static float kal_k = 1;
+//
+//				static float kal_q = 0.00001;
+//				static float kal_r = 4;
+//
+//				//predict
+//				kal_x = kal_x;
+//				kal_p = kal_p + kal_q;
+//
+//				//correct
+//				kal_k = kal_p / (kal_p + kal_r);
+//				kal_x = kal_x + kal_k * (kal_z - kal_x);
+//				kal_p = (1 - kal_k) * kal_p;
+//
+//				float_vect3 kal;
+//				kal.x = kal_x;
+//				kal.y = kal_p;
+//				kal.z = kal_k;
+//				kal.y = kal_mean;
+//				kal.z = kal_variance;
+
 				//debug_vect("alt_kal", kal);
 
 				//mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN],
 					//	50, kal_z);
 		//					mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 51, global_data.pressure_raw);
 
-				float_vect3 acc_nav;
-				body2navi(&global_data.accel_si, &global_data.attitude, &acc_nav);
-				float_vect3 acc_press;
-			acc_press.x=kal_z;
-			acc_press.y=acc_nav.z;
-			acc_press.z=global_data.temperature;
-			debug_vect("press_accel", acc_press);
-			}
+
+				//for logging
+//				float_vect3 acc_nav;
+//				body2navi(&global_data.accel_si, &global_data.attitude,
+//						&acc_nav);
+//				float_vect3 acc_press;
+//				acc_press.x = kal_z;
+//				acc_press.y = acc_nav.z;
+//				acc_press.z = global_data.temperature;
+//				debug_vect("press_accel", acc_press);
+//			}
+			*/
 
 		}
 		///////////////////////////////////////////////////////////////////////////

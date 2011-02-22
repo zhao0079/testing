@@ -64,52 +64,52 @@ uint8_t sys_get_mode(void)
  */
 bool sys_set_mode(uint8_t mode)
 {
-	if (mode == MAV_MODE_AUTO)
+	if (mode == (uint8_t)MAV_MODE_AUTO)
 	{
 		global_data.state.mav_mode = MAV_MODE_AUTO;
 		return true;
 	}
-	else if (mode == MAV_MODE_GUIDED)
+	else if (mode == (uint8_t)MAV_MODE_GUIDED)
 	{
 		global_data.state.mav_mode = MAV_MODE_GUIDED;
 		return true;
 	}
-	else if (mode == MAV_MODE_LOCKED)
+	else if (mode == (uint8_t)MAV_MODE_LOCKED)
 	{
 		global_data.state.mav_mode = MAV_MODE_LOCKED;
 		return true;
 	}
-	else if (mode == MAV_MODE_MANUAL)
+	else if (mode == (uint8_t)MAV_MODE_MANUAL)
 	{
 		global_data.state.mav_mode = MAV_MODE_MANUAL;
 		return true;
 	}
-	else if (mode == MAV_MODE_READY)
+	else if (mode == (uint8_t)MAV_MODE_READY)
 	{
 		global_data.state.mav_mode = MAV_MODE_READY;
 		return true;
 	}
-	else if (mode == MAV_MODE_TEST1)
+	else if (mode == (uint8_t)MAV_MODE_TEST1)
 	{
 		global_data.state.mav_mode = MAV_MODE_TEST1;
 		return true;
 	}
-	else if (mode == MAV_MODE_TEST2)
+	else if (mode == (uint8_t)MAV_MODE_TEST2)
 	{
 		global_data.state.mav_mode = MAV_MODE_TEST2;
 		return true;
 	}
-	else if (mode == MAV_MODE_TEST3)
+	else if (mode == (uint8_t)MAV_MODE_TEST3)
 	{
 		global_data.state.mav_mode = MAV_MODE_TEST3;
 		return true;
 	}
-	else if (mode == MAV_MODE_RC_TRAINING)
+	else if (mode == (uint8_t)MAV_MODE_RC_TRAINING)
 	{
 		// Only go into RC training if not flying
 		if (! sys_state_is_flying())
 		{
-			global_data.state.mav_mode = MAV_MODE_RC_TRAINING;
+			global_data.state.mav_mode = (uint8_t)MAV_MODE_RC_TRAINING;
 			return true;
 		}
 		else
@@ -134,42 +134,42 @@ bool sys_set_mode(uint8_t mode)
  */
 bool sys_set_state(uint8_t state)
 {
-	if (state == MAV_STATE_ACTIVE)
+	if (state == (uint8_t)MAV_STATE_ACTIVE)
 	{
 		global_data.state.status = MAV_STATE_ACTIVE;
 		return true;
 	}
-	else if (state == MAV_STATE_BOOT)
+	else if (state == (uint8_t)MAV_STATE_BOOT)
 	{
 		global_data.state.status = MAV_STATE_BOOT;
 		return true;
 	}
-	else if (state == MAV_STATE_CALIBRATING)
+	else if (state == (uint8_t)MAV_STATE_CALIBRATING)
 	{
 		global_data.state.status = MAV_STATE_CALIBRATING;
 		return true;
 	}
-	else if (state == MAV_STATE_CRITICAL)
+	else if (state == (uint8_t)MAV_STATE_CRITICAL)
 	{
 		global_data.state.status = MAV_STATE_CRITICAL;
 		return true;
 	}
-	else if (state == MAV_STATE_EMERGENCY)
+	else if (state == (uint8_t)MAV_STATE_EMERGENCY)
 	{
 		global_data.state.status = MAV_STATE_EMERGENCY;
 		return true;
 	}
-	else if (state == MAV_STATE_POWEROFF)
+	else if (state == (uint8_t)MAV_STATE_POWEROFF)
 	{
 		global_data.state.status = MAV_STATE_POWEROFF;
 		return true;
 	}
-	else if (state == MAV_STATE_STANDBY)
+	else if (state == (uint8_t)MAV_STATE_STANDBY)
 	{
 		global_data.state.status = MAV_STATE_STANDBY;
 		return true;
 	}
-	else if (state == MAV_STATE_UNINIT)
+	else if (state == (uint8_t)MAV_STATE_UNINIT)
 	{
 		global_data.state.status = MAV_STATE_STANDBY;
 		return true;
@@ -180,10 +180,6 @@ bool sys_set_state(uint8_t state)
 		debug_message_buffer("WARNING: Attempted to set invalid state");
 		return false;
 	}
-
-	// FIXME Remove this once new interface is existent
-	global_data.state.status = state;
-
 }
 
 /**
