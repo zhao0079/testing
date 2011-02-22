@@ -94,8 +94,8 @@ FORMAT = ihex
 #DEADCODESTRIP = -Wl,-static -fdata-sections -ffunction-sections -Wl,--gc-sections -Wl,-s
  
 # Define programs and commands.
-CC     = arm-elf-gcc
-LD     = arm-elf-gcc
+CC     = arm-elf-gcc-4.5
+LD     = arm-elf-gcc-4.5
 SHELL = sh
 OBJCOPY = arm-elf-objcopy
 OBJDUMP = arm-elf-objdump
