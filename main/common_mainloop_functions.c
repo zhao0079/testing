@@ -689,7 +689,7 @@ void camera_shutter_handling(uint64_t loop_start_time)
 
 
 /** @brief Low Battery alarm to be called for example with 1 Hz */
-static inline void beep_on_low_voltage(void)
+void beep_on_low_voltage(void)
 {
 	if (global_data.battery_voltage < BATTERY_LOW_VOLTAGE_ALARM)
 	{

@@ -97,14 +97,18 @@ FORMAT = ihex
 # ENABLE ONCE GCC 4.4.x is broadly used
 #DEADCODESTRIP = -Wl,-static -fdata-sections -ffunction-sections -Wl,--gc-sections -Wl,-s
  
+ #define compiler name
+CCNAME = -none-eabi
+#CCNAME = -elf
+ 
 # Define programs and commands.
-CC     = arm-elf-gcc
-LD     = arm-elf-gcc
+CC     = arm$(CCNAME)-gcc
+LD     = arm$(CCNAME)-gcc
 SHELL = sh
-OBJCOPY = arm-elf-objcopy
-OBJDUMP = arm-elf-objdump
-SIZE = arm-elf-size
-NM = arm-elf-nm
+OBJCOPY = arm$(CCNAME)-objcopy
+OBJDUMP = arm$(CCNAME)-objdump
+SIZE = arm$(CCNAME)-size
+NM = arm$(CCNAME)-nm
 REMOVE = rm -f
 COPY = cp
  
