@@ -337,6 +337,7 @@ void handle_controller_timeouts(uint64_t loop_start_time)
 			(global_data.state.vision_ok > 0) ? 3 : global_data.state.position_fix, // Send 3D fix if vision is available
 					(global_data.state.vision_ok > 0) ? 3 : 0, // Send 3D fix for vision always
 							global_data.state.gps_ok,
+							0, // ahrs_health	uint8_t	Attitude estimation health: 0: poor, 255: excellent
 							global_data.state.attitude_control_enabled,
 							global_data.state.position_xy_control_enabled,
 							global_data.state.position_z_control_enabled,
@@ -688,7 +689,7 @@ void camera_shutter_handling(uint64_t loop_start_time)
 
 
 /** @brief Low Battery alarm to be called for example with 1 Hz */
-inline void beep_on_low_voltage(void)
+void beep_on_low_voltage(void)
 {
 	if (global_data.battery_voltage < BATTERY_LOW_VOLTAGE_ALARM)
 	{

@@ -61,7 +61,7 @@ void handle_eeprom_write_request(void);
 uint8_t rc_to_255(int chan);
 
 /** @brief Low Battery alarm to be called for example with 1 Hz */
-inline void beep_on_low_voltage(void);
+void beep_on_low_voltage(void);
 
 /** @brief Measures the peak CPU load */
 uint16_t measure_peak_cpu_load(uint64_t loop_start_time, uint64_t loop_stop_time, uint64_t min_mainloop);

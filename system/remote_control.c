@@ -48,6 +48,7 @@
 #include "debug.h"
 #include "math.h"
 #include "sys_state.h"
+#include "calibration.h"
 
 
 
@@ -118,6 +119,18 @@ inline void remote_control(void)
 
 				debug_message_buffer("MAV_STATE_STANDBY Motors off");
 
+			}
+
+			// Start Gyro calibration left stick: left down. right stick right down.
+			if ((ppm_get_channel(global_data.param[PARAM_PPM_THROTTLE_CHANNEL])
+					< PPM_LOW_TRIG) && (ppm_get_channel(
+					global_data.param[PARAM_PPM_YAW_CHANNEL]) > PPM_HIGH_TRIG)
+					&& (ppm_get_channel(
+							global_data.param[PARAM_PPM_NICK_CHANNEL])
+							< PPM_LOW_TRIG) && (ppm_get_channel(
+					global_data.param[PARAM_PPM_ROLL_CHANNEL]) < PPM_LOW_TRIG))
+			{
+				start_gyro_calibration();
 			}
 
 			//			//Integrate YAW setpoint
