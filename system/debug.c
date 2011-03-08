@@ -164,9 +164,9 @@ void debug_message_send_one(void)
 
 	char msg[DEBUG_MAX_LEN];
 	// use pointer to program code
-//	snprintf(msg, DEBUG_MAX_LEN, m_debug_buf_pointer[m_debug_index_read],
-//			m_debug_buf_int[m_debug_index_read]);
-	strncpy(msg, m_debug_buf_pointer[m_debug_index_read], DEBUG_MAX_LEN);
+	snprintf(msg, DEBUG_MAX_LEN, m_debug_buf_pointer[m_debug_index_read],
+			m_debug_buf_int[m_debug_index_read]);
+//	strncpy(msg, m_debug_buf_pointer[m_debug_index_read], DEBUG_MAX_LEN);
 
 	// use copied string from buffer
 //	snprintf(msg, DEBUG_MAX_LEN, m_debug_buf[m_debug_index_read],
