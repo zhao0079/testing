@@ -73,22 +73,18 @@ int main(void)
 	// in the main_init and main_loop
 	// functions of the other vehicle types
 	// as well.
-	main_init_generic();
 	main_loop_generic();
 #warning "INFO: COMPILING CODE FOR GENERIC VEHICLE"
 
 #elif PX_VEHICLE_TYPE == PX_AIRFRAME_FIXED_WING
-	main_init_fixed_wing();
 	main_loop_fixed_wing();
 #warning "INFO: COMPILING CODE FOR FIXED WING AIRCRAFT"
 
 #elif PX_VEHICLE_TYPE == PX_AIRFRAME_QUADROTOR
-	main_init_quadrotor();
 	main_loop_quadrotor();
 #warning "INFO: COMPILING CODE FOR QUADROTOR"
 
 #elif PX_VEHICLE_TYPE == PX_GROUND_CAR
-	main_init_ground_car();
 	main_loop_ground_car();
 #warning "INFO: COMPILING CODE FOR GROUND CAR"
 #endif

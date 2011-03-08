@@ -93,28 +93,29 @@ static const uint32_t min_mainloop_time = 5000;  ///< The minimum wait interval 
 //static uint32_t loop_max_time = 0;               ///< The maximum time in microseconds one mainloop took
 static uint64_t last_mainloop_idle = 0;				///< Starvation Prevention
 
+
+
+
+void main_loop_quadrotor(void)
+{
 /**
 * @brief Initialize the whole system
 *
 * All functions that need to be called before the first mainloop iteration
 * should be placed here.
 */
-void main_init_quadrotor(void)
-{
 	main_init_generic();
 	control_quadrotor_position_init();
 	control_quadrotor_attitude_init();
 	outdoor_position_kalman_init();
 	vision_position_kalman_init();
-}
+
 
 /**
 * @brief This is the main loop
 *
 * It will be executed at maximum MCU speed (60 Mhz)
 */
-void main_loop_quadrotor(void)
-{
 	// Executiontime debugging
 	time_debug.x=0;
 	time_debug.y=0;

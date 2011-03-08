@@ -11,7 +11,6 @@
 /** @brief Run the system */
 void main_loop_quadrotor(void);
 
-void main_init_quadrotor(void);
 
 /** @brief Move the controller setpoint interpolation */
 void update_controller_setpoints(void);

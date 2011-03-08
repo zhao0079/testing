@@ -13,8 +13,6 @@
 /** @brief Run the system */
 void main_loop_ground_car(void);
 
-void main_init_ground_car(void);
-
 
 
 #endif /* MAINLOOP_H_ */

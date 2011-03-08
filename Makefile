@@ -98,8 +98,8 @@ FORMAT = ihex
 #DEADCODESTRIP = -Wl,-static -fdata-sections -ffunction-sections -Wl,--gc-sections -Wl,-s
  
  #define compiler name
-#CCNAME = -none-eabi
-CCNAME = -elf
+CCNAME = -none-eabi
+#CCNAME = -elf
  
 # Define programs and commands.
 CC     = arm$(CCNAME)-gcc

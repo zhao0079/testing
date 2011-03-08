@@ -299,6 +299,9 @@ void main_init_generic(void)
 */
 void main_loop_generic(void)
 {
+	main_init_generic();
+
+
 	last_mainloop_idle = sys_time_clock_get_time_usec();
 	debug_message_buffer("Starting main loop");
 	while (1)
