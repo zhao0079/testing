@@ -232,8 +232,8 @@ int main(int argc, char *argv[])
     found = 0;
     usb_init();
     usb_find_busses();
-
-    for(count = 0; count < 5 && !found; count++)
+//wait only 10 seconds
+    for(count = 0; count < 10 && !found; count++)
     {
         printf(".");
         fflush(stdout);
