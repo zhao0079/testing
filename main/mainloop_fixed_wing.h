@@ -13,7 +13,6 @@
 /** @brief Run the system */
 void main_loop_fixed_wing(void);
 
-void main_init_fixed_wing(void);
 
 
 

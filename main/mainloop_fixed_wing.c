@@ -49,24 +49,24 @@ static const uint32_t min_mainloop_time = 5000;  ///< The minimum wait interval 
 //static uint32_t loop_max_time = 0;               ///< The maximum time in microseconds one mainloop took
 static uint64_t last_mainloop_idle = 0;				///< Starvation Prevention
 
+
+void main_loop_fixed_wing(void)
+{
 /**
 * @brief Initialize the whole system
 *
 * All functions that need to be called before the first mainloop iteration
 * should be placed here.
 */
-void main_init_fixed_wing(void)
-{
 	main_init_generic();
-}
+
 
 /**
 * @brief This is the main loop
 *
 * It will be executed at maximum MCU speed (60 Mhz)
 */
-void main_loop_fixed_wing(void)
-{
+
 	last_mainloop_idle = sys_time_clock_get_time_usec();
 	debug_message_buffer("Starting main loop");
 	while (1)

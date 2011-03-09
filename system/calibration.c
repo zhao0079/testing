@@ -37,6 +37,7 @@
 #include "global_data.h"
 #include "gyros.h"
 #include "sys_state.h"
+#include "sys_time.h"
 #include "ppm.h"
 #include "uart.h"
 #include "range.h"
@@ -116,7 +117,7 @@ void start_rc_calibration(void)
 		}
 
 		bool abort_rc_cal = 0;
-
+		uint64_t timeout = sys_time_clock_get_time_usec() + 30 * 1000000;
 		while (!abort_rc_cal)
 		{
 			// Now save the min and max values for each channel
@@ -132,6 +133,10 @@ void start_rc_calibration(void)
 					global_data.param[PARAM_PPM_YAW_CHANNEL]) > PPM_HIGH_TRIG))
 			{
 				abort_rc_cal = 1;
+			}
+			if(sys_time_clock_get_time_usec()>timeout){
+				abort_rc_cal = 1;
+				debug_message_buffer("RC calibration abborted after 30 seconds");
 			}
 		}
 
