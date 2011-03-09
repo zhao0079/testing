@@ -98,8 +98,8 @@ FORMAT = ihex
 #DEADCODESTRIP = -Wl,-static -fdata-sections -ffunction-sections -Wl,--gc-sections -Wl,-s
  
  #define compiler name
-#CCNAME = -none-eabi
-CCNAME = -elf
+CCNAME = -none-eabi
+#CCNAME = -elf
  
 # Define programs and commands.
 CC     = arm$(CCNAME)-gcc
@@ -210,6 +210,9 @@ upload-remote-bravo: $(OBJDIR)/$(TARGET).elf bootloader
 	
 upload-remote-charlie: $(OBJDIR)/$(TARGET).elf bootloader 
 	$(Q)$(TOOLS)/upload_remote_charlie.sh
+	
+upload-remote-daisy: $(OBJDIR)/$(TARGET).elf bootloader 
+	$(Q)$(TOOLS)/upload_remote_daisy.sh
 
 # All generated headers
 generated: generated/messages.h
