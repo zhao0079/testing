@@ -193,15 +193,15 @@ void vision_position_kalman(void)
 	m_elem x_measurement[2] =
 	{ };
 	m_elem x_mask[2] =
-	{ 0, 1 };//only acceleromenters normaly
+	{ 0, 0 };//only acceleromenters normaly
 	m_elem y_measurement[2] =
 	{ };
 	m_elem y_mask[2] =
-	{ 0, 1 };//only acceleromenters normaly
+	{ 0, 0 };//only acceleromenters normaly
 	m_elem z_measurement[2] =
 	{ };
 	m_elem z_mask[2] =
-	{ 0, 1 };//only acceleromenters normaly
+	{ 0, 0 };//only acceleromenters normaly
 
 //	static int i = 0;
 //	if (i++ == 200)
@@ -222,11 +222,11 @@ void vision_position_kalman(void)
 
 		if (global_data.vision_data.new_data)
 		{
-			uint32_t vision_delay = (uint32_t) (global_data.vision_data.comp_end
-					- global_data.vision_data.time_captured);
-			// Debug Time for Vision Processing
-			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 100,
-					(float) vision_delay);
+//			uint32_t vision_delay = (uint32_t) (global_data.vision_data.comp_end
+//					- global_data.vision_data.time_captured);
+//			// Debug Time for Vision Processing
+//			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 100,
+//					(float) vision_delay);
 		}
 	}
 
@@ -245,8 +245,8 @@ void vision_position_kalman(void)
 			i=0;
 	//debug
 
-	mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 50,
-			z_measurement[1]);
+//	mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 50,
+//			z_measurement[1]);
 	float_vect3 out_kal_z;
 	out_kal_z.x = kalman_get_state(&vision_position_kalman_z,1);
 	out_kal_z.y = kalman_get_state(&vision_position_kalman_z,2);

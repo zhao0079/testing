@@ -180,8 +180,8 @@ void main_loop_quadrotor(void)
 			}
 			else
 			{
-//				vision_position_kalman();
-				fuse_vision_altitude_200hz();
+				vision_position_kalman();
+//				fuse_vision_altitude_200hz();
 			}
 
 			control_quadrotor_attitude();
@@ -358,8 +358,8 @@ void main_loop_quadrotor(void)
 			sync_state_parameters();
 
 			//debug number of execution
-			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN],
-					101, count);
+/*			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN],
+					101, count);*/
 			count = 0;
 
 //			TESTING MATRIX MULTIPLICATION
