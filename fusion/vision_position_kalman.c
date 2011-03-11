@@ -222,7 +222,7 @@ void vision_position_kalman(void)
 				- global_data.vicon_data.z));
 
 		//use only vision_data if difference to vicon is small or we don't have vicon_data at all
-		if (difference < 0.5 || !global_data.state.vicon_ok)
+		if (difference < global_data.param[PARAM_VICON_TAKEOVER_DISTANCE] || !global_data.state.vicon_ok)
 		{
 			if (global_data.vision_data.new_data)
 			{

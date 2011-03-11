@@ -144,6 +144,10 @@ enum
 	PARAM_VISION_YAWCORRECT,
 	PARAM_VISION_ANG_OUTLAYER_TRESHOLD,
 
+	PARAM_VICON_MODE,
+	PARAM_VICON_TAKEOVER_DISTANCE,
+	PARAM_VICON_TAKEOVER_TIMEOUT,
+
 
 	PARAM_SEND_DEBUGCHAN,
 
@@ -387,7 +391,7 @@ static inline void global_data_reset_param_defaults(void){
 	strcpy(global_data.param_name[PARAM_PPM_SAFETY_SWITCH_CHANNEL],
 			"RC_SAFETY_CHAN");
 
-	global_data.param[PARAM_UART0_BAUD] = 57600;// 115200;
+	global_data.param[PARAM_UART0_BAUD] = 115200;//57600;//
 	strcpy(global_data.param_name[PARAM_UART0_BAUD], "UART_0_BAUD");
 
 	global_data.param[PARAM_UART1_BAUD] = 57600;//57600
@@ -634,6 +638,16 @@ static inline void global_data_reset_param_defaults(void){
 
 	global_data.param[PARAM_VISION_ANG_OUTLAYER_TRESHOLD] = 0.2;
 	strcpy(global_data.param_name[PARAM_VISION_ANG_OUTLAYER_TRESHOLD], "VIS_OUTL_TRESH");
+
+	global_data.param[PARAM_VICON_MODE] = 2;
+	global_data.param[PARAM_VICON_TAKEOVER_DISTANCE] = 0.5;
+	global_data.param[PARAM_VICON_TAKEOVER_TIMEOUT] = 2;
+	strcpy(global_data.param_name[PARAM_VICON_MODE], "VICON_MODE");
+	strcpy(global_data.param_name[PARAM_VICON_TAKEOVER_DISTANCE],
+			"VICON_TKO_DIST");
+	strcpy(global_data.param_name[PARAM_VICON_TAKEOVER_TIMEOUT],
+			"VICON_TKO_TIME");
+
 
 	strcpy(global_data.param_name[PARAM_GPS_MODE], "GPS_MODE");
 	global_data.param[PARAM_GPS_MODE] = 0; //0: MAVLINK, 960010: GPS; // 9600 1 0: 9600 baud, mode 1 = U-Blox binary, on UART 0
