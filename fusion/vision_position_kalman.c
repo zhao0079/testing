@@ -272,7 +272,7 @@ void vision_position_kalman(void)
 	kalman_correct(&vision_position_kalman_y, y_measurement, y_mask);
 	kalman_correct(&vision_position_kalman_z, z_measurement, z_mask);
 
-		static int i=2;
+/*		static int i=2;
 		if(i++==4){
 			i=0;
 	//debug
@@ -284,7 +284,7 @@ void vision_position_kalman(void)
 	out_kal_z.y = kalman_get_state(&vision_position_kalman_z,2);
 	out_kal_z.z = kalman_get_state(&vision_position_kalman_z,3);
 	debug_vect("out_kal_z", out_kal_z);
-		}
+		}*/
 
 // save outputs
 	global_data.position.x = kalman_get_state(&vision_position_kalman_x,0);
