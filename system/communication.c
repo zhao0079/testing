@@ -105,13 +105,7 @@ void execute_action(uint8_t action)
 		break;
 	default:
 		// Should never be reached, ignore unknown commands
-		debug_message_buffer("WARNING: Rejected unknown action");
-		char action_number[4];
-		action_number[0] = action/100+48;
-		action_number[1] = (action%100)/10+48;
-		action_number[2] = (action%10)+48;
-		action_number[3] = 0;
-		debug_message_buffer(action_number);
+		debug_message_buffer_sprintf("Rejected unknown action Number: %u", action);
 		break;
 	}
 }
