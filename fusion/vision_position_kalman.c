@@ -14,8 +14,10 @@
 #include "transformation.h"
 #include "gps_transformations.h"
 
-#define VELOCITY_HOLD 0.999f
-#define ACCELERATION_HOLD 0.99f
+//#define VELOCITY_HOLD 0.999f
+//#define ACCELERATION_HOLD 0.99f
+#define VELOCITY_HOLD 1.0f
+#define ACCELERATION_HOLD 1.0f
 
 kalman_t vision_position_kalman_x;
 kalman_t vision_position_kalman_y;
