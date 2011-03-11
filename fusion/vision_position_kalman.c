@@ -210,15 +210,46 @@ void vision_position_kalman(void)
 //		x_measurement[0]=0;
 //		x_mask[0]=1;//simulate GPS position 0  at 1 Hz
 	//	}	static int i = 0;
-	if (global_data.state.vision_ok && global_data.vision_data.new_data)
+	if (global_data.vision_data.new_data || global_data.state.vicon_new_data)
 	{
-		global_data.vision_data.new_data=0;
-		x_measurement[0] = global_data.vision_data.pos.x;
-		x_mask[0] = 1;
-		y_measurement[0] = global_data.vision_data.pos.y;
-		y_mask[0] = 1;
-		z_measurement[0] = global_data.vision_data.pos.z;
-		z_mask[0] = 1;
+		//measure difference:
+		float difference = sqrtf((global_data.vision_data.pos.x
+				- global_data.vicon_data.x) * (global_data.vision_data.pos.x
+				- global_data.vicon_data.x) + (global_data.vision_data.pos.y
+				- global_data.vicon_data.y) * (global_data.vision_data.pos.y
+				- global_data.vicon_data.y) + (global_data.vision_data.pos.z
+				- global_data.vicon_data.z) * (global_data.vision_data.pos.z
+				- global_data.vicon_data.z));
+
+		//use only vision_data if difference to vicon is small or we don't have vicon_data at all
+		if (difference < 0.5 || !global_data.state.vicon_ok)
+		{
+			if (global_data.vision_data.new_data)
+			{
+				//vision
+				x_measurement[0] = global_data.vision_data.pos.x;
+				x_mask[0] = 1;
+				y_measurement[0] = global_data.vision_data.pos.y;
+				y_mask[0] = 1;
+				z_measurement[0] = global_data.vision_data.pos.z;
+				z_mask[0] = 1;
+			}
+		}
+		else if (global_data.state.vicon_new_data)
+		{ //vicon
+			x_measurement[0] = global_data.vicon_data.x;
+			x_mask[0] = 1;
+			y_measurement[0] = global_data.vicon_data.y;
+			y_mask[0] = 1;
+			z_measurement[0] = global_data.vicon_data.z;
+			z_mask[0] = 1;
+		}
+
+
+
+		//data has been used
+		global_data.vision_data.new_data = 0;
+		global_data.state.vicon_new_data = 0;
 
 		if (global_data.vision_data.new_data)
 		{
@@ -229,6 +260,7 @@ void vision_position_kalman(void)
 //					(float) vision_delay);
 		}
 	}
+
 
 
 	x_measurement[1] = acc_nav.x;

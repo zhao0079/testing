@@ -225,10 +225,10 @@ void vision_buffer_handle_data(mavlink_vision_position_estimate_t* pos)
 			//Correct YAW
 			global_data.attitude.z = global_data.attitude.z + yaw_e;
 			//If yaw goes to infinity (no idea why) set it to setpoint, next time will be better
-			if (global_data.attitude.z > 20 || global_data.attitude.z < -20)
+			if (global_data.attitude.z > 18.8495559 || global_data.attitude.z < -18.8495559)
 			{
 				global_data.attitude.z = global_data.yaw_pos_setpoint;
-				debug_message_buffer("vision_buffer CRITICAL FAULT yaw was bigger than 20! prevented crash");
+				debug_message_buffer("vision_buffer CRITICAL FAULT yaw was bigger than 6 PI! prevented crash");
 			}
 
 			global_data.vision_data.new_data = 1;
