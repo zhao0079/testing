@@ -137,7 +137,7 @@ void handle_mavlink_message(mavlink_channel_t chan,
 	break;
 	case MAVLINK_COMM_1:
 	{
-		if (msg->msgid != MAVLINK_MSG_ID_VISION_POSITION_ESTIMATE)
+		if (msg->msgid != MAVLINK_MSG_ID_VISION_POSITION_ESTIMATE && msg->msgid != MAVLINK_MSG_ID_VICON_POSITION_ESTIMATE)
 		{
 			// Copy to COMM 0
 			len = mavlink_msg_to_send_buffer(buf, msg);
@@ -491,7 +491,7 @@ void handle_mavlink_message(mavlink_channel_t chan,
 		global_data.state.vicon_ok=1;
 
 		//send the vicon message to UART0 with new timestamp
-//		mavlink_msg_vicon_position_estimate_send(MAVLINK_COMM_0, pos., pos.x, pos.y, pos.z, pos.roll, pos.pitch, pos.yaw);
+		mavlink_msg_vicon_position_estimate_send(MAVLINK_COMM_0, global_data.vicon_last_valid, pos.x, pos.y, pos.z, pos.roll, pos.pitch, pos.yaw);
 
 	}
 	break;
