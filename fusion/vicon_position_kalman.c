@@ -16,7 +16,7 @@
 
 //#define VELOCITY_HOLD 0.999f
 //#define ACCELERATION_HOLD 0.99f
-#define VELOCITY_HOLD 1.0f
+#define VELOCITY_HOLD 0.99f
 #define ACCELERATION_HOLD 1.0f
 
 kalman_t vicon_position_kalman_x;
@@ -40,13 +40,16 @@ void vicon_position_kalman_init(void)
 
 	static m_elem kal_x_gain[2 * 2]  =
 	{
-			0.120089421679731,	4.35722593937886e-06,
-			0.213207108111745,	0.00113300623965082};
+			0.177673118212026,	0.363726574226735,
+			1.13547678406557,	1.65089930506536
+	};
+
 
 	static m_elem kal_x_gain_start[2 * 2] =
 	{
-			0.184954631641736,	3.83974662133946e-14,
-			0.0273267826361096,	1.76786246429369e-11};
+			0.177673118212026,	0.363726574226735,
+			0,	0
+	};
 
 	static m_elem kal_x_x_apriori[2 * 1] =
 	{
@@ -80,14 +83,15 @@ void vicon_position_kalman_init(void)
 
 	static m_elem kal_y_gain[2 * 2]  =
 	{
-			0.120089421679731,	4.35722593937886e-06,
-			0.213207108111745,	0.00113300623965082};
+			0.177673118212026,	0.363726574226735,
+			1.13547678406557,	1.65089930506536
+	};
 
 	static m_elem kal_y_gain_start[2 * 2] =
 	{
-			0.184954631641736,	3.83974662133946e-14,
-			0.0273267826361096,	1.76786246429369e-11};
-
+			0.177673118212026,	0.363726574226735,
+			0,	0
+	};
 	static m_elem kal_y_x_apriori[2 * 1] =
 	{
 	 0 ,
@@ -127,14 +131,16 @@ void vicon_position_kalman_init(void)
 //			-0.177890740554481,	0.000772735355118873};
 	static m_elem kal_z_gain[2 * 2] =
 	{
-			0.120089421679731,	3.73444963864759e-08,
-			0.213207108111745,	1.49106022715582e-05};
+			0.177673118212026,	0.363726574226735,
+			1.13547678406557,	1.65089930506536
+	};
+
 
 	static m_elem kal_z_gain_start[2 * 2] =
 	{
-			0.184954631641736,	3.83974662133946e-14,
-			0.0273267826361096,	1.76786246429369e-11};
-
+			0.177673118212026,	0.363726574226735,
+			0,	0
+	};
 
 	static m_elem kal_z_x_apriori[2 * 1] =
 	{
@@ -194,7 +200,7 @@ void vicon_position_kalman(void)
 				- global_data.vicon_data.z));
 
 		//use only vision_data if difference to vicon is small or we don't have vicon_data at all
-		if (difference < global_data.param[PARAM_VICON_TAKEOVER_DISTANCE] || !global_data.state.vicon_ok)
+		if (global_data.state.vision_ok && (difference < global_data.param[PARAM_VICON_TAKEOVER_DISTANCE] || !global_data.state.vicon_ok))
 		{
 			if (global_data.vision_data.new_data)
 			{
@@ -217,7 +223,11 @@ void vicon_position_kalman(void)
 			z_mask[0] = 1;
 		}
 
-
+//		float_vect3 debug;
+//		debug.x = difference;
+//		debug.y = global_data.state.vicon_ok;
+//		debug.z = global_data.state.vision_ok;
+//		debug_vect("vic_kal_dif", debug);
 
 		//data has been used
 		global_data.vision_data.new_data = 0;
