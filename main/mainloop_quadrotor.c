@@ -525,7 +525,8 @@ void main_loop_quadrotor(void)
 				//Check if parameters should be written or read
 				param_handler();
 			}
-/*
+#if 0
+			/*
 //debug_message_buffer("HAllo Kalman");
 
 			//altitude kalman filter
@@ -813,7 +814,7 @@ void main_loop_quadrotor(void)
 //				debug_vect("press_accel", acc_press);
 //			}
 			*/
-
+#endif
 		}
 		///////////////////////////////////////////////////////////////////////////
 
