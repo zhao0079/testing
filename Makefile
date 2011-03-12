@@ -58,6 +58,7 @@ SRCARM += fusion/vision_buffer.c
 SRCARM += fusion/kalman.c
 SRCARM += fusion/outdoor_position_kalman.c
 SRCARM += fusion/vision_position_kalman.c
+SRCARM += fusion/vicon_position_kalman.c
 SRCARM += fusion/attitude_compl_euler.c
 SRCARM += fusion/simple_altitude_moving_average.c
 SRCARM += fusion/least_square.c
