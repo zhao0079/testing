@@ -460,6 +460,7 @@ void handle_mavlink_message(mavlink_channel_t chan,
 		global_data.state.vicon_new_data=1;
 		// Update validity time
 		global_data.vicon_last_valid = sys_time_clock_get_time_usec();
+		global_data.state.vicon_ok=1;
 
 //		//Set data from Vicon into vision filter
 //		global_data.vision_data.ang.x = pos.roll;
@@ -486,9 +487,6 @@ void handle_mavlink_message(mavlink_channel_t chan,
 			}
 		}
 
-		// Update validity time
-		global_data.vicon_last_valid = sys_time_clock_get_time_usec();
-		global_data.state.vicon_ok=1;
 
 		//send the vicon message to UART0 with new timestamp
 		mavlink_msg_vicon_position_estimate_send(MAVLINK_COMM_0, global_data.vicon_last_valid, pos.x, pos.y, pos.z, pos.roll, pos.pitch, pos.yaw);

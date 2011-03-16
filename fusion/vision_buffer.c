@@ -223,7 +223,10 @@ void vision_buffer_handle_data(mavlink_vision_position_estimate_t* pos)
 									+ pos_diff_turned.z + pos_e.z;
 
 			//Correct YAW
-			global_data.attitude.z = global_data.attitude.z + yaw_e;
+			//global_data.attitude.z = global_data.attitude.z + yaw_e;
+			//set yaw directly
+			global_data.attitude.z = pos->yaw;
+
 			//If yaw goes to infinity (no idea why) set it to setpoint, next time will be better
 			if (global_data.attitude.z > 18.8495559 || global_data.attitude.z < -18.8495559)
 			{
