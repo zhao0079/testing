@@ -235,8 +235,18 @@ void main_loop_quadrotor(void)
 		///////////////////////////////////////////////////////////////////////////
 		else if (us_run_every(50000, COUNTER4, loop_start_time))
 		{
-			//update global_data.state
-			global_data.state.position_fix = global_data.state.vision_ok; //we only have vision atm
+			//*** this happens in handle_controller_timeouts already!!!!! ***
+//			//update global_data.state
+//			if (global_data.param[PARAM_VICON_MODE] == 1)
+//			{
+//				//VICON_MODE 1 only accepts vicon position
+//				global_data.state.position_fix = global_data.state.vicon_ok;
+//			}
+//			else
+//			{
+//				//VICON_MODEs 0, 2, 3 accepts vision additionally, so check vision
+//				global_data.state.position_fix = global_data.state.vision_ok;
+//			}
 
 			update_system_statemachine(loop_start_time);
 			update_controller_setpoints();

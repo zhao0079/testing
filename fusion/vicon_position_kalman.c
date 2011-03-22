@@ -40,8 +40,8 @@ void vicon_position_kalman_init(void)
 
 	static m_elem kal_x_gain[2 * 2]  =
 	{
-			0.177673118212026,	0.363726574226735,
-			1.13547678406557,	1.65089930506536
+			0.550311626986869,	0.363726574226735,
+			4.24117140900075,	1.65089930506536
 	};
 
 
@@ -83,9 +83,10 @@ void vicon_position_kalman_init(void)
 
 	static m_elem kal_y_gain[2 * 2]  =
 	{
-			0.177673118212026,	0.363726574226735,
-			1.13547678406557,	1.65089930506536
+			0.550311626986869,	0.363726574226735,
+			4.24117140900075,	1.65089930506536
 	};
+
 
 	static m_elem kal_y_gain_start[2 * 2] =
 	{
@@ -131,9 +132,14 @@ void vicon_position_kalman_init(void)
 //			-0.177890740554481,	0.000772735355118873};
 	static m_elem kal_z_gain[2 * 2] =
 	{
-			0.177673118212026,	0.363726574226735,
-			1.13547678406557,	1.65089930506536
+			0.550311626986869,	0.363726574226735,
+			4.24117140900075,	1.65089930506536
 	};
+
+//	{
+//			0.177673118212026,	0.363726574226735,
+//			1.13547678406557,	1.65089930506536
+//	};
 
 
 	static m_elem kal_z_gain_start[2 * 2] =
@@ -190,37 +196,52 @@ void vicon_position_kalman(void)
 	//	}	static int i = 0;
 	if (global_data.vision_data.new_data || global_data.state.vicon_new_data)
 	{
-		//measure difference:
-		float difference = sqrtf((global_data.vision_data.pos.x
-				- global_data.vicon_data.x) * (global_data.vision_data.pos.x
-				- global_data.vicon_data.x) + (global_data.vision_data.pos.y
-				- global_data.vicon_data.y) * (global_data.vision_data.pos.y
-				- global_data.vicon_data.y) + (global_data.vision_data.pos.z
-				- global_data.vicon_data.z) * (global_data.vision_data.pos.z
-				- global_data.vicon_data.z));
-
-		//use only vision_data if difference to vicon is small or we don't have vicon_data at all
-		if (global_data.state.vision_ok && (difference < global_data.param[PARAM_VICON_TAKEOVER_DISTANCE] || !global_data.state.vicon_ok))
+		if (global_data.param[PARAM_VICON_MODE] > 1)
 		{
-			if (global_data.vision_data.new_data)
+			//measure difference:
+			float difference = sqrtf((global_data.vision_data.pos.x
+					- global_data.vicon_data.x) * (global_data.vision_data.pos.x
+					- global_data.vicon_data.x) + (global_data.vision_data.pos.y
+					- global_data.vicon_data.y) * (global_data.vision_data.pos.y
+					- global_data.vicon_data.y) + (global_data.vision_data.pos.z
+					- global_data.vicon_data.z) * (global_data.vision_data.pos.z
+					- global_data.vicon_data.z));
+
+			//use only vision_data if difference to vicon is small or we don't have vicon_data at all
+			if (global_data.state.vision_ok && (difference < global_data.param[PARAM_VICON_TAKEOVER_DISTANCE] || !global_data.state.vicon_ok))
 			{
-				//vision
-				x_measurement[1] = global_data.vision_data.pos.x;
-				x_mask[1] = 1;
-				y_measurement[1] = global_data.vision_data.pos.y;
-				y_mask[1] = 1;
-				z_measurement[1] = global_data.vision_data.pos.z;
-				z_mask[1] = 1;
+				if (global_data.vision_data.new_data)
+				{
+					//vision
+					x_measurement[1] = global_data.vision_data.pos.x;
+					x_mask[1] = 1;
+					y_measurement[1] = global_data.vision_data.pos.y;
+					y_mask[1] = 1;
+					z_measurement[1] = global_data.vision_data.pos.z;
+					z_mask[1] = 1;
+				}
+			}
+			else if (global_data.state.vicon_new_data)
+			{ //vicon
+				x_measurement[0] = global_data.vicon_data.x;
+				x_mask[0] = 1;
+				y_measurement[0] = global_data.vicon_data.y;
+				y_mask[0] = 1;
+				z_measurement[0] = global_data.vicon_data.z;
+				z_mask[0] = 1;
 			}
 		}
-		else if (global_data.state.vicon_new_data)
-		{ //vicon
-			x_measurement[0] = global_data.vicon_data.x;
-			x_mask[0] = 1;
-			y_measurement[0] = global_data.vicon_data.y;
-			y_mask[0] = 1;
-			z_measurement[0] = global_data.vicon_data.z;
-			z_mask[0] = 1;
+		else if (global_data.param[PARAM_VICON_MODE] == 1)
+		{
+			if (global_data.state.vicon_new_data)
+			{ //vicon
+				x_measurement[0] = global_data.vicon_data.x;
+				x_mask[0] = 1;
+				y_measurement[0] = global_data.vicon_data.y;
+				y_mask[0] = 1;
+				z_measurement[0] = global_data.vicon_data.z;
+				z_mask[0] = 1;
+			}
 		}
 
 //		float_vect3 debug;
