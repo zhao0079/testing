@@ -198,9 +198,9 @@ void vision_buffer_handle_data(mavlink_vision_position_estimate_t* pos)
 			//	global_data.hack_yaw = pos->yaw;
 			//global_data.vision_data.ang.z = pos.yaw;
 
-			//		global_data.vision_data.pos.x = pos->x;
-			//		global_data.vision_data.pos.y = pos->y;
-			//		global_data.vision_data.pos.z = pos->z;
+					global_data.vision_data.pos.x = pos->x;
+					global_data.vision_data.pos.y = pos->y;
+					global_data.vision_data.pos.z = pos->z;
 
 
 			//take directly the Vision position and speed
@@ -215,12 +215,12 @@ void vision_buffer_handle_data(mavlink_vision_position_estimate_t* pos)
 			//		global_data.velocity.z = pos->vz;
 
 			//		use predicted error
-							global_data.vision_data.pos.x = vision_buffer[i].pos.x
-									+ pos_diff_turned.x + pos_e.x;
-							global_data.vision_data.pos.y = vision_buffer[i].pos.y
-									+ pos_diff_turned.y + pos_e.y;
-							global_data.vision_data.pos.z = vision_buffer[i].pos.z
-									+ pos_diff_turned.z + pos_e.z;
+//							global_data.vision_data.pos.x = vision_buffer[i].pos.x
+//									+ pos_diff_turned.x + pos_e.x;
+//							global_data.vision_data.pos.y = vision_buffer[i].pos.y
+//									+ pos_diff_turned.y + pos_e.y;
+//							global_data.vision_data.pos.z = vision_buffer[i].pos.z
+//									+ pos_diff_turned.z + pos_e.z;
 
 			//Correct YAW
 			//global_data.attitude.z = global_data.attitude.z + yaw_e;
