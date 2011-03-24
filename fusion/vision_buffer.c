@@ -85,7 +85,8 @@ void vision_buffer_buffer_camera_triggered(uint64_t usec,
 	// save position in buffer
 	vision_buffer[vision_buffer_index_write].pos = global_data.position;
 	vision_buffer[vision_buffer_index_write].ang = global_data.attitude;
-	vision_buffer[vision_buffer_index_write].time_captured = usec;
+//	vision_buffer[vision_buffer_index_write].time_captured = usec;
+	vision_buffer[vision_buffer_index_write].time_captured = loop_start_time;
 
 	//debug_message_buffer("vision_buffer stored data");
 
