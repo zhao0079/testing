@@ -391,7 +391,7 @@
 
 #define FEATURE_MOTORCONTROLLER			FEATURE_MOTORCONTROLLER_MIKROKOPTER_PWM
 
-#define MOT_I2C_BUS_NUMBER				0 // set back to 0
+#define MOT_I2C_BUS_NUMBER				1 // set back to 0
 
 // Mikrokopter default addresses
 #define MOT1_I2C_SLAVE_ADDRESS			0x52	///< I2C slave address of I2C motor controller number 1

@@ -14,8 +14,10 @@
 #include "transformation.h"
 #include "gps_transformations.h"
 
-#define VELOCITY_HOLD 0.999f
-#define ACCELERATION_HOLD 0.99f
+//#define VELOCITY_HOLD 0.999f
+//#define ACCELERATION_HOLD 0.99f
+#define VELOCITY_HOLD 1.0f
+#define ACCELERATION_HOLD 1.0f
 
 kalman_t vision_position_kalman_x;
 kalman_t vision_position_kalman_y;
@@ -193,15 +195,15 @@ void vision_position_kalman(void)
 	m_elem x_measurement[2] =
 	{ };
 	m_elem x_mask[2] =
-	{ 0, 1 };//only acceleromenters normaly
+	{ 0, 0 };//only acceleromenters normaly
 	m_elem y_measurement[2] =
 	{ };
 	m_elem y_mask[2] =
-	{ 0, 1 };//only acceleromenters normaly
+	{ 0, 0 };//only acceleromenters normaly
 	m_elem z_measurement[2] =
 	{ };
 	m_elem z_mask[2] =
-	{ 0, 1 };//only acceleromenters normaly
+	{ 0, 0 };//only acceleromenters normaly
 
 //	static int i = 0;
 //	if (i++ == 200)
@@ -210,25 +212,57 @@ void vision_position_kalman(void)
 //		x_measurement[0]=0;
 //		x_mask[0]=1;//simulate GPS position 0  at 1 Hz
 	//	}	static int i = 0;
-	if (global_data.state.vision_ok && global_data.vision_data.new_data)
+	if (global_data.vision_data.new_data || global_data.state.vicon_new_data)
 	{
-		global_data.vision_data.new_data=0;
-		x_measurement[0] = global_data.vision_data.pos.x;
-		x_mask[0] = 1;
-		y_measurement[0] = global_data.vision_data.pos.y;
-		y_mask[0] = 1;
-		z_measurement[0] = global_data.vision_data.pos.z;
-		z_mask[0] = 1;
+		//measure difference:
+		float difference = sqrtf((global_data.vision_data.pos.x
+				- global_data.vicon_data.x) * (global_data.vision_data.pos.x
+				- global_data.vicon_data.x) + (global_data.vision_data.pos.y
+				- global_data.vicon_data.y) * (global_data.vision_data.pos.y
+				- global_data.vicon_data.y) + (global_data.vision_data.pos.z
+				- global_data.vicon_data.z) * (global_data.vision_data.pos.z
+				- global_data.vicon_data.z));
+
+		//use only vision_data if difference to vicon is small or we don't have vicon_data at all
+		if (difference < global_data.param[PARAM_VICON_TAKEOVER_DISTANCE] || !global_data.state.vicon_ok)
+		{
+			if (global_data.vision_data.new_data)
+			{
+				//vision
+				x_measurement[0] = global_data.vision_data.pos.x;
+				x_mask[0] = 1;
+				y_measurement[0] = global_data.vision_data.pos.y;
+				y_mask[0] = 1;
+				z_measurement[0] = global_data.vision_data.pos.z;
+				z_mask[0] = 1;
+			}
+		}
+		else if (global_data.state.vicon_new_data)
+		{ //vicon
+			x_measurement[0] = global_data.vicon_data.x;
+			x_mask[0] = 1;
+			y_measurement[0] = global_data.vicon_data.y;
+			y_mask[0] = 1;
+			z_measurement[0] = global_data.vicon_data.z;
+			z_mask[0] = 1;
+		}
+
+
+
+		//data has been used
+		global_data.vision_data.new_data = 0;
+		global_data.state.vicon_new_data = 0;
 
 		if (global_data.vision_data.new_data)
 		{
-			uint32_t vision_delay = (uint32_t) (global_data.vision_data.comp_end
-					- global_data.vision_data.time_captured);
-			// Debug Time for Vision Processing
-			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 100,
-					(float) vision_delay);
+//			uint32_t vision_delay = (uint32_t) (global_data.vision_data.comp_end
+//					- global_data.vision_data.time_captured);
+//			// Debug Time for Vision Processing
+//			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 100,
+//					(float) vision_delay);
 		}
 	}
+
 
 
 	x_measurement[1] = acc_nav.x;
@@ -240,19 +274,19 @@ void vision_position_kalman(void)
 	kalman_correct(&vision_position_kalman_y, y_measurement, y_mask);
 	kalman_correct(&vision_position_kalman_z, z_measurement, z_mask);
 
-		static int i=2;
+/*		static int i=2;
 		if(i++==4){
 			i=0;
 	//debug
 
-	mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 50,
-			z_measurement[1]);
+//	mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 50,
+//			z_measurement[1]);
 	float_vect3 out_kal_z;
 	out_kal_z.x = kalman_get_state(&vision_position_kalman_z,1);
 	out_kal_z.y = kalman_get_state(&vision_position_kalman_z,2);
 	out_kal_z.z = kalman_get_state(&vision_position_kalman_z,3);
 	debug_vect("out_kal_z", out_kal_z);
-		}
+		}*/
 
 // save outputs
 	global_data.position.x = kalman_get_state(&vision_position_kalman_x,0);

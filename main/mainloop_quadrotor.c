@@ -81,6 +81,7 @@
 
 #include "outdoor_position_kalman.h"
 #include "vision_position_kalman.h"
+#include "vicon_position_kalman.h"
 
 // Executiontime debugging
 float_vect3 time_debug;
@@ -93,28 +94,30 @@ static const uint32_t min_mainloop_time = 5000;  ///< The minimum wait interval 
 //static uint32_t loop_max_time = 0;               ///< The maximum time in microseconds one mainloop took
 static uint64_t last_mainloop_idle = 0;				///< Starvation Prevention
 
+
+
+
+void main_loop_quadrotor(void)
+{
 /**
 * @brief Initialize the whole system
 *
 * All functions that need to be called before the first mainloop iteration
 * should be placed here.
 */
-void main_init_quadrotor(void)
-{
 	main_init_generic();
 	control_quadrotor_position_init();
 	control_quadrotor_attitude_init();
 	outdoor_position_kalman_init();
 	vision_position_kalman_init();
-}
+	vicon_position_kalman_init();
+
 
 /**
 * @brief This is the main loop
 *
 * It will be executed at maximum MCU speed (60 Mhz)
 */
-void main_loop_quadrotor(void)
-{
 	// Executiontime debugging
 	time_debug.x=0;
 	time_debug.y=0;
@@ -179,8 +182,9 @@ void main_loop_quadrotor(void)
 			}
 			else
 			{
+				vicon_position_kalman();
 //				vision_position_kalman();
-				fuse_vision_altitude_200hz();
+//				fuse_vision_altitude_200hz();
 			}
 
 			control_quadrotor_attitude();
@@ -231,8 +235,18 @@ void main_loop_quadrotor(void)
 		///////////////////////////////////////////////////////////////////////////
 		else if (us_run_every(50000, COUNTER4, loop_start_time))
 		{
-			//update global_data.state
-			global_data.state.position_fix = global_data.state.vision_ok; //we only have vision atm
+			//*** this happens in handle_controller_timeouts already!!!!! ***
+//			//update global_data.state
+//			if (global_data.param[PARAM_VICON_MODE] == 1)
+//			{
+//				//VICON_MODE 1 only accepts vicon position
+//				global_data.state.position_fix = global_data.state.vicon_ok;
+//			}
+//			else
+//			{
+//				//VICON_MODEs 0, 2, 3 accepts vision additionally, so check vision
+//				global_data.state.position_fix = global_data.state.vision_ok;
+//			}
 
 			update_system_statemachine(loop_start_time);
 			update_controller_setpoints();
@@ -357,8 +371,8 @@ void main_loop_quadrotor(void)
 			sync_state_parameters();
 
 			//debug number of execution
-			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN],
-					101, count);
+/*			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN],
+					101, count);*/
 			count = 0;
 
 //			TESTING MATRIX MULTIPLICATION
@@ -524,7 +538,8 @@ void main_loop_quadrotor(void)
 				//Check if parameters should be written or read
 				param_handler();
 			}
-/*
+#if 0
+			/*
 //debug_message_buffer("HAllo Kalman");
 
 			//altitude kalman filter
@@ -812,7 +827,7 @@ void main_loop_quadrotor(void)
 //				debug_vect("press_accel", acc_press);
 //			}
 			*/
-
+#endif
 		}
 		///////////////////////////////////////////////////////////////////////////
 

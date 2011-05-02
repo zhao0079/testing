@@ -105,13 +105,7 @@ void execute_action(uint8_t action)
 		break;
 	default:
 		// Should never be reached, ignore unknown commands
-		debug_message_buffer("WARNING: Rejected unknown action");
-		char action_number[4];
-		action_number[0] = action/100+48;
-		action_number[1] = (action%100)/10+48;
-		action_number[2] = (action%10)+48;
-		action_number[3] = 0;
-		debug_message_buffer(action_number);
+		debug_message_buffer_sprintf("Rejected unknown action Number: %u", action);
 		break;
 	}
 }
@@ -143,7 +137,7 @@ void handle_mavlink_message(mavlink_channel_t chan,
 	break;
 	case MAVLINK_COMM_1:
 	{
-		if (msg->msgid != MAVLINK_MSG_ID_VISION_POSITION_ESTIMATE)
+		if (msg->msgid != MAVLINK_MSG_ID_VISION_POSITION_ESTIMATE && msg->msgid != MAVLINK_MSG_ID_VICON_POSITION_ESTIMATE)
 		{
 			// Copy to COMM 0
 			len = mavlink_msg_to_send_buffer(buf, msg);
@@ -451,7 +445,7 @@ void handle_mavlink_message(mavlink_channel_t chan,
 		mavlink_msg_vision_position_estimate_decode(msg, &pos);
 
 		vision_buffer_handle_data(&pos);
-
+		// Update validity time is done in vision buffer
 
 	}
 	break;
@@ -460,31 +454,42 @@ void handle_mavlink_message(mavlink_channel_t chan,
 		mavlink_vicon_position_estimate_t pos;
 		mavlink_msg_vicon_position_estimate_decode(msg, &pos);
 
-		//Set data from Vicon directly
-		global_data.vision_data.ang.x = pos.roll;
-		global_data.vision_data.ang.y = pos.pitch;
-		global_data.vision_data.ang.z = pos.yaw;
+		global_data.vicon_data.x = pos.x;
+		global_data.vicon_data.y = pos.y;
+		global_data.vicon_data.z = pos.z;
+		global_data.state.vicon_new_data=1;
+		// Update validity time
+		global_data.vicon_last_valid = sys_time_clock_get_time_usec();
+		global_data.state.vicon_ok=1;
 
-		global_data.vision_data.pos.x = pos.x;
-		global_data.vision_data.pos.y = pos.y;
-		global_data.vision_data.pos.z = pos.z;
+//		//Set data from Vicon into vision filter
+//		global_data.vision_data.ang.x = pos.roll;
+//		global_data.vision_data.ang.y = pos.pitch;
+//		global_data.vision_data.ang.z = pos.yaw;
+//
+//		global_data.vision_data.pos.x = pos.x;
+//		global_data.vision_data.pos.y = pos.y;
+//		global_data.vision_data.pos.z = pos.z;
+//
+//		global_data.vision_data.new_data = 1;
 
-		//Correct YAW
-		global_data.attitude.z = pos.yaw;
-		//If yaw goes to infy (no idea why) set it to setpoint, next time will be better
-		if (global_data.attitude.z > 20 || global_data.attitude.z < -20)
+		if (!global_data.state.vision_ok)
 		{
-			global_data.attitude.z = global_data.yaw_pos_setpoint;
-			debug_message_buffer("vicon CRITICAL FAULT yaw was bigger than 20! prevented crash");
+			//Correct YAW
+			global_data.attitude.z = pos.yaw;
+			//If yaw goes to infy (no idea why) set it to setpoint, next time will be better
+			if (global_data.attitude.z > 18.8495559 || global_data.attitude.z
+					< -18.8495559)
+			{
+				global_data.attitude.z = global_data.yaw_pos_setpoint;
+				debug_message_buffer(
+						"vicon CRITICAL FAULT yaw was bigger than 6 PI! prevented crash");
+			}
 		}
 
-		global_data.vision_data.new_data = 1;
-
-		// Update validity time
-		global_data.pos_last_valid = sys_time_clock_get_time_usec();
 
 		//send the vicon message to UART0 with new timestamp
-		mavlink_msg_vicon_position_estimate_send(MAVLINK_COMM_0, global_data.pos_last_valid, pos.x, pos.y, pos.z, pos.roll, pos.pitch, pos.yaw);
+		mavlink_msg_vicon_position_estimate_send(MAVLINK_COMM_0, global_data.vicon_last_valid, pos.x, pos.y, pos.z, pos.roll, pos.pitch, pos.yaw);
 
 	}
 	break;

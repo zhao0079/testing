@@ -85,7 +85,8 @@ void vision_buffer_buffer_camera_triggered(uint64_t usec,
 	// save position in buffer
 	vision_buffer[vision_buffer_index_write].pos = global_data.position;
 	vision_buffer[vision_buffer_index_write].ang = global_data.attitude;
-	vision_buffer[vision_buffer_index_write].time_captured = usec;
+//	vision_buffer[vision_buffer_index_write].time_captured = usec;
+	vision_buffer[vision_buffer_index_write].time_captured = loop_start_time;
 
 	//debug_message_buffer("vision_buffer stored data");
 
@@ -198,9 +199,9 @@ void vision_buffer_handle_data(mavlink_vision_position_estimate_t* pos)
 			//	global_data.hack_yaw = pos->yaw;
 			//global_data.vision_data.ang.z = pos.yaw;
 
-			//		global_data.vision_data.pos.x = pos->x;
-			//		global_data.vision_data.pos.y = pos->y;
-			//		global_data.vision_data.pos.z = pos->z;
+					global_data.vision_data.pos.x = pos->x;
+					global_data.vision_data.pos.y = pos->y;
+					global_data.vision_data.pos.z = pos->z;
 
 
 			//take directly the Vision position and speed
@@ -215,20 +216,23 @@ void vision_buffer_handle_data(mavlink_vision_position_estimate_t* pos)
 			//		global_data.velocity.z = pos->vz;
 
 			//		use predicted error
-							global_data.vision_data.pos.x = vision_buffer[i].pos.x
-									+ pos_diff_turned.x + pos_e.x;
-							global_data.vision_data.pos.y = vision_buffer[i].pos.y
-									+ pos_diff_turned.y + pos_e.y;
-							global_data.vision_data.pos.z = vision_buffer[i].pos.z
-									+ pos_diff_turned.z + pos_e.z;
+//							global_data.vision_data.pos.x = vision_buffer[i].pos.x
+//									+ pos_diff_turned.x + pos_e.x;
+//							global_data.vision_data.pos.y = vision_buffer[i].pos.y
+//									+ pos_diff_turned.y + pos_e.y;
+//							global_data.vision_data.pos.z = vision_buffer[i].pos.z
+//									+ pos_diff_turned.z + pos_e.z;
 
 			//Correct YAW
-			global_data.attitude.z = global_data.attitude.z + yaw_e;
+			//global_data.attitude.z = global_data.attitude.z + yaw_e;
+			//set yaw directly
+			global_data.attitude.z = pos->yaw;
+
 			//If yaw goes to infinity (no idea why) set it to setpoint, next time will be better
-			if (global_data.attitude.z > 20 || global_data.attitude.z < -20)
+			if (global_data.attitude.z > 18.8495559 || global_data.attitude.z < -18.8495559)
 			{
 				global_data.attitude.z = global_data.yaw_pos_setpoint;
-				debug_message_buffer("vision_buffer CRITICAL FAULT yaw was bigger than 20! prevented crash");
+				debug_message_buffer("vision_buffer CRITICAL FAULT yaw was bigger than 6 PI! prevented crash");
 			}
 
 			global_data.vision_data.new_data = 1;

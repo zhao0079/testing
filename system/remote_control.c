@@ -102,11 +102,14 @@ inline void remote_control(void)
 				//				global_data.attitude.z = 0;
 				//				global_data.yaw_pos_setpoint = 0;
 
+				if (global_data.state.status != MAV_STATE_ACTIVE)
+				{
+					debug_message_buffer("MAV_STATE_ACTIVE Motors started");
+				}
 				//switch on motors
 				global_data.state.status = MAV_STATE_ACTIVE;
 //				global_data.state.fly = FLY_WAIT_MOTORS;
 //				this will be done by setpoint
-				debug_message_buffer("MAV_STATE_ACTIVE Motors started");
 			}
 
 			//		Switch off MAV_STATE_STANDBY
@@ -114,10 +117,13 @@ inline void remote_control(void)
 					< PPM_LOW_TRIG) && (ppm_get_channel(
 					global_data.param[PARAM_PPM_YAW_CHANNEL]) > PPM_HIGH_TRIG))
 			{
+				if (global_data.state.status != MAV_STATE_STANDBY)
+				{
+					debug_message_buffer("MAV_STATE_STANDBY Motors off");
+				}
 				//switch off motors
 				global_data.state.status = MAV_STATE_STANDBY;
 
-				debug_message_buffer("MAV_STATE_STANDBY Motors off");
 
 			}
 
@@ -132,6 +138,45 @@ inline void remote_control(void)
 			{
 				start_gyro_calibration();
 			}
+
+			// Start capture: left down. right stick right up.
+			if ((ppm_get_channel(global_data.param[PARAM_PPM_THROTTLE_CHANNEL])
+					< PPM_LOW_TRIG) && (ppm_get_channel(
+					global_data.param[PARAM_PPM_YAW_CHANNEL]) > PPM_HIGH_TRIG)
+					&& (ppm_get_channel(
+							global_data.param[PARAM_PPM_NICK_CHANNEL])
+							> PPM_HIGH_TRIG) && (ppm_get_channel(
+					global_data.param[PARAM_PPM_ROLL_CHANNEL]) < PPM_LOW_TRIG))
+			{
+				mavlink_msg_action_send(
+						global_data.param[PARAM_SEND_DEBUGCHAN],
+						global_data.param[PARAM_SYSTEM_ID],MAV_COMP_ID_IMU,
+						MAV_ACTION_REC_START);
+				//should actually go to capturer not IMU
+			}
+			// Stop capture: left down. right stick right up.
+			if ((ppm_get_channel(global_data.param[PARAM_PPM_THROTTLE_CHANNEL])
+					< PPM_LOW_TRIG) && (ppm_get_channel(
+					global_data.param[PARAM_PPM_YAW_CHANNEL]) > PPM_HIGH_TRIG)
+					&& (ppm_get_channel(
+							global_data.param[PARAM_PPM_NICK_CHANNEL])
+							> PPM_HIGH_TRIG) && (ppm_get_channel(
+					global_data.param[PARAM_PPM_ROLL_CHANNEL]) > PPM_HIGH_TRIG))
+			{
+				mavlink_msg_action_send(
+						global_data.param[PARAM_SEND_DEBUGCHAN],
+						global_data.param[PARAM_SYSTEM_ID], MAV_COMP_ID_IMU,
+						MAV_ACTION_REC_STOP);
+				//should actually go to capturer not IMU
+			}
+
+
+
+
+
+
+
+
 
 			//			//Integrate YAW setpoint
 			//			if (fabs(

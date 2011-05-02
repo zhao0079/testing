@@ -58,6 +58,7 @@ SRCARM += fusion/vision_buffer.c
 SRCARM += fusion/kalman.c
 SRCARM += fusion/outdoor_position_kalman.c
 SRCARM += fusion/vision_position_kalman.c
+SRCARM += fusion/vicon_position_kalman.c
 SRCARM += fusion/attitude_compl_euler.c
 SRCARM += fusion/simple_altitude_moving_average.c
 SRCARM += fusion/least_square.c
@@ -98,8 +99,8 @@ FORMAT = ihex
 #DEADCODESTRIP = -Wl,-static -fdata-sections -ffunction-sections -Wl,--gc-sections -Wl,-s
  
  #define compiler name
-#CCNAME = -none-eabi
-CCNAME = -elf
+CCNAME = -none-eabi
+#CCNAME = -elf
  
 # Define programs and commands.
 CC     = arm$(CCNAME)-gcc
@@ -210,6 +211,9 @@ upload-remote-bravo: $(OBJDIR)/$(TARGET).elf bootloader
 	
 upload-remote-charlie: $(OBJDIR)/$(TARGET).elf bootloader 
 	$(Q)$(TOOLS)/upload_remote_charlie.sh
+	
+upload-remote-daisy: $(OBJDIR)/$(TARGET).elf bootloader 
+	$(Q)$(TOOLS)/upload_remote_daisy.sh
 
 # All generated headers
 generated: generated/messages.h

@@ -43,6 +43,7 @@ extern "C"
 #include "pid.h"
 #include "string.h"
 #include "mavlink_types.h"
+//#include "mavlink.h"
 
 // TODO Move
 #define MOTORS_BLOCKED 0
@@ -143,6 +144,10 @@ enum
 	PARAM_VISION_YAWCORRECT,
 	PARAM_VISION_ANG_OUTLAYER_TRESHOLD,
 
+	PARAM_VICON_MODE,
+	PARAM_VICON_TAKEOVER_DISTANCE,
+	PARAM_VICON_TAKEOVER_TIMEOUT,
+
 
 	PARAM_SEND_DEBUGCHAN,
 
@@ -229,6 +234,8 @@ typedef struct
 typedef struct
 {
 	uint8_t vision_ok;//used to switch of position controller in case of vision loss
+	uint8_t vicon_ok;
+	uint8_t vicon_new_data;
 	uint8_t gps_ok;
 	uint8_t gps_new_data;
 	uint8_t ground_distance_ok;
@@ -335,8 +342,10 @@ struct global_struct
 	char param_name[ONBOARD_PARAM_COUNT][ONBOARD_PARAM_NAME_LENGTH];  ///< EEPROM parameter names
 	float ground_distance;
 	float ground_distance_unfiltered;
+	float_vect3 vicon_data;
 	vision_t vision_data;                     ///< Data from computer vision system
 	uint64_t pos_last_valid;
+	uint64_t vicon_last_valid;
 	uint64_t entry_critical;
 
 	uint16_t i2c0_err_count;                  ///< I2C0 errors
@@ -382,7 +391,7 @@ static inline void global_data_reset_param_defaults(void){
 	strcpy(global_data.param_name[PARAM_PPM_SAFETY_SWITCH_CHANNEL],
 			"RC_SAFETY_CHAN");
 
-	global_data.param[PARAM_UART0_BAUD] = 57600;// 115200;
+	global_data.param[PARAM_UART0_BAUD] = 115200;//57600;//
 	strcpy(global_data.param_name[PARAM_UART0_BAUD], "UART_0_BAUD");
 
 	global_data.param[PARAM_UART1_BAUD] = 57600;//57600
@@ -630,6 +639,16 @@ static inline void global_data_reset_param_defaults(void){
 	global_data.param[PARAM_VISION_ANG_OUTLAYER_TRESHOLD] = 0.2;
 	strcpy(global_data.param_name[PARAM_VISION_ANG_OUTLAYER_TRESHOLD], "VIS_OUTL_TRESH");
 
+	global_data.param[PARAM_VICON_MODE] = 2;
+	global_data.param[PARAM_VICON_TAKEOVER_DISTANCE] = 0.5;
+	global_data.param[PARAM_VICON_TAKEOVER_TIMEOUT] = 2;
+	strcpy(global_data.param_name[PARAM_VICON_MODE], "VICON_MODE");
+	strcpy(global_data.param_name[PARAM_VICON_TAKEOVER_DISTANCE],
+			"VICON_TKO_DIST");
+	strcpy(global_data.param_name[PARAM_VICON_TAKEOVER_TIMEOUT],
+			"VICON_TKO_TIME");
+
+
 	strcpy(global_data.param_name[PARAM_GPS_MODE], "GPS_MODE");
 	global_data.param[PARAM_GPS_MODE] = 0; //0: MAVLINK, 960010: GPS; // 9600 1 0: 9600 baud, mode 1 = U-Blox binary, on UART 0
 
@@ -662,6 +681,8 @@ static inline void global_data_reset(void)
 	global_data.rc_rssi = 0;
 
 	global_data.state.vision_ok=0;
+	global_data.state.vicon_ok=0;
+	global_data.state.vicon_new_data=0;
 	global_data.state.gps_ok=0;
 	global_data.state.gps_new_data=0;
 	global_data.state.pressure_ok=0;
@@ -681,6 +702,7 @@ static inline void global_data_reset(void)
 	global_data.motor_block = MOTORS_BLOCKED;
 
 	global_data.pos_last_valid = 0; // Make sure there is an overflow in the initial condition
+	global_data.vicon_last_valid=0;
 
 	//DONT CHANGE use PARAM!!
 	global_data.attitude_setpoint_offset.x = 0.00;

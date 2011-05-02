@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <?fileVersion 4.0.0?>
 
 <cproject>
@@ -287,7 +287,7 @@
 <useDefaultCommand>true</useDefaultCommand>
 <runAllBuilders>true</runAllBuilders>
 </target>
-<target name="all" path="testing/test_programs/ads8341_testing" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+<target name="all" path="testing/test_programs/sca3000_testing" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 <buildCommand>make</buildCommand>
 <buildArguments>-j8</buildArguments>
 <buildTarget>all</buildTarget>
@@ -295,7 +295,7 @@
 <useDefaultCommand>true</useDefaultCommand>
 <runAllBuilders>true</runAllBuilders>
 </target>
-<target name="clean" path="testing/test_programs/ads8341_testing" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+<target name="clean" path="testing/test_programs/sca3000_testing" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 <buildCommand>make</buildCommand>
 <buildArguments>-j8</buildArguments>
 <buildTarget>clean</buildTarget>
@@ -303,7 +303,7 @@
 <useDefaultCommand>true</useDefaultCommand>
 <runAllBuilders>true</runAllBuilders>
 </target>
-<target name="upload" path="testing/test_programs/ads8341_testing" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+<target name="upload" path="testing/test_programs/sca3000_testing" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 <buildCommand>make</buildCommand>
 <buildArguments>-j8</buildArguments>
 <buildTarget>upload</buildTarget>
@@ -359,7 +359,15 @@
 <useDefaultCommand>true</useDefaultCommand>
 <runAllBuilders>true</runAllBuilders>
 </target>
-<target name="all" path="testing/test_programs/sca3000_testing" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+<target name="upload-remote-daisy" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+<buildCommand>make</buildCommand>
+<buildArguments>-j8</buildArguments>
+<buildTarget>upload-remote-daisy</buildTarget>
+<stopOnError>true</stopOnError>
+<useDefaultCommand>true</useDefaultCommand>
+<runAllBuilders>true</runAllBuilders>
+</target>
+<target name="all" path="testing/test_programs/ads8341_testing" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 <buildCommand>make</buildCommand>
 <buildArguments>-j8</buildArguments>
 <buildTarget>all</buildTarget>
@@ -367,7 +375,7 @@
 <useDefaultCommand>true</useDefaultCommand>
 <runAllBuilders>true</runAllBuilders>
 </target>
-<target name="clean" path="testing/test_programs/sca3000_testing" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+<target name="clean" path="testing/test_programs/ads8341_testing" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 <buildCommand>make</buildCommand>
 <buildArguments>-j8</buildArguments>
 <buildTarget>clean</buildTarget>
@@ -375,7 +383,7 @@
 <useDefaultCommand>true</useDefaultCommand>
 <runAllBuilders>true</runAllBuilders>
 </target>
-<target name="upload" path="testing/test_programs/sca3000_testing" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+<target name="upload" path="testing/test_programs/ads8341_testing" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 <buildCommand>make</buildCommand>
 <buildArguments>-j8</buildArguments>
 <buildTarget>upload</buildTarget>

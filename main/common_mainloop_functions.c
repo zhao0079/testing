@@ -283,19 +283,29 @@ void handle_controller_timeouts(uint64_t loop_start_time)
 
 	// Position lock timeout - reenable once position control is not any more vision data dependent
 	// Check for vision data / gps data timeout
-	if (global_data.pos_last_valid == 0 || loop_start_time
-			- global_data.pos_last_valid
+	if (loop_start_time - global_data.pos_last_valid
 			> (uint32_t) global_data.param[PARAM_POSITION_TIMEOUT])
 	{
 		global_data.state.vision_ok = 0;
-		global_data.state.position_fix = 0;
 	}
 	else
 	{
 		global_data.state.vision_ok = 1;
-		global_data.state.position_fix = 1;
 	}
 
+	if (loop_start_time - global_data.vicon_last_valid
+			> (uint32_t) global_data.param[PARAM_POSITION_TIMEOUT])
+	{
+		global_data.state.vicon_ok = 0;
+	}
+	else
+	{
+		global_data.state.vicon_ok = 1;
+	}
+
+	//update overall position fix
+	global_data.state.position_fix = global_data.state.vicon_ok
+			|| global_data.state.vision_ok;
 
 	// UPDATE CONTROLLER STATES for QGroundcontrol widgets
 
@@ -677,9 +687,13 @@ void camera_shutter_handling(uint64_t loop_start_time)
 				shutter_get_seq());
 
 		// Emit timestamp of this image
-		mavlink_msg_image_triggered_send(MAVLINK_COMM_0, usec,
+		mavlink_msg_image_triggered_send(MAVLINK_COMM_0, loop_start_time,
 				shutter_get_seq(), global_data.attitude.x,
 				global_data.attitude.y, global_data.attitude.z, global_data.ground_distance, global_data.position.x, global_data.position.y, global_data.position.z);
+
+//		mavlink_msg_image_triggered_send(MAVLINK_COMM_0, usec,
+//				shutter_get_seq(), global_data.attitude.x,
+//				global_data.attitude.y, global_data.attitude.z, global_data.ground_distance, global_data.position.x, global_data.position.y, global_data.position.z);
 
 //			mavlink_msg_image_triggered_send(MAVLINK_COMM_1, usec,
 //				shutter_get_seq(), global_data.attitude.x,
