@@ -30,7 +30,7 @@ clean:
 app: $(APPNAME)
 
 $(APPNAME):	$(SOURCES) Makefile
-	$(CC) $(CFLAGS) $(SOURCES) -o $(APPNAME) -L/opt/local/lib -l$(LIBNAME)
+	$(CC) $(CFLAGS) $(SOURCES) -o $(APPNAME) -I/opt/local/include -L/opt/local/lib -l$(LIBNAME)
 
 # Builds archive tar file
 arch: clean
