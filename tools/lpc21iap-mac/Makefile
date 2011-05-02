@@ -1,6 +1,6 @@
 #MS VC: cl lpc21iap.c elf.c lpcusb.c libusb.lib
 
-LIBNAME	= usb
+LIBNAME	= usb-0.1.4
 APPNAME = lpc21iap
 
 # Package definitions
