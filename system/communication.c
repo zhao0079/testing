@@ -211,6 +211,7 @@ void handle_mavlink_message(mavlink_channel_t chan,
 	{
 		mavlink_request_data_stream_t stream;
 		mavlink_msg_request_data_stream_decode(msg, &stream);
+		debug_message_buffer_sprintf("REQUEST_DATA_STREAM #%i changed",stream.req_stream_id);
 		switch (stream.req_stream_id)
 		{
 		case 0: // UNIMPLEMENTED
@@ -237,13 +238,13 @@ void handle_mavlink_message(mavlink_channel_t chan,
 		case 6: // POSITION
 			global_data.param[PARAM_SEND_SLOT_DEBUG_5] = stream.start_stop;
 			break;
-		case 7: // EXTRA1
+		case 10: // EXTRA1
 			global_data.param[PARAM_SEND_SLOT_DEBUG_2] = stream.start_stop;
 			break;
-		case 8: // EXTRA2
+		case 11: // EXTRA2
 			global_data.param[PARAM_SEND_SLOT_DEBUG_4] = stream.start_stop;
 			break;
-		case 9: // EXTRA3
+		case 12: // EXTRA3
 			global_data.param[PARAM_SEND_SLOT_DEBUG_6] = stream.start_stop;
 			break;
 		default:

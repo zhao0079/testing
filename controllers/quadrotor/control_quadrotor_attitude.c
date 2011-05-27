@@ -278,8 +278,8 @@ inline void control_quadrotor_attitude()
 	}
 
 	// Emit motor values
-	global_data.attitude_control_output.x = motor_thrust + roll;
-	global_data.attitude_control_output.y = motor_thrust + nick;
+	global_data.attitude_control_output.x = roll;
+	global_data.attitude_control_output.y = nick;
 	global_data.attitude_control_output.z = yaw;
 
 	//add the yaw, nick and roll components to the basic thrust
@@ -358,12 +358,12 @@ inline void control_quadrotor_attitude()
 	}
 
 	//DEBUGGING
-	if (controller_counter++ == 31)
+	if (controller_counter++ == 1)
 	{
 		controller_counter = 0;
 		//run every 8th time
 
-		if (global_data.param[PARAM_SEND_SLOT_DEBUG_3] == 1)
+		if (global_data.param[PARAM_SEND_SLOT_DEBUG_3] == 31)
 		{
 //			debug_vect("att_sp", global_data.attitude_setpoint);
 			//						mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 11, global_data.attitude_setpoint.x);
@@ -388,8 +388,8 @@ inline void control_quadrotor_attitude()
 					motor_pwm[2]);
 			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 19,
 					motor_pwm[3]);
-			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 20,
-					motor_thrust);
+//			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 20,
+//					motor_thrust);
 		}
 
 	}

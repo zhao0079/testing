@@ -266,6 +266,10 @@ void main_loop_quadrotor(void)
 		{
 			// Send the raw sensor/ADC values
 			communication_send_raw_data(loop_start_time);
+			if (global_data.param[PARAM_SEND_SLOT_DEBUG_6])
+			{
+				debug_vect("att_ctrl_o", global_data.attitude_control_output);
+			}
 		}
 		///////////////////////////////////////////////////////////////////////////
 
