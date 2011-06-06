@@ -262,7 +262,7 @@ void main_loop_quadrotor(void)
 		///////////////////////////////////////////////////////////////////////////
 		/// NON-CRITICAL SLOW 100 Hz functions
 		///////////////////////////////////////////////////////////////////////////
-		else if (us_run_every(10000, COUNTER6, loop_start_time))
+		else if (us_run_every(5000, COUNTER6, loop_start_time))
 		{
 			// Send the raw sensor/ADC values
 			communication_send_raw_data(loop_start_time);
