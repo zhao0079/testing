@@ -115,6 +115,9 @@ void attitude_observer_correct_magnet(int16_vect3 magnet)
 }
 
 void attitude_observer_get_angles(float_vect3* angles){
+
+	//TODO: divide by length of gravity vector!!
+
 	angles->x = atan2(-state_accel.y, -state_accel.z);
 	//angles->y = atan2(state_accel.x, -state_accel.z);//test
 	//angles->y = asin(state_accel.x / 900.0f); //2g Sensor
