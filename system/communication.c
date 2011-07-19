@@ -490,7 +490,7 @@ void handle_mavlink_message(mavlink_channel_t chan,
 
 
 		//send the vicon message to UART0 with new timestamp
-		mavlink_msg_vicon_position_estimate_send(MAVLINK_COMM_0, global_data.vicon_last_valid, pos.x, pos.y, pos.z, pos.roll, pos.pitch, pos.yaw);
+		mavlink_msg_vicon_position_estimate_send(MAVLINK_COMM_0, sys_time_clock_get_unix_time(), pos.x, pos.y, pos.z, pos.roll, pos.pitch, pos.yaw);
 
 	}
 	break;
