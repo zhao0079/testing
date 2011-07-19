@@ -9,27 +9,8 @@
 #define VISION_BUFFER_C_
 #include "vision_buffer.h"
 #include "float_checks.h"
-
 #include "sys_time.h"
 #include "global_data.h"
-// Include comm
-#include "comm.h"
-#include "mavlink.h"
-
-#include "shutter.h"
-
-#include "global_pos.h"
-
-#include "simple_altitude_moving_average.h"
-#include "attitude_compl_euler.h"
-#include "altitude_kalman.h"
-#include "lookup_sin_cos.h"
-#include "least_square.h"
-
-#include "control_quadrotor_attitude.h"
-#include "control_quadrotor_position.h"
-#include "remote_control.h"
-#include "position_kalman.h"
 
 #include "debug.h"
 #include "transformation.h"
@@ -85,8 +66,8 @@ void vision_buffer_buffer_camera_triggered(uint64_t usec,
 	// save position in buffer
 	vision_buffer[vision_buffer_index_write].pos = global_data.position;
 	vision_buffer[vision_buffer_index_write].ang = global_data.attitude;
-//	vision_buffer[vision_buffer_index_write].time_captured = usec;
-	vision_buffer[vision_buffer_index_write].time_captured = loop_start_time;
+	vision_buffer[vision_buffer_index_write].time_captured = usec;
+//	vision_buffer[vision_buffer_index_write].time_captured = loop_start_time;
 
 	//debug_message_buffer("vision_buffer stored data");
 
@@ -184,7 +165,7 @@ void vision_buffer_handle_data(mavlink_vision_position_estimate_t* pos)
 			//Pack new vision_data package
 			global_data.vision_data.time_captured
 					= vision_buffer[i].time_captured;
-			global_data.vision_data.comp_end = sys_time_clock_get_time_usec();
+			global_data.vision_data.comp_end = sys_time_clock_get_unix_time();
 
 			//Set data from Vision directly
 			global_data.vision_data.ang.x = pos->roll;
@@ -199,9 +180,9 @@ void vision_buffer_handle_data(mavlink_vision_position_estimate_t* pos)
 			//	global_data.hack_yaw = pos->yaw;
 			//global_data.vision_data.ang.z = pos.yaw;
 
-					global_data.vision_data.pos.x = pos->x;
-					global_data.vision_data.pos.y = pos->y;
-					global_data.vision_data.pos.z = pos->z;
+//			global_data.vision_data.pos.x = pos->x;
+//			global_data.vision_data.pos.y = pos->y;
+//			global_data.vision_data.pos.z = pos->z;
 
 
 			//take directly the Vision position and speed

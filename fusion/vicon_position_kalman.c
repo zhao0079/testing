@@ -248,12 +248,9 @@ void vicon_position_kalman(void)
 
 		if (global_data.vision_data.new_data)
 		{
-			 uint64_t vision_delay = (1*global_data.vision_data.comp_end
-					- 1*global_data.vision_data.time_captured);
+			uint64_t vision_delay = (global_data.vision_data.comp_end - global_data.vision_data.time_captured);
 			// Debug Time for Vision Processing
-			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 100,
-					(float) vision_delay);
-//			debug_message_buffer_sprintf("Delay: %u", (uint32_t) vision_delay);
+			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 100, ((float)vision_delay)/1000.f);
 		}
 
 		//data has been used

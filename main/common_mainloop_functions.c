@@ -650,15 +650,12 @@ void fuse_vision_altitude_200hz(void)
 
 	if (global_data.vision_data.new_data)
 	{
-		uint32_t vision_delay = (uint32_t) (global_data.vision_data.comp_end
-				- global_data.vision_data.time_captured);
+		uint32_t vision_delay = (uint32_t) (global_data.vision_data.comp_end - global_data.vision_data.time_captured);
 		// Debug Time for Vision Processing
-		mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 100,
-				(float) vision_delay);
+		mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 100, ((float)vision_delay)/1000.f);
 	}
 
 	global_data.vision_data.new_data = 0;
-
 
 	//Switch to Grounddistance sensor for z if we don't have vision
 //	if (global_data.state.vision_ok == 0)
@@ -687,7 +684,7 @@ void camera_shutter_handling(uint64_t loop_start_time)
 				shutter_get_seq());
 
 		// Emit timestamp of this image
-		mavlink_msg_image_triggered_send(MAVLINK_COMM_0, loop_start_time,
+		mavlink_msg_image_triggered_send(MAVLINK_COMM_0, usec,
 				shutter_get_seq(), global_data.attitude.x,
 				global_data.attitude.y, global_data.attitude.z, global_data.ground_distance, global_data.position.x, global_data.position.y, global_data.position.z);
 
