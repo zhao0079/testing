@@ -529,7 +529,7 @@ void handle_mavlink_message(mavlink_channel_t chan,
 					if (global_data.param[PARAM_POSITION_YAW_TRACKING] == 0)
 					{
 						// Only update yaw if we are not tracking ball.
-						global_data.param[PARAM_POSITION_SETPOINT_YAW] = sp.yaw;
+						global_data.param[PARAM_POSITION_SETPOINT_YAW] = sp.yaw/180*M_PI;
 					}
 
 					//check if we want to start or land

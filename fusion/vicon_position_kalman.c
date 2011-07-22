@@ -183,6 +183,9 @@ void vicon_position_kalman(void)
 	m_elem z_mask[2] =
 	{ 0, 0 };//only acceleromenters normaly
 
+	float_vect3 vision_delay;
+	vision_delay.y = 0.f;
+	vision_delay.z = 0.f;
 //	static int i = 0;
 //	if (i++ == 200)
 //	{
@@ -209,6 +212,7 @@ void vicon_position_kalman(void)
 				if (global_data.vision_data.new_data)
 				{
 					//vision
+					vision_delay.y = 1.f;
 					x_measurement[1] = global_data.vision_data.pos.x;
 					x_mask[1] = 1;
 					y_measurement[1] = global_data.vision_data.pos.y;
@@ -248,10 +252,13 @@ void vicon_position_kalman(void)
 
 		if (global_data.vision_data.new_data)
 		{
-			uint64_t vision_delay = (global_data.vision_data.comp_end - global_data.vision_data.time_captured);
+			//uint64_t vision_delay = (global_data.vision_data.comp_end - global_data.vision_data.time_captured);
 			// Debug Time for Vision Processing
-			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 100, ((float)vision_delay)/1000.f);
+			//mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 100, ((float)vision_delay)/1000.f);
+			vision_delay.x = (global_data.vision_data.comp_end - global_data.vision_data.time_captured)/1000.f;
+			debug_vect("IMU", vision_delay);
 		}
+
 
 		//data has been used
 		global_data.vision_data.new_data = 0;

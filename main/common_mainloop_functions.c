@@ -686,7 +686,7 @@ void camera_shutter_handling(uint64_t loop_start_time)
 		// Emit timestamp of this image
 		mavlink_msg_image_triggered_send(MAVLINK_COMM_0, usec,
 				shutter_get_seq(), global_data.attitude.x,
-				global_data.attitude.y, global_data.attitude.z, global_data.ground_distance, global_data.position.x, global_data.position.y, global_data.position.z);
+				global_data.attitude.y, global_data.attitude.z, global_data.ground_distance, global_data.position.x, global_data.position.y, global_data.position.z, global_data.vicon_data.x, global_data.vicon_data.y, global_data.vicon_data.z);
 
 //		mavlink_msg_image_triggered_send(MAVLINK_COMM_0, usec,
 //				shutter_get_seq(), global_data.attitude.x,
