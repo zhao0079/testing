@@ -183,28 +183,16 @@ void vicon_position_kalman(void)
 	m_elem z_mask[2] =
 	{ 0, 0 };//only acceleromenters normaly
 
-	float_vect3 vision_delay;
-	vision_delay.y = 0.f;
-	vision_delay.z = 0.f;
-//	static int i = 0;
-//	if (i++ == 200)
-//	{
-//		i = 0;
-//		x_measurement[0]=0;
-//		x_mask[0]=1;//simulate GPS position 0  at 1 Hz
-	//	}	static int i = 0;
+	// Vicon fallback - if vision fails the filter will start using vicon position estimates instead
+	float vision_taken = 0.f;
 	if (global_data.vision_data.new_data || global_data.state.vicon_new_data)
 	{
 		if (global_data.param[PARAM_VICON_MODE] > 1)
 		{
 			//measure difference:
-			float difference = sqrtf((global_data.vision_data.pos.x
-					- global_data.vicon_data.x) * (global_data.vision_data.pos.x
-					- global_data.vicon_data.x) + (global_data.vision_data.pos.y
-					- global_data.vicon_data.y) * (global_data.vision_data.pos.y
-					- global_data.vicon_data.y) + (global_data.vision_data.pos.z
-					- global_data.vicon_data.z) * (global_data.vision_data.pos.z
-					- global_data.vicon_data.z));
+			float difference = sqrtf((global_data.vision_data.pos.x	- global_data.vicon_data.x) * (global_data.vision_data.pos.x - global_data.vicon_data.x)
+								   + (global_data.vision_data.pos.y	- global_data.vicon_data.y) * (global_data.vision_data.pos.y - global_data.vicon_data.y)
+								   + (global_data.vision_data.pos.z	- global_data.vicon_data.z) * (global_data.vision_data.pos.z - global_data.vicon_data.z));
 
 			//use only vision_data if difference to vicon is small or we don't have vicon_data at all
 			if (global_data.state.vision_ok && (difference < global_data.param[PARAM_VICON_TAKEOVER_DISTANCE] || !global_data.state.vicon_ok))
@@ -212,7 +200,7 @@ void vicon_position_kalman(void)
 				if (global_data.vision_data.new_data)
 				{
 					//vision
-					vision_delay.y = 1.f;
+					vision_taken = 1.f;
 					x_measurement[1] = global_data.vision_data.pos.x;
 					x_mask[1] = 1;
 					y_measurement[1] = global_data.vision_data.pos.y;
@@ -244,53 +232,24 @@ void vicon_position_kalman(void)
 			}
 		}
 
-//		float_vect3 debug;
-//		debug.x = difference;
-//		debug.y = global_data.state.vicon_ok;
-//		debug.z = global_data.state.vision_ok;
-//		debug_vect("vic_kal_dif", debug);
-
+		// send trigger to filter output delay and status if vision data is used
 		if (global_data.vision_data.new_data)
 		{
-			//uint64_t vision_delay = (global_data.vision_data.comp_end - global_data.vision_data.time_captured);
-			// Debug Time for Vision Processing
-			//mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 100, ((float)vision_delay)/1000.f);
-			vision_delay.x = (global_data.vision_data.comp_end - global_data.vision_data.time_captured)/1000.f;
-			debug_vect("IMU", vision_delay);
+			float vision_delay = (global_data.vision_data.comp_end - global_data.vision_data.time_captured)/1000.f;
+			//debug_vect("IMU", vision_delay);
+			mavlink_msg_debug_vect_send(global_data.param[PARAM_SEND_DEBUGCHAN], "IMU", global_data.vision_data.time_captured, vision_delay, vision_taken, 0.f);
 		}
-
 
 		//data has been used
 		global_data.vision_data.new_data = 0;
 		global_data.state.vicon_new_data = 0;
 	}
 
-
-
-//	x_measurement[1] = acc_nav.x;
-//	y_measurement[1] = acc_nav.y;
-//	z_measurement[1] = acc_nav.z;
-
 	//Put measurements into filter
 	kalman_correct(&vicon_position_kalman_x, x_measurement, x_mask);
 	kalman_correct(&vicon_position_kalman_y, y_measurement, y_mask);
 	kalman_correct(&vicon_position_kalman_z, z_measurement, z_mask);
 
-/*		static int i=2;
-		if(i++==4){
-			i=0;
-	//debug
-
-//	mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 50,
-//			z_measurement[1]);
-	float_vect3 out_kal_z;
-	out_kal_z.x = kalman_get_state(&vicon_position_kalman_z,1);
-	out_kal_z.y = kalman_get_state(&vicon_position_kalman_z,2);
-	out_kal_z.z = kalman_get_state(&vicon_position_kalman_z,3);
-	debug_vect("out_kal_z", out_kal_z);
-		}*/
-
-// save outputs
 	global_data.position.x = kalman_get_state(&vicon_position_kalman_x,0);
 	global_data.position.y = kalman_get_state(&vicon_position_kalman_y,0);
 	global_data.position.z = kalman_get_state(&vicon_position_kalman_z,0);
@@ -298,7 +257,4 @@ void vicon_position_kalman(void)
 	global_data.velocity.x = kalman_get_state(&vicon_position_kalman_x,1);
 	global_data.velocity.y = kalman_get_state(&vicon_position_kalman_y,1);
 	global_data.velocity.z = kalman_get_state(&vicon_position_kalman_z,1);
-
-
-
 }
