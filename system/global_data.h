@@ -43,6 +43,7 @@ extern "C"
 #include "pid.h"
 #include "string.h"
 #include "mavlink_types.h"
+#include "stdbool.h"
 //#include "mavlink.h"
 
 // TODO Move

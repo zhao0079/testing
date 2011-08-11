@@ -224,6 +224,8 @@ void main_loop_quadrotor(void)
 			remote_control();
 
 			control_camera_angle();
+
+			mavlink_msg_roll_pitch_yaw_thrust_setpoint_send(global_data.param[PARAM_SEND_DEBUGCHAN], loop_start_time+sys_time_clock_get_unix_offset(), global_data.attitude_setpoint.x, global_data.attitude_setpoint.y, global_data.attitude_setpoint.z, global_data.thrust_control_output);
 		}
 		///////////////////////////////////////////////////////////////////////////
 
