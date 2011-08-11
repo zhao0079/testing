@@ -1,6 +1,14 @@
-#Sat Oct 23 18:50:14 CEST 2010
+#Fri Jul 29 11:17:48 CEST 2011
 eclipse.preferences.version=1
-environment/project/0.827932761=<?xml version\="1.0" encoding\="UTF-8"?>\n<environment append\="true" appendContributed\="true">\n<variable delimiter\="\:" name\="PATH" operation\="replace" value\="/usr/bin\:/bin\:/usr/sbin\:/sbin\:/opt/cross-arm/yagarto-4.4.2/bin\:/opt/cross-arm/yagarto-4.4.2/tools"/>\n</environment>\n
+environment/project/0.827932761=
+environment/project/0.827932761/DYLD_LIBRARY_PATH/delimiter=\:
+environment/project/0.827932761/DYLD_LIBRARY_PATH/operation=replace
+environment/project/0.827932761/DYLD_LIBRARY_PATH/value=/Users/lomeier/cm3/lib\:/Users/lomeier/src/imu_autopilot/tools/lpc21iap-mac
+environment/project/0.827932761/PATH/delimiter=\:
+environment/project/0.827932761/PATH/operation=replace
+environment/project/0.827932761/PATH/value=/usr/bin\:/bin\:/usr/sbin\:/sbin\:/opt/cross-arm/yagarto-4.4.2/bin\:/opt/cross-arm/yagarto-4.4.2/tools\:/Users/lomeier/cm3/bin
+environment/project/0.827932761/append=true
+environment/project/0.827932761/appendContributed=true
 indexer/filesToParseUpFront=cstdarg, stdarg.h, stddef.h, sys/resource.h, ctime, sys/types.h, signal.h, cstdio
 indexer/indexAllFiles=true
 indexer/indexUnusedHeadersWithDefaultLang=false
