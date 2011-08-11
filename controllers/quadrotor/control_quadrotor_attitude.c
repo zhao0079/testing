@@ -313,6 +313,9 @@ inline void control_quadrotor_attitude()
 
 	}
 
+	// Write out actual thrust
+	global_data.thrust_control_output = motor_thrust/255.0f; // Normalize to 0 - 1
+
 	//convert to byte
 	motor_pwm[0] = (uint8_t) motor_calc[0];
 	motor_pwm[1] = (uint8_t) motor_calc[1];
