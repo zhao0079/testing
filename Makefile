@@ -193,6 +193,7 @@ doc:
 # Program the device.
 LPC21IAP = $(TOOLS)/lpc21iap/lpc21iap
 LPC21IAP-WIN32 = $(TOOLS)/lpc21iap-win32/lpc21iap.exe
+LPC21IAP-MAC32 = $(TOOLS)/lpc21iap-mac/lpc21iap
 bootloader:
   @cd lpc21iap && make --quiet --no-print-directory Q=$(Q)
 upload: $(OBJDIR)/$(TARGET).elf bootloader
@@ -202,6 +203,10 @@ upload: $(OBJDIR)/$(TARGET).elf bootloader
 upload-win: $(OBJDIR)/$(TARGET).elf bootloader
 	@echo ***UPLOAD $(OBJDIR)/$(TARGET).elf
 	$(LPC21IAP-WIN32) $(OBJDIR)/$(TARGET).elf
+	
+upload-mac: $(OBJDIR)/$(TARGET).elf bootloader
+	@echo ***UPLOAD $(OBJDIR)/$(TARGET).elf
+	$(LPC21IAP-MAC32) $(OBJDIR)/$(TARGET).elf
 
 upload-remote: $(OBJDIR)/$(TARGET).elf bootloader 
 	$(Q)$(TOOLS)/upload_remote.sh
