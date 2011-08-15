@@ -226,6 +226,9 @@ void main_loop_quadrotor(void)
 			control_camera_angle();
 
 			mavlink_msg_roll_pitch_yaw_thrust_setpoint_send(global_data.param[PARAM_SEND_DEBUGCHAN], loop_start_time+sys_time_clock_get_unix_offset(), global_data.attitude_setpoint.x, global_data.attitude_setpoint.y, global_data.position_yaw_control_output, global_data.thrust_control_output);
+
+			// Send the raw sensor/ADC values
+			communication_send_raw_data(loop_start_time);
 		}
 		///////////////////////////////////////////////////////////////////////////
 
@@ -266,8 +269,7 @@ void main_loop_quadrotor(void)
 		///////////////////////////////////////////////////////////////////////////
 		else if (us_run_every(5000, COUNTER6, loop_start_time))
 		{
-			// Send the raw sensor/ADC values
-			communication_send_raw_data(loop_start_time);
+
 			if (global_data.param[PARAM_SEND_SLOT_DEBUG_6])
 			{
 				debug_vect("att_ctrl_o", global_data.attitude_control_output);
