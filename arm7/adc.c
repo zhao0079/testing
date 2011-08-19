@@ -46,10 +46,10 @@ void adc_init(void){
 	PINSEL0 |= (3<<8);
 
 	//set ADC5 (P0.29) as AD0.2
-	PINSEL1 |= (3<<26);
+	PINSEL1 |= (1<<26);
 
 	//set ADC6 (P0.28) as AD0.1
-	PINSEL1 |= (3<<24);
+	PINSEL1 |= (1<<24);
 
 	//set ADC7 (P0.12) as AD1.3
 	PINSEL0 |= (3<<24);

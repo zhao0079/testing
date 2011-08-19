@@ -13,7 +13,7 @@
 static inline float sonar_distance_get(void)
 {
 
-	uint16_t adc_value = adc_get_value(ADC_6_CHANNEL);
+	uint16_t adc_value = adc_get_value(ADC_5_CHANNEL);
 	float adc_volt = ((float) adc_value) / 310.0f;
 
 	//Calculate distance, 10mV / inch, 0.0254 m = 1 inch
