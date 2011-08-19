@@ -45,6 +45,7 @@
 #include "battery.h"
 #include "shutter.h"
 #include "infrared_distance.h"
+#include "sonar_distance.h"
 #include "gps.h"
 #include "gps_transformations.h"
 
@@ -232,7 +233,7 @@ void main_loop_quadrotor(void)
 
 			}
 			opt_int.z = valid;
-			mavlink_msg_optical_flow_send(global_data.param[PARAM_SEND_DEBUGCHAN], loop_start_time + sys_time_clock_get_unix_offset(), 0, opt.x, opt.y, opt.z, -global_data.position.z);
+			mavlink_msg_optical_flow_send(global_data.param[PARAM_SEND_DEBUGCHAN], loop_start_time + sys_time_clock_get_unix_offset(), 0, opt.x, opt.y, opt.z, sonar_distance_get());
 			//optical_flow_debug_vect_send();
 			//debug_vect("opt_int", opt_int);
 			optical_flow_start_read(80);
