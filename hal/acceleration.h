@@ -50,11 +50,6 @@ static inline void acc_read(void)
 	global_data.accel_raw.x = (int)sca3100_get_value(SCA3100_X_AXIS);
 	global_data.accel_raw.y = (int)sca3100_get_value(SCA3100_Y_AXIS);
 	global_data.accel_raw.z = -(int)sca3100_get_value(SCA3100_Z_AXIS);
-
-	// Convert milli g to m/s^2
-	global_data.accel_si.x = (float)global_data.accel_raw.x*0.00981f;
-	global_data.accel_si.y = (float)global_data.accel_raw.y*0.00981f;
-	global_data.accel_si.z = (float)global_data.accel_raw.z*0.00981f;
 }
 
 static inline float acc_get_x_si(void)

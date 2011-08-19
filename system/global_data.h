@@ -626,9 +626,9 @@ static inline void global_data_reset_param_defaults(void){
 
 	global_data.param[PARAM_MIX_REMOTE_WEIGHT] = 1;
 	strcpy(global_data.param_name[PARAM_MIX_REMOTE_WEIGHT], "MIX_REMOTE");
-	global_data.param[PARAM_MIX_POSITION_WEIGHT] = 0;
+	global_data.param[PARAM_MIX_POSITION_WEIGHT] = 1;
 	strcpy(global_data.param_name[PARAM_MIX_POSITION_WEIGHT], "MIX_POSITION");
-	global_data.param[PARAM_MIX_POSITION_Z_WEIGHT] = 0;
+	global_data.param[PARAM_MIX_POSITION_Z_WEIGHT] = 1;
 		strcpy(global_data.param_name[PARAM_MIX_POSITION_Z_WEIGHT], "MIX_Z_POSITION");
 	global_data.param[PARAM_MIX_POSITION_YAW_WEIGHT] = 1;
 	strcpy(global_data.param_name[PARAM_MIX_POSITION_YAW_WEIGHT], "MIX_POS_YAW");

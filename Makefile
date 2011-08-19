@@ -31,6 +31,7 @@ SRCARM += arm7/i2c_devices/eeprom.c
 SRCARM += arm7/i2c_devices/i2c_motor_controller.c
 SRCARM += arm7/i2c_devices/i2c_motor_mikrokopter.c
 SRCARM += arm7/i2c_devices/hmc5843.c
+SRCARM += arm7/i2c_devices/optical_flow.c
 SRCARM += arm7/ppm.c 
 SRCARM += arm7/pwm.c 
 SRCARM += arm7/sys_time.c 
