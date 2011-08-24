@@ -183,7 +183,7 @@ void main_loop_quadrotor(void)
 			}
 			else
 			{
-				vicon_position_kalman();
+				//vicon_position_kalman();
 				//				vision_position_kalman();
 				//				fuse_vision_altitude_200hz();
 			}

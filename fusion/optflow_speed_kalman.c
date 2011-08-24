@@ -27,38 +27,37 @@
 //kalman_t optflow_speed_kalman_x;
 //kalman_t optflow_speed_kalman_y;
 
-double ax, bx, cx;
-double ay, by, cy;
-double vx, vy, x, y, pvx, pvy;
-double Qx, Rx;
-double Qy, Ry;
-double scale;
+float ax, bx, cx;
+float ay, by, cy;
+float vx, vy, pvx, pvy;
+float Qx, Rx;
+float Qy, Ry;
+float scale;
+int flag = 1;
 
 
 void optflow_speed_kalman_init(void)
 {
    // kalman filter parameters
-   ax = PARAM_KAL_VEL_AX;
-   bx = PARAM_KAL_VEL_BX;
+   ax = global_data.param[PARAM_KAL_VEL_AX];
+   bx = global_data.param[PARAM_KAL_VEL_BX];
    cx = 1.0;
 
-   ay = PARAM_KAL_VEL_AY;
-   by = PARAM_KAL_VEL_BY;
+   ay = global_data.param[PARAM_KAL_VEL_AY];
+   by = global_data.param[PARAM_KAL_VEL_BY];
    cy = 1.0;
 
    // assumes initial state is 0
    vx = 0.0;
    vy = 0.0;
-   x = 0.0;
-   y = 0.0;
 
    // assumes initial error covariance is 0
    pvx = 0.0;
    pvy = 0.0;
 
    // noise parameters (hard-coded)
-   Qx = 0.002;
-   Rx = 0.1;
+   Qx = 0.005;
+   Rx = 0.2;
 
    Qy = 0.005;
    Ry = 0.2;
@@ -72,10 +71,9 @@ void optflow_speed_kalman_init(void)
 void optflow_speed_kalman(void)
 {
 
-	static double viconPre = 0.0;
-	static bool flag=true;
+	static float viconPre = 0.0;
 	float_vect3 debug;
-//    double vx_ = 0.0;
+//    float vx_ = 0.0;
 
 
 	//Transform accelerometer used in all directions
@@ -97,79 +95,87 @@ void optflow_speed_kalman(void)
 //	turn_xy_plane(&flow, PI, &flowQuadUncorr);
 //	body2navi(&flowQuadUncorr, &global_data.attitude, &flowWorldUncorr);
 
-	if(global_data.state.fly == FLY_FLYING)
-	{
-	   // initializes x and y to global position
-	   if(flag)
-	   {
-		   x = global_data.position.x;
-		   y = global_data.position.y;
-		   flag = false;
-	   }
+   // initializes x and y to global position
+   if(global_data.param[PARAM_VICON_MODE] == 3)
+   {
+	   global_data.position.x = global_data.vicon_data.x;
+	   global_data.position.y = global_data.vicon_data.y;
+   }
 
-	   //---------------------------------------------------
-	   // Vx Kalman Filter
-	   // prediction
-	   double vx_ = ax*vx + bx*global_data.attitude.y;
-	   double pvx_ = ax*pvx + Qx;
+   global_data.position.z = global_data.vicon_data.z;
 
-	   // do an update only if optical flow is good
-	   if(global_data.optflow.z > 10.0)
-	   {
-		   // kalman gain
-		   double Kx = pvx_*ax/(ax*pvx_*ax + Rx);
+   //---------------------------------------------------
+   // Vx Kalman Filter
+   // prediction
 
-		   // update step
-		   double xflow = global_data.optflow.x*global_data.position.z*scale;
-		   vx = vx_ + Kx*(xflow - cx*vx_);
-		   pvx = (1.0 - Kx*cx)*pvx_;
-	   }
-	   // otherwise take only the prediction
-	   else
-	   {
-		   vx = vx_;
-		   pvx = pvx_;
-	   }
+   float vx_ = ax*vx;
+   if(global_data.state.fly == FLY_FLYING)
+   {
+	   vx += bx*global_data.attitude.y;
+   }
+   float pvx_ = ax*pvx + Qx;
 
-	   // assign readings from Kalman Filter
-	   //global_data.velocity.x = vx;
-	   //global_data.position.x += vx*VEL_KF_TIME_STEP_X;
+   // do an update only if optical flow is good
+   if(global_data.optflow.z > 10.0)
+   {
+	   // kalman gain
+	   float Kx = pvx_*ax/(ax*pvx_*ax + Rx);
 
-	   //---------------------------------------------------
-	   // Vy Kalman Filter
-	   // prediction
-	   double vy_ = ay*vy + by*global_data.attitude.x;
-	   double pvy_ = ay*pvy + Qy;
+	   // update step
+	   //float xflow = global_data.optflow.x*global_data.position.z*scale;
+	   float xflow = -global_data.vicon_data.z*flowWorld.x;
+	   vx = vx_ + Kx*(xflow - cx*vx_);
+	   pvx = (1.0 - Kx*cx)*pvx_;
+   }
+   // otherwise take only the prediction
+   else
+   {
+	   vx = vx_;
+	   pvx = pvx_;
+   }
 
-	   // do an update only if optical flow is good
-	   if(global_data.optflow.z > 10.0)
-	   {
-		   // kalman gain
-		   double Ky = pvy_*ay/(ay*pvy_*ay + Ry);
+   // assign readings from Kalman Filter
+   global_data.velocity.x = vx;
+   global_data.position.x += vx*VEL_KF_TIME_STEP_X;
 
-		   // update step
-		   double yflow = global_data.optflow.y*global_data.position.z*scale;
-		   vy = vy_ + Ky*(yflow - cy*vy_);
-		   pvy = (1.0 - Ky*cy)*pvy_;
-	   }
-	   // otherwise take only the prediction
-	   else
-	   {
-		   vy = vy_;
-		   pvy = pvy_;
-	   }
+   //---------------------------------------------------
+   // Vy Kalman Filter
+   // prediction
+   float vy_ = ay*vy;
+   if(global_data.state.fly == FLY_FLYING)
+   {
+	   vy_ += by*global_data.attitude.x;
+   }
+   float pvy_ = ay*pvy + Qy;
 
-	   // assign readings from Kalman Filter
-	   //global_data.velocity.y = vy;
-	   //global_data.position.y += vy*VEL_KF_TIME_STEP_Y;
-	}
+   // do an update only if optical flow is good
+   if(global_data.optflow.z > 10.0)
+   {
+	   // kalman gain
+	   float Ky = pvy_*ay/(ay*pvy_*ay + Ry);
+
+	   // update step
+	   //float yflow = global_data.optflow.y*global_data.position.z*scale;
+	   float yflow = -global_data.vicon_data.z*flowWorld.y;
+	   vy = vy_ + Ky*(yflow - cy*vy_);
+	   pvy = (1.0 - Ky*cy)*pvy_;
+   }
+   // otherwise take only the prediction
+   else
+   {
+	   vy = vy_;
+	   pvy = pvy_;
+   }
+
+   // assign readings from Kalman Filter
+   global_data.velocity.y = vy;
+   global_data.position.y += vy*VEL_KF_TIME_STEP_Y;
 
 
-
-	double xvel = (global_data.position.x - viconPre)/VEL_KF_TIME_STEP_X;
+	float xvel = (global_data.position.x - viconPre)/VEL_KF_TIME_STEP_X;
 	viconPre = global_data.position.x;
-	debug.x = -global_data.position.z*flowWorld.x;
-	debug.y = -global_data.position.z*flowWorld.y;
+	debug.x = vx;
+	debug.y = vy;
 	debug.z = xvel;
 	debug_vect("KALMAN", debug);
 }
