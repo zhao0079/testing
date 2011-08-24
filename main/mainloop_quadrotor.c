@@ -84,6 +84,7 @@
 #include "outdoor_position_kalman.h"
 #include "vision_position_kalman.h"
 #include "vicon_position_kalman.h"
+#include "optflow_speed_kalman.h"
 
 // Executiontime debugging
 float_vect3 time_debug;
@@ -109,8 +110,9 @@ void main_loop_quadrotor(void)
 	control_quadrotor_position_init();
 	control_quadrotor_attitude_init();
 	outdoor_position_kalman_init();
-	vision_position_kalman_init();
+	//vision_position_kalman_init();
 	vicon_position_kalman_init();
+	optflow_speed_kalman_init();
 
 	/**
 	 * @brief This is the main loop
@@ -198,7 +200,7 @@ void main_loop_quadrotor(void)
 		/// Camera Shutter - This takes 50 usecs!!!
 		///////////////////////////////////////////////////////////////////////////
 		// Set camera shutter with 2.5ms resolution
-		else if (us_run_every(2500, COUNTER1, loop_start_time))
+		else if (us_run_every(5000, COUNTER1, loop_start_time)) //was 2500 !!!
 		{
 			camera_shutter_handling(loop_start_time);
 
@@ -223,20 +225,25 @@ void main_loop_quadrotor(void)
 
 			control_camera_angle();
 
-			float_vect3 opt;
+			//float_vect3 opt;
 			static float_vect3 opt_int;
-			uint8_t valid = optical_flow_get_dxy(80, &opt.x, &opt.y, &opt.z);
+			uint8_t valid = optical_flow_get_dxy(80, &global_data.optflow.x, &global_data.optflow.y, &global_data.optflow.z);
 			if (valid)
 			{
-				opt_int.x += opt.x;
-				opt_int.y += opt.y;
+				opt_int.x += global_data.optflow.x;
+				opt_int.y += global_data.optflow.y;
 
 			}
 			opt_int.z = valid;
-			mavlink_msg_optical_flow_send(global_data.param[PARAM_SEND_DEBUGCHAN], loop_start_time + sys_time_clock_get_unix_offset(), 0, opt.x, opt.y, opt.z, sonar_distance_get());
+			mavlink_msg_optical_flow_send(global_data.param[PARAM_SEND_DEBUGCHAN], loop_start_time + sys_time_clock_get_unix_offset(), 0, global_data.optflow.x, global_data.optflow.y, global_data.optflow.z, sonar_distance_get());
 			//optical_flow_debug_vect_send();
 			//debug_vect("opt_int", opt_int);
 			optical_flow_start_read(80);
+
+
+
+			optflow_speed_kalman();
+
 
 			mavlink_msg_roll_pitch_yaw_thrust_setpoint_send(
 					global_data.param[PARAM_SEND_DEBUGCHAN],
@@ -302,7 +309,6 @@ void main_loop_quadrotor(void)
 			// position data is missing
 			handle_controller_timeouts(loop_start_time);
 			// Send buffered data such as debug text messages
-			communication_queued_send();
 			// Empty one message out of the buffer
 			debug_message_send_one();
 
@@ -544,6 +550,9 @@ void main_loop_quadrotor(void)
 			}
 
 			communication_send_attitude_position(loop_start_time);
+
+			// Send parameter
+			communication_queued_send();
 
 			//infrared distance
 			float_vect3 infra;

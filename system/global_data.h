@@ -181,6 +181,12 @@ enum
 	PARAM_CAM_ANGLE_X_FACTOR,
 	PARAM_CAM_ANGLE_Y_OFFSET,
 	PARAM_CAM_ANGLE_Y_FACTOR,
+
+	PARAM_KAL_VEL_AX,
+	PARAM_KAL_VEL_AY,
+	PARAM_KAL_VEL_BX,
+	PARAM_KAL_VEL_BY,
+
 	ONBOARD_PARAM_COUNT
 ///< Store parameters in EEPROM and expose them over MAVLink paramter interface
 } global_param_id;
@@ -307,6 +313,7 @@ struct global_struct
 	float_vect3 position;                     ///< vector from origin to mav in body coordinates
 	float_vect3 position_setpoint;            ///<
 	float yaw_pos_setpoint;                   ///<
+	float_vect3 optflow;
 
 
 	float_vect3 position_setpoint_min;        ///<
@@ -664,6 +671,15 @@ static inline void global_data_reset_param_defaults(void){
 	global_data.param[PARAM_CAM_ANGLE_X_FACTOR] = 0;
 	global_data.param[PARAM_CAM_ANGLE_Y_OFFSET] = 0;
 	global_data.param[PARAM_CAM_ANGLE_Y_FACTOR] = 0;
+
+	global_data.param[PARAM_KAL_VEL_AX] = 0;
+	global_data.param[PARAM_KAL_VEL_BX] = 0;
+	global_data.param[PARAM_KAL_VEL_AY] = 0;
+	global_data.param[PARAM_KAL_VEL_BY] = 0;
+	strcpy(global_data.param_name[PARAM_KAL_VEL_AX], "KAL_VEL_AX");
+	strcpy(global_data.param_name[PARAM_KAL_VEL_BX], "KAL_VEL_BX");
+	strcpy(global_data.param_name[PARAM_KAL_VEL_AY], "KAL_VEL_AY");
+	strcpy(global_data.param_name[PARAM_KAL_VEL_BY], "KAL_VEL_BY");
 
 	global_data.param[PARAM_IMU_RESET] = 0;
 	strcpy(global_data.param_name[PARAM_IMU_RESET], "SYS_IMU_RESET");

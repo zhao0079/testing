@@ -71,7 +71,7 @@ void optical_flow_read_handler(i2c_package *package)
 		optical_flow_result.z = package->data[2];
 
 		//debug
-	//	debug_vect("opt_flow",optical_flow_result);
+		//debug_vect("opt_flow",optical_flow_result);
 
 		//Check if the sensor sees too little features
 		if (optical_flow_result.z < 10 || optical_flow_result.z == 255)
