@@ -183,6 +183,6 @@ void optflow_speed_kalman(void)
 	viconPre = global_data.vicon_data.x;
 	debug.x = gyro_x_offset;
 	debug.y = gyro_y_offset;
-	debug.z = xvel;
+	debug.z = global_data.temperature_gyros;
 	debug_vect("KALMAN", debug);
 }

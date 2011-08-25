@@ -237,30 +237,30 @@ static inline void sensors_pressure_bmp085_read_out(void)
 }
 
 
-static inline void sensors_gyro_acc_read_out(void)
-{
-
-	ads8341_read(ADS8341_0, GYROS_ROLL_ADS8341_0_CHANNEL);
-	while (spi_running());
-	ads8341_get_value(ADS8341_0,GYROS_ROLL_ADS8341_0_CHANNEL);
-	global_data.gyros_raw.x = ads8341_get_value(ADS8341_0,GYROS_ROLL_ADS8341_0_CHANNEL);
-
-	ads8341_read(ADS8341_0, GYROS_PITCH_ADS8341_0_CHANNEL);
-	while (spi_running());
-	global_data.gyros_raw.y = ads8341_get_value(ADS8341_0,GYROS_PITCH_ADS8341_0_CHANNEL);
-
-	ads8341_read(ADS8341_0, GYROS_YAW_ADS8341_0_CHANNEL);
-	while (spi_running());
-	global_data.gyros_raw.z = ads8341_get_value(ADS8341_0,GYROS_YAW_ADS8341_0_CHANNEL);
-
-
-	sca3100_read_res();
-	while(spi_running());
-	global_data.accel_raw.x = (int)sca3100_get_value(SCA3100_X_AXIS);
-	global_data.accel_raw.y = (int)sca3100_get_value(SCA3100_Y_AXIS);
-	global_data.accel_raw.z = (int)sca3100_get_value(SCA3100_Z_AXIS);
-
-}
+//static inline void sensors_gyro_acc_read_out(void)
+//{
+//
+//	ads8341_read(ADS8341_0, GYROS_ROLL_ADS8341_0_CHANNEL);
+//	while (spi_running());
+//	ads8341_get_value(ADS8341_0,GYROS_ROLL_ADS8341_0_CHANNEL);
+//	global_data.gyros_raw.x = ads8341_get_value(ADS8341_0,GYROS_ROLL_ADS8341_0_CHANNEL);
+//
+//	ads8341_read(ADS8341_0, GYROS_PITCH_ADS8341_0_CHANNEL);
+//	while (spi_running());
+//	global_data.gyros_raw.y = ads8341_get_value(ADS8341_0,GYROS_PITCH_ADS8341_0_CHANNEL);
+//
+//	ads8341_read(ADS8341_0, GYROS_YAW_ADS8341_0_CHANNEL);
+//	while (spi_running());
+//	global_data.gyros_raw.z = ads8341_get_value(ADS8341_0,GYROS_YAW_ADS8341_0_CHANNEL);
+//
+//
+//	sca3100_read_res();
+//	while(spi_running());
+//	global_data.accel_raw.x = (int)sca3100_get_value(SCA3100_X_AXIS);
+//	global_data.accel_raw.y = (int)sca3100_get_value(SCA3100_Y_AXIS);
+//	global_data.accel_raw.z = (int)sca3100_get_value(SCA3100_Z_AXIS);
+//
+//}
 
 #endif
 
