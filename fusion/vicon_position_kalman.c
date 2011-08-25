@@ -14,6 +14,8 @@
 #include "transformation.h"
 #include "gps_transformations.h"
 
+#define ONLY_Z 1
+
 //#define VELOCITY_HOLD 0.999f
 //#define ACCELERATION_HOLD 0.99f
 #define VELOCITY_HOLD 0.99f
@@ -25,6 +27,7 @@ kalman_t vicon_position_kalman_z;
 
 void vicon_position_kalman_init(void)
 {
+#ifndef ONLY_Z
 	//X Kalmanfilter
 	//initalize matrices
 #define TIME_STEP_X (1.0f / 200.0f)
@@ -107,7 +110,7 @@ void vicon_position_kalman_init(void)
 
 
 
-
+#endif
 	//Altitude Kalmanfilter
 	//initalize matrices
 #define TIME_STEP_Z (1.0f / 200.0f)
@@ -165,9 +168,11 @@ void vicon_position_kalman(void)
 	float_vect3 acc_nav;
 	body2navi(&global_data.accel_si, &global_data.attitude, &acc_nav);
 
+#ifndef ONLY_Z
 	//X &Y Kalman Filter
 	kalman_predict(&vicon_position_kalman_x);
 	kalman_predict(&vicon_position_kalman_y);
+#endif
 	kalman_predict(&vicon_position_kalman_z);
 
 	m_elem x_measurement[2] =
@@ -246,15 +251,19 @@ void vicon_position_kalman(void)
 	}
 
 	//Put measurements into filter
+
+#ifndef ONLY_Z
 	kalman_correct(&vicon_position_kalman_x, x_measurement, x_mask);
 	kalman_correct(&vicon_position_kalman_y, y_measurement, y_mask);
+#endif
 	kalman_correct(&vicon_position_kalman_z, z_measurement, z_mask);
 
+#ifndef ONLY_Z
 	global_data.position.x = kalman_get_state(&vicon_position_kalman_x,0);
-	global_data.position.y = kalman_get_state(&vicon_position_kalman_y,0);
-	global_data.position.z = kalman_get_state(&vicon_position_kalman_z,0);
-
 	global_data.velocity.x = kalman_get_state(&vicon_position_kalman_x,1);
+	global_data.position.y = kalman_get_state(&vicon_position_kalman_y,0);
 	global_data.velocity.y = kalman_get_state(&vicon_position_kalman_y,1);
+#endif
+	global_data.position.z = kalman_get_state(&vicon_position_kalman_z,0);
 	global_data.velocity.z = kalman_get_state(&vicon_position_kalman_z,1);
 }

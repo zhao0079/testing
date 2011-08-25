@@ -95,6 +95,9 @@ void optflow_speed_kalman(void)
 //	turn_xy_plane(&flow, PI, &flowQuadUncorr);
 //	body2navi(&flowQuadUncorr, &global_data.attitude, &flowWorldUncorr);
 
+	//distance from flow sensor to ground
+	float flow_distance = -global_data.vicon_data.z;
+
    // initializes x and y to global position
    if(global_data.param[PARAM_VICON_MODE] == 3)
    {
@@ -102,7 +105,7 @@ void optflow_speed_kalman(void)
 	   global_data.position.y = global_data.vicon_data.y;
    }
 
-   global_data.position.z = global_data.vicon_data.z;
+ //  global_data.position.z = global_data.vicon_data.z;
 
    //---------------------------------------------------
    // Vx Kalman Filter
@@ -123,7 +126,7 @@ void optflow_speed_kalman(void)
 
 	   // update step
 	   //float xflow = global_data.optflow.x*global_data.position.z*scale;
-	   float xflow = -global_data.vicon_data.z*flowWorld.x;
+	   float xflow = flow_distance*flowWorld.x;
 	   vx = vx_ + Kx*(xflow - cx*vx_);
 	   pvx = (1.0 - Kx*cx)*pvx_;
    }
@@ -156,7 +159,7 @@ void optflow_speed_kalman(void)
 
 	   // update step
 	   //float yflow = global_data.optflow.y*global_data.position.z*scale;
-	   float yflow = -global_data.vicon_data.z*flowWorld.y;
+	   float yflow = flow_distance*flowWorld.y;
 	   vy = vy_ + Ky*(yflow - cy*vy_);
 	   pvy = (1.0 - Ky*cy)*pvy_;
    }
@@ -177,5 +180,5 @@ void optflow_speed_kalman(void)
 	debug.x = vx;
 	debug.y = vy;
 	debug.z = xvel;
-	debug_vect("KALMAN", debug);
+	//debug_vect("KALMAN", debug);
 }
