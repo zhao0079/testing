@@ -87,7 +87,7 @@ void optflow_speed_kalman(void)
 	float z_lp = 0.1;
 	z_position = (1 - z_lp) * z_position + z_lp * global_data.sonar_distance;
 
-	global_data.position.z = z_position;
+	global_data.position.z = -z_position;
 
 	// transform optical flow into global frame
 	float_vect3 flow, flowQuad, flowWorld;//, flowQuadUncorr, flowWorldUncorr;
@@ -105,7 +105,8 @@ void optflow_speed_kalman(void)
 	//	body2navi(&flowQuadUncorr, &global_data.attitude, &flowWorldUncorr);
 
 	//distance from flow sensor to ground
-	float flow_distance = -global_data.vicon_data.z;
+	//float flow_distance = -global_data.vicon_data.z;
+	float flow_distance = z_position;
 
 	// initializes x and y to global position
 	if (global_data.param[PARAM_VICON_MODE] == 3)

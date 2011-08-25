@@ -304,8 +304,7 @@ void handle_controller_timeouts(uint64_t loop_start_time)
 	}
 
 	//update overall position fix
-	global_data.state.position_fix = global_data.state.vicon_ok
-			|| global_data.state.vision_ok;
+	global_data.state.position_fix = 1;//global_data.state.vicon_ok			|| global_data.state.vision_ok;
 
 	// UPDATE CONTROLLER STATES for QGroundcontrol widgets
 

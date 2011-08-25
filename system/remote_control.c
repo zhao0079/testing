@@ -108,7 +108,7 @@ inline void remote_control(void)
 				}
 				//switch on motors
 				global_data.state.status = MAV_STATE_ACTIVE;
-//				global_data.state.fly = FLY_WAIT_MOTORS;
+				global_data.state.fly = FLY_WAIT_MOTORS;
 //				this will be done by setpoint
 			}
 
@@ -173,7 +173,12 @@ inline void remote_control(void)
 
 
 
-
+			if (ppm_get_channel(global_data.param[PARAM_PPM_TUNE4_CHANNEL])
+					< PPM_LOW_TRIG)
+			{
+				global_data.position.x=0;
+				global_data.position.y=0;
+			}
 
 
 
