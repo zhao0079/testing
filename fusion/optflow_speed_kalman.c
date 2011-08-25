@@ -79,6 +79,10 @@ void optflow_speed_kalman(void)
 	//Transform accelerometer used in all directions
 	float_vect3 acc_nav;
 	body2navi(&global_data.accel_si, &global_data.attitude, &acc_nav);
+	static float gyro_x_offset = 0, gyro_y_offset = 0;
+	float lp = 0.001f;
+	gyro_x_offset = (1 - lp) * gyro_x_offset + lp * global_data.gyros_si.x;
+	gyro_y_offset = (1 - lp) * gyro_y_offset + lp * global_data.gyros_si.y;
 
 	// transform optical flow into global frame
 	float_vect3 flow, flowQuad, flowWorld;//, flowQuadUncorr, flowWorldUncorr;
@@ -87,8 +91,8 @@ void optflow_speed_kalman(void)
 	flow.z = 0.0;
 
 	turn_xy_plane(&flow, PI, &flowQuad);
-	flowQuad.x = flowQuad.x*scale - global_data.gyros_si.y;
-	flowQuad.y = flowQuad.y*scale + global_data.gyros_si.x;
+	flowQuad.x = flowQuad.x * scale - (global_data.gyros_si.y - gyro_y_offset);
+	flowQuad.y = flowQuad.y * scale + (global_data.gyros_si.x - gyro_x_offset);
 
 	body2navi(&flowQuad, &global_data.attitude, &flowWorld);
 
@@ -175,10 +179,10 @@ void optflow_speed_kalman(void)
    global_data.position.y += vy*VEL_KF_TIME_STEP_Y;
 
 
-	float xvel = (global_data.position.x - viconPre)/VEL_KF_TIME_STEP_X;
-	viconPre = global_data.position.x;
-	debug.x = vx;
-	debug.y = vy;
+	float xvel = (global_data.vicon_data.x - viconPre)/VEL_KF_TIME_STEP_X;
+	viconPre = global_data.vicon_data.x;
+	debug.x = gyro_x_offset;
+	debug.y = gyro_y_offset;
 	debug.z = xvel;
-	//debug_vect("KALMAN", debug);
+	debug_vect("KALMAN", debug);
 }

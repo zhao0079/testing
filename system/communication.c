@@ -85,6 +85,7 @@ void execute_action(uint8_t action)
 		break;
 	case MAV_ACTION_CALIBRATE_GYRO:
 		start_gyro_calibration();
+		m_parameter_i = 0;
 		break;
 	case MAV_ACTION_CALIBRATE_RC:
 		start_rc_calibration();

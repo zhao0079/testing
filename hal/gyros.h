@@ -86,6 +86,8 @@ static inline void gyro_calibrate(void)
 	global_data.param[PARAM_GYRO_OFFSET_X]=(sum_x/sample_size);
 	global_data.param[PARAM_GYRO_OFFSET_Y]=(sum_y/sample_size);
 	global_data.param[PARAM_GYRO_OFFSET_Z]=(sum_z/sample_size);
+	global_data.param[PARAM_CAL_TEMP]=global_data.temperature_gyros;
+
 
 }
 
@@ -117,46 +119,54 @@ static inline void gyro_read(void)
 //		float calibration_temperature_correction_offset_z = -0.024202371781532
 //				* global_data.temperature_gyros + global_data.param[PARAM_CAL_GYRO_TEMP_FIT_Z];
 
-		// With temperature calibration, linear fit, with autocalibration offset
-		float calibration_temperature_correction_offset_x = -0.060333834627133
-				* global_data.temperature_gyros + global_data.param[PARAM_GYRO_OFFSET_X];
-		float calibration_temperature_correction_offset_y = 0.020519379344279
-				* global_data.temperature_gyros + global_data.param[PARAM_GYRO_OFFSET_Y];
-		float calibration_temperature_correction_offset_z = -0.024202371781532
-				* global_data.temperature_gyros + global_data.param[PARAM_GYRO_OFFSET_Z];
+//		// With temperature calibration, linear fit, with autocalibration offset
+//		float calibration_temperature_correction_offset_x = -0.060333834627133
+//				* global_data.temperature_gyros + global_data.param[PARAM_GYRO_OFFSET_X];
+//		float calibration_temperature_correction_offset_y = 0.020519379344279
+//				* global_data.temperature_gyros + global_data.param[PARAM_GYRO_OFFSET_Y];
+//		float calibration_temperature_correction_offset_z = -0.024202371781532
+//				* global_data.temperature_gyros + global_data.param[PARAM_GYRO_OFFSET_Z];
+//
+//		//Only update SI, if value was not smaller than gyro_treshold ( Sometimes it get 0. No idea why. 20100901)
+//		uint16_t gyro_treshold = 1024;
+//		if (global_data.gyros_raw.x >= gyro_treshold)
+//		{
+//			global_data.gyros_si.x = -IDG_500_GYRO_SCALE_X
+//					* (global_data.gyros_raw.x
+//							- calibration_temperature_correction_offset_x);
+//		}
+//		else
+//		{
+//			debug_message_buffer("GYRO_RAW_X was ZERO!!!");
+//		}
+//		if (global_data.gyros_raw.y >= gyro_treshold)
+//		{
+//			global_data.gyros_si.y = IDG_500_GYRO_SCALE_Y
+//					* (global_data.gyros_raw.y
+//							- calibration_temperature_correction_offset_y);
+//		}
+//		else
+//		{
+//			debug_message_buffer("GYRO_RAW_Y was ZERO!!!");
+//		}
+//		if (global_data.gyros_raw.z >= gyro_treshold)
+//		{
+//			global_data.gyros_si.z = -IXZ_500_GYRO_SCALE_Z
+//					* (global_data.gyros_raw.z
+//							- calibration_temperature_correction_offset_z);
+//		}
+//		else
+//		{
+//			debug_message_buffer("GYRO_RAW_Z was ZERO!!!");
+//		}
 
-		//Only update SI, if value was not smaller than gyro_treshold ( Sometimes it get 0. No idea why. 20100901)
-		uint16_t gyro_treshold = 1024;
-		if (global_data.gyros_raw.x >= gyro_treshold)
-		{
-			global_data.gyros_si.x = -IDG_500_GYRO_SCALE_X
-					* (global_data.gyros_raw.x
-							- calibration_temperature_correction_offset_x);
-		}
-		else
-		{
-			debug_message_buffer("GYRO_RAW_X was ZERO!!!");
-		}
-		if (global_data.gyros_raw.y >= gyro_treshold)
-		{
-			global_data.gyros_si.y = IDG_500_GYRO_SCALE_Y
-					* (global_data.gyros_raw.y
-							- calibration_temperature_correction_offset_y);
-		}
-		else
-		{
-			debug_message_buffer("GYRO_RAW_Y was ZERO!!!");
-		}
-		if (global_data.gyros_raw.z >= gyro_treshold)
-		{
-			global_data.gyros_si.z = -IXZ_500_GYRO_SCALE_Z
-					* (global_data.gyros_raw.z
-							- calibration_temperature_correction_offset_z);
-		}
-		else
-		{
-			debug_message_buffer("GYRO_RAW_Z was ZERO!!!");
-		}
+		// Without temp compensation
+		global_data.gyros_si.x = -IDG_500_GYRO_SCALE_X * (global_data.gyros_raw.x
+				- global_data.param[PARAM_GYRO_OFFSET_X]);
+		global_data.gyros_si.y = IDG_500_GYRO_SCALE_Y * (global_data.gyros_raw.y
+				- global_data.param[PARAM_GYRO_OFFSET_Y]);// global_data.param[PARAM_GYRO_OFFSET_Y]);
+		global_data.gyros_si.z = -IXZ_500_GYRO_SCALE_Z * (global_data.gyros_raw.z
+				- global_data.param[PARAM_GYRO_OFFSET_Z]);
 	}
 	else
 	{
