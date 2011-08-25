@@ -183,7 +183,7 @@ void main_loop_quadrotor(void)
 			}
 			else
 			{
-				vicon_position_kalman();
+				//vicon_position_kalman();
 				//				vision_position_kalman();
 				//				fuse_vision_altitude_200hz();
 			}
@@ -234,8 +234,9 @@ void main_loop_quadrotor(void)
 				opt_int.y += global_data.optflow.y;
 
 			}
+			global_data.sonar_distance = sonar_distance_get();
 			opt_int.z = valid;
-			mavlink_msg_optical_flow_send(global_data.param[PARAM_SEND_DEBUGCHAN], loop_start_time + sys_time_clock_get_unix_offset(), 0, global_data.optflow.x, global_data.optflow.y, global_data.optflow.z, sonar_distance_get());
+			mavlink_msg_optical_flow_send(global_data.param[PARAM_SEND_DEBUGCHAN], loop_start_time + sys_time_clock_get_unix_offset(), 0, global_data.optflow.x, global_data.optflow.y, global_data.optflow.z, global_data.sonar_distance);
 			//optical_flow_debug_vect_send();
 			//debug_vect("opt_int", opt_int);
 			optical_flow_start_read(80);

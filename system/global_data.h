@@ -350,6 +350,7 @@ struct global_struct
 	char param_name[ONBOARD_PARAM_COUNT][ONBOARD_PARAM_NAME_LENGTH];  ///< EEPROM parameter names
 	float ground_distance;
 	float ground_distance_unfiltered;
+	float sonar_distance;
 	float_vect3 vicon_data;
 	vision_t vision_data;                     ///< Data from computer vision system
 	uint64_t pos_last_valid;
