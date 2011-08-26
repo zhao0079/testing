@@ -83,9 +83,18 @@ void optflow_speed_kalman(void)
 	gyro_x_offset = (1 - lp) * gyro_x_offset + lp * global_data.gyros_si.x;
 	gyro_y_offset = (1 - lp) * gyro_y_offset + lp * global_data.gyros_si.y;
 
+	static float sonar_distance = 0;
+	float sonar_distance_lp = 0.1;
+	sonar_distance = (1 - sonar_distance_lp) * sonar_distance + sonar_distance_lp * global_data.sonar_distance;
+
 	static float z_position = 0;
-	float z_lp = 0.1;
-	z_position = (1 - z_lp) * z_position + z_lp * global_data.sonar_distance*cos(global_data.attitude.x)*cos(global_data.attitude.y);
+	if (fabs(sonar_distance - global_data.sonar_distance) < 0.3)
+	{
+		float z_lp = 0.1;
+		z_position = (1 - z_lp) * z_position + z_lp
+				* global_data.sonar_distance * cos(global_data.attitude.x)
+				* cos(global_data.attitude.y);
+	}
 
 	global_data.position.z = -z_position;
 
@@ -194,6 +203,7 @@ void optflow_speed_kalman(void)
 	viconPre = global_data.vicon_data.x;
 	debug.x = (global_data.gyros_si.x - gyro_x_offset);
 	debug.y = (global_data.gyros_si.y - gyro_y_offset);
-	debug.z = z_position;
+	debug.y = z_position;
+	debug.z = sonar_distance;
 	debug_vect("KALMAN", debug);
 }
