@@ -88,7 +88,7 @@ void optflow_speed_kalman(void)
 	sonar_distance = (1 - sonar_distance_lp) * sonar_distance + sonar_distance_lp * global_data.sonar_distance;
 
 	static float z_position = 0;
-	if (fabs(sonar_distance - global_data.sonar_distance) < 0.3)
+	if (fabs(sonar_distance - global_data.sonar_distance) < 0.2)
 	{
 		float z_lp = 0.1;
 		z_position = (1 - z_lp) * z_position + z_lp
