@@ -187,13 +187,13 @@ float quadrotor_start_land_motor_thrust()
 //
 //			}
 			// check limit:
-			if (global_data.thrust_hover_offset > 0.50)
+			if (global_data.thrust_hover_offset > global_data.param[PARAM_POSITION_HOVER_THRUST])
 			{
-				global_data.thrust_hover_offset = 0.50;
+				global_data.thrust_hover_offset = global_data.param[PARAM_POSITION_HOVER_THRUST];
 				global_data.state.fly = FLY_STARTING;
 
-				debug_message_buffer(
-						"STARTING ramp finished at 50%% abort didn't work!!! ");
+				debug_message_buffer_sprintf(
+						"STARTING ramp finished at %i%% of max thrust",global_data.param[PARAM_POSITION_HOVER_THRUST]*100);
 			}
 		}
 		motor_thrust = (global_data.thrust_hover_offset

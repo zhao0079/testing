@@ -78,24 +78,31 @@ void optflow_speed_kalman(void)
 	//Transform accelerometer used in all directions
 	float_vect3 acc_nav;
 	body2navi(&global_data.accel_si, &global_data.attitude, &acc_nav);
+
+	//Calculate gyro offsets. Workaround for old attitude filter.
 	static float gyro_x_offset = 0, gyro_y_offset = 0;
 	float lp = 0.001f;
 	gyro_x_offset = (1 - lp) * gyro_x_offset + lp * global_data.gyros_si.x;
 	gyro_y_offset = (1 - lp) * gyro_y_offset + lp * global_data.gyros_si.y;
 
+	//Low-pass filter for sonar with all spikes. Makes filter following big steps.
 	static float sonar_distance = 0;
-	float sonar_distance_lp = 0.1;
+	float sonar_distance_lp = 0.1; // ~ 1/time to get to new step
 	sonar_distance = (1 - sonar_distance_lp) * sonar_distance + sonar_distance_lp * global_data.sonar_distance;
 
+	//Low-pass filter for sonar without spikes
+	//only update this low-pass if the signal is close to one of these two low-pass filters.
 	static float z_position = 0;
-	if (fabs(sonar_distance - global_data.sonar_distance) < 0.2)
+	float z_lp = 0.1; // real low-pass on spike rejected data.
+	if ((fabs(sonar_distance - global_data.sonar_distance) < 0.2) ||
+			(fabs(z_position - global_data.sonar_distance) < 0.2))
 	{
-		float z_lp = 0.1;
 		z_position = (1 - z_lp) * z_position + z_lp
 				* global_data.sonar_distance * cos(global_data.attitude.x)
 				* cos(global_data.attitude.y);
 	}
 
+	//navigation frame has Z down
 	global_data.position.z = -z_position;
 
 	// transform optical flow into global frame
@@ -199,8 +206,9 @@ void optflow_speed_kalman(void)
 	global_data.velocity.y = vy;
 	global_data.position.y += vy * VEL_KF_TIME_STEP_Y;
 
-	float xvel = (global_data.vicon_data.x - viconPre) / VEL_KF_TIME_STEP_X;
+//	float xvel = (global_data.vicon_data.x - viconPre) / VEL_KF_TIME_STEP_X;
 	viconPre = global_data.vicon_data.x;
+
 	debug.x = (global_data.gyros_si.x - gyro_x_offset);
 	debug.y = (global_data.gyros_si.y - gyro_y_offset);
 	debug.y = z_position;
