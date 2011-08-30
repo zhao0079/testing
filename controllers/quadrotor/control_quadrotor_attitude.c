@@ -166,7 +166,8 @@ inline void control_quadrotor_attitude()
 
 	// GUIDED AND AUTO MODES
 	if (global_data.state.mav_mode == (uint8_t) MAV_MODE_GUIDED || global_data.state.mav_mode
-			== (uint8_t) MAV_MODE_AUTO)
+			== (uint8_t) MAV_MODE_AUTO || global_data.state.mav_mode
+			== (uint8_t) MAV_MODE_TEST2)
 	{
 		motor_thrust = quadrotor_start_land_motor_thrust();
 	}
@@ -322,10 +323,12 @@ inline void control_quadrotor_attitude()
 	motor_pwm[2] = (uint8_t) motor_calc[2];
 	motor_pwm[3] = (uint8_t) motor_calc[3];
  //Disable for testing without motors
-	if ((global_data.state.mav_mode == MAV_MODE_MANUAL || global_data.state.mav_mode
-			== MAV_MODE_GUIDED) && (global_data.state.status == MAV_STATE_ACTIVE
-			|| global_data.state.status == MAV_STATE_CRITICAL || global_data.state.status
-			== MAV_STATE_EMERGENCY))
+	if ((global_data.state.mav_mode == MAV_MODE_MANUAL
+			|| global_data.state.mav_mode == MAV_MODE_GUIDED
+			|| global_data.state.mav_mode == MAV_MODE_TEST2)
+			&& (global_data.state.status == MAV_STATE_ACTIVE
+					|| global_data.state.status == MAV_STATE_CRITICAL
+					|| global_data.state.status == MAV_STATE_EMERGENCY))
 	{
 		// Set MOTORS
 		motor_i2c_set_pwm(MOT1_I2C_SLAVE_ADDRESS, motor_pwm[0]);

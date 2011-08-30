@@ -55,9 +55,10 @@
 inline void remote_control(void)
 {
 
-	if (global_data.state.mav_mode == (uint8_t) MAV_MODE_MANUAL || global_data.state.mav_mode
-			== (uint8_t) MAV_MODE_GUIDED || global_data.state.mav_mode
-			== (uint8_t) MAV_MODE_AUTO)
+	if (global_data.state.mav_mode == (uint8_t) MAV_MODE_MANUAL
+			|| global_data.state.mav_mode == (uint8_t) MAV_MODE_GUIDED
+			|| global_data.state.mav_mode == (uint8_t) MAV_MODE_AUTO
+			|| global_data.state.mav_mode == MAV_MODE_TEST2)
 	{
 		if (radio_control_status() == RADIO_CONTROL_ON)
 		{

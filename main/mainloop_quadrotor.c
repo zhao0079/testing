@@ -330,7 +330,8 @@ void main_loop_quadrotor(void)
 			// Toggle active mode led
 			if (global_data.state.mav_mode == MAV_MODE_MANUAL
 					|| global_data.state.mav_mode == MAV_MODE_GUIDED
-					|| global_data.state.mav_mode == MAV_MODE_AUTO)
+					|| global_data.state.mav_mode == MAV_MODE_AUTO
+					|| global_data.state.mav_mode == MAV_MODE_TEST2)
 			{
 				led_on(LED_GREEN);
 			}
