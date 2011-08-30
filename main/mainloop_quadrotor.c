@@ -81,6 +81,7 @@
 #include "dos.h"
 #include "fat.h"
 
+#include "attitude_tobi_laurens.h"
 #include "outdoor_position_kalman.h"
 #include "vision_position_kalman.h"
 #include "vicon_position_kalman.h"
@@ -109,9 +110,10 @@ void main_loop_quadrotor(void)
 	main_init_generic();
 	control_quadrotor_position_init();
 	control_quadrotor_attitude_init();
+	attitude_tobi_laurens_init();
 	outdoor_position_kalman_init();
 	//vision_position_kalman_init();
-	vicon_position_kalman_init();
+	//vicon_position_kalman_init();
 	optflow_speed_kalman_init();
 
 	/**
@@ -145,11 +147,16 @@ void main_loop_quadrotor(void)
 
 			// Read out magnetometer at its default 50 Hz rate
 			static uint8_t mag_count = 0;
+
 			if (mag_count == 3)
 			{
 				sensors_read_mag();
-				attitude_observer_correct_magnet(global_data.magnet_corrected);
+				//attitude_observer_correct_magnet(global_data.magnet_corrected);
 				mag_count = 0;
+			}else if(mag_count==1){
+
+				hmc5843_start_read();
+				mag_count++;
 			}
 			else
 			{
@@ -157,35 +164,38 @@ void main_loop_quadrotor(void)
 			}
 
 			// Correction step of observer filter
-			attitude_observer_correct_accel(global_data.accel_raw);
+			//attitude_observer_correct_accel(global_data.accel_raw);
 
 			// Write in roll and pitch
-			static float_vect3 att; //if not static we have spikes in roll and pitch on bravo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-			attitude_observer_get_angles(&att);
-			global_data.attitude.x = att.x;
-			global_data.attitude.y = att.y;
-			if (global_data.param[PARAM_ATT_KAL_IYAW])
-			{
-				global_data.attitude.z += 0.005 * global_data.gyros_si.z;
-			}
-			else
-			{
-				global_data.attitude.z = att.z;
-			}
+			//static float_vect3 att; //if not static we have spikes in roll and pitch on bravo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			//attitude_observer_get_angles(&att);
+//			global_data.attitude.x = att.x;
+//			global_data.attitude.y = att.y;
+//			if (global_data.param[PARAM_ATT_KAL_IYAW])
+//			{
+//				global_data.attitude.z += 0.005 * global_data.gyros_si.z;
+//			}
+//			else
+//			{
+//				global_data.attitude.z = att.z;
+//			}
 			// Prediction step of observer
-			attitude_observer_predict(global_data.gyros_si);
+			//attitude_observer_predict(global_data.gyros_si);
+			attitude_tobi_laurens();
+			//sequential_kalmanfilter();
 
 			//position_integrate(&global_data.attitude,&global_data.position,&global_data.velocity,&global_data.accel_si);
 
-			if (global_data.state.gps_mode == 1)
+			if (global_data.state.gps_mode >= 1)
 			{
-				outdoor_position_kalman();
+//				position_kalman_TL();
+//				outdoor_position_kalman();
 			}
 			else
 			{
-				//vicon_position_kalman();
-				//				vision_position_kalman();
-				//				fuse_vision_altitude_200hz();
+//				vicon_position_kalman();
+//				vision_position_kalman();
+//				fuse_vision_altitude_200hz();
 			}
 
 			control_quadrotor_attitude();

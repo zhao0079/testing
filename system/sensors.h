@@ -155,9 +155,9 @@ static inline void sensors_read_mag(void)
 	global_data.state.magnet_ok &= hmc5843_data_ok();//if interrupt came in between
 
 	// Correct offset and scale to milli Gauss
-	global_data.magnet_corrected.x =  (global_data.magnet_raw.x - global_data.param[PARAM_CAL_MAG_OFFSET_X]);
-	global_data.magnet_corrected.y = -(global_data.magnet_raw.y - global_data.param[PARAM_CAL_MAG_OFFSET_Y]);
-	global_data.magnet_corrected.z =  (global_data.magnet_raw.z - global_data.param[PARAM_CAL_MAG_OFFSET_Z]);
+	global_data.magnet_corrected.y = - (global_data.magnet_raw.x - global_data.param[PARAM_CAL_MAG_OFFSET_X]);
+	global_data.magnet_corrected.x = -(global_data.magnet_raw.y - global_data.param[PARAM_CAL_MAG_OFFSET_Y]);
+	global_data.magnet_corrected.z =  -(global_data.magnet_raw.z - global_data.param[PARAM_CAL_MAG_OFFSET_Z]);
 }
 
 static inline void sensors_pressure_bmp085_read_out(void)

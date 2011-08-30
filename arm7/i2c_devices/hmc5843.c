@@ -15,7 +15,8 @@
 #include "debug.h"
 
 uint8_t hmc5843_address = 0x3c;
-uint8_t hmc5843_bus = 1;
+//uint8_t hmc5843_bus = 1;
+uint8_t hmc5843_bus = 0;//for external
 int16_vect3 hmc5843_result;
 int8_t hmc5843_data_valid = 0;
 

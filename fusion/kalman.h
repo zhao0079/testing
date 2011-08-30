@@ -10,8 +10,8 @@
 
 #include "matrix.h"
 
-#define KALMAN_MAX_STATES 4
-#define KALMAN_MAX_MEASUREMENTS 4
+#define KALMAN_MAX_STATES 12
+#define KALMAN_MAX_MEASUREMENTS 9
 typedef struct
 {
 	int states;

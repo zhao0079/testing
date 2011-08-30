@@ -54,6 +54,7 @@ SRCARM += system/debug.c
 SRCARM += system/params.c
 SRCARM += fusion/altitude_kalman.c
 SRCARM += fusion/attitude_observer.c
+SRCARM += fusion/attitude_tobi_laurens.c
 SRCARM += fusion/position_kalman.c
 SRCARM += fusion/vision_buffer.c
 SRCARM += fusion/kalman.c
@@ -98,7 +99,7 @@ FLOATINGPOINT	= -msoft-fp
 THUMB_IW = -mthumb-interwork
 FORMAT = ihex
 # ENABLE ONCE GCC 4.4.x is broadly used
-#DEADCODESTRIP = -Wl,-static -fdata-sections -ffunction-sections -Wl,--gc-sections -Wl,-s
+DEADCODESTRIP = -Wl,-static -fdata-sections -ffunction-sections -Wl,--gc-sections -Wl,-s
  
  #define compiler name
 CCNAME = -none-eabi
