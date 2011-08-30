@@ -313,6 +313,7 @@ struct global_struct
 
 	/// System state representation
 	float_vect3 attitude;                     ///< Angular position / attitude in Tait-Bryan angles (http://en.wikipedia.org/wiki/Yaw,_pitch,_and_roll)
+	float_vect3 attitude_rate;				  ///< Angular speed
 	float_vect3 velocity;                        ///< Current speed of MAV in m/s
 	float_vect3 position;                     ///< vector from origin to mav in body coordinates
 	float_vect3 position_setpoint;            ///<

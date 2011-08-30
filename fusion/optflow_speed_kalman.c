@@ -79,11 +79,11 @@ void optflow_speed_kalman(void)
 	float_vect3 acc_nav;
 	body2navi(&global_data.accel_si, &global_data.attitude, &acc_nav);
 
-	//Calculate gyro offsets. Workaround for old attitude filter.
-	static float gyro_x_offset = 0, gyro_y_offset = 0;
-	float lp = 0.001f;
-	gyro_x_offset = (1 - lp) * gyro_x_offset + lp * global_data.gyros_si.x;
-	gyro_y_offset = (1 - lp) * gyro_y_offset + lp * global_data.gyros_si.y;
+//	//Calculate gyro offsets. Workaround for old attitude filter.
+//	static float gyro_x_offset = 0, gyro_y_offset = 0;
+//	float lp = 0.001f;
+//	gyro_x_offset = (1 - lp) * gyro_x_offset + lp * global_data.gyros_si.x;
+//	gyro_y_offset = (1 - lp) * gyro_y_offset + lp * global_data.gyros_si.y;
 
 	//Low-pass filter for sonar with all spikes. Makes filter following big steps.
 	static float sonar_distance = 0;
@@ -112,8 +112,11 @@ void optflow_speed_kalman(void)
 	flow.z = 0.0;
 
 	turn_xy_plane(&flow, PI, &flowQuad);
-	flowQuad.x = flowQuad.x * scale - (global_data.gyros_si.y - gyro_y_offset);
-	flowQuad.y = flowQuad.y * scale + (global_data.gyros_si.x - gyro_x_offset);
+	flowQuad.x = flowQuad.x * scale - global_data.attitude_rate.y;
+	flowQuad.y = flowQuad.y * scale + global_data.attitude_rate.x;
+//	This was for biased gyro rates
+//	flowQuad.x = flowQuad.x * scale - (global_data.gyros_si.y - gyro_y_offset);
+//	flowQuad.y = flowQuad.y * scale + (global_data.gyros_si.x - gyro_x_offset);
 
 	body2navi(&flowQuad, &global_data.attitude, &flowWorld);
 
@@ -209,8 +212,8 @@ void optflow_speed_kalman(void)
 //	float xvel = (global_data.vicon_data.x - viconPre) / VEL_KF_TIME_STEP_X;
 	viconPre = global_data.vicon_data.x;
 
-	debug.x = (global_data.gyros_si.x - gyro_x_offset);
-	debug.y = (global_data.gyros_si.y - gyro_y_offset);
+	//debug.x = (global_data.gyros_si.x - gyro_x_offset);
+	//debug.y = (global_data.attitude_rate.x);
 	debug.y = z_position;
 	debug.z = sonar_distance;
 	debug_vect("KALMAN", debug);

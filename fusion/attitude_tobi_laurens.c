@@ -333,4 +333,9 @@ void attitude_tobi_laurens(void)
 	{
 		global_data.attitude.z = atan2(y_n_b.x, x_n_b.x);
 	}
+
+	//save rates
+	global_data.attitude_rate.x = kal_w.x;
+	global_data.attitude_rate.y = kal_w.y;
+	global_data.attitude_rate.z = kal_w.z;
 }

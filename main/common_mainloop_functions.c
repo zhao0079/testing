@@ -175,11 +175,16 @@ void communication_send_attitude_position(uint64_t loop_start_time)
 		mavlink_msg_attitude_send(global_data.param[PARAM_SEND_DEBUGCHAN],
 				sys_time_clock_get_unix_offset() + loop_start_time,
 				global_data.attitude.x, global_data.attitude.y,
+				global_data.attitude.z, global_data.attitude_rate.x,
+				global_data.attitude_rate.y, global_data.attitude_rate.z);
+
+/*		mavlink_msg_attitude_send(global_data.param[PARAM_SEND_DEBUGCHAN],
+				sys_time_clock_get_unix_offset() + loop_start_time,
+				global_data.attitude.x, global_data.attitude.y,
 				global_data.attitude.z, global_data.gyros_si.x,
 				global_data.gyros_si.y, global_data.gyros_si.z);
 
-
-/*			mavlink_msg_attitude_send(MAVLINK_COMM_1,
+			mavlink_msg_attitude_send(MAVLINK_COMM_1,
 				sys_time_clock_get_unix_offset() + loop_start_time,
 				global_data.attitude.x, global_data.attitude.y,
 				global_data.attitude.z, global_data.gyros_si.x,
