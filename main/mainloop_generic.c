@@ -279,8 +279,10 @@ void main_init_generic(void)
 	debug_message_buffer("Checking if remote control is switched on:");
 	if (radio_control_status() == RADIO_CONTROL_ON)
 	{
-		global_data.state.mav_mode = MAV_MODE_MANUAL;
+		//global_data.state.mav_mode = MAV_MODE_MANUAL;
+		global_data.state.mav_mode = MAV_MODE_TEST2;
 		debug_message_buffer("RESULT: remote control switched ON");
+		debug_message_buffer("Now in MAV_MODE_TEST2 position hold tobi_laurens");
 		led_on(LED_GREEN);
 	}
 	else
