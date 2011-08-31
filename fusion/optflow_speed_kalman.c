@@ -216,5 +216,5 @@ void optflow_speed_kalman(void)
 	//debug.y = (global_data.attitude_rate.x);
 	debug.y = z_position;
 	debug.z = sonar_distance;
-	debug_vect("KALMAN", debug);
+//	debug_vect("KALMAN", debug);
 }
