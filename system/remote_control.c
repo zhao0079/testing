@@ -189,7 +189,7 @@ inline void remote_control(void)
 				{
 					//low - Position Hold off
 					global_data.param[PARAM_MIX_POSITION_WEIGHT] = 0;
-					global_data.param[PARAM_MIX_POSITION_YAW_WEIGHT] = 1;
+					global_data.param[PARAM_MIX_POSITION_YAW_WEIGHT] = 0;
 
 					global_data.position.x = 0;
 					global_data.position.y = 0;
