@@ -171,18 +171,45 @@ inline void remote_control(void)
 				//should actually go to capturer not IMU
 			}
 
-
-
-
-			if (ppm_get_channel(global_data.param[PARAM_PPM_TUNE4_CHANNEL])
-					< PPM_LOW_TRIG)
+			if (global_data.state.mav_mode == MAV_MODE_TEST2)
 			{
-				global_data.position.x=0;
-				global_data.position.y=0;
+
+				if (ppm_get_channel(global_data.param[PARAM_PPM_TUNE1_CHANNEL])
+						< PPM_LOW_TRIG)
+				{
+					global_data.param[PARAM_MIX_POSITION_Z_WEIGHT] = 0;
+				}
+				else
+				{
+					global_data.param[PARAM_MIX_POSITION_Z_WEIGHT] = 1;
+				}
+
+				if (ppm_get_channel(global_data.param[PARAM_PPM_TUNE4_CHANNEL])
+						< PPM_LOW_TRIG)
+				{
+					//low - Position Hold off
+					global_data.param[PARAM_MIX_POSITION_WEIGHT] = 0;
+					global_data.param[PARAM_MIX_POSITION_YAW_WEIGHT] = 1;
+
+					global_data.position.x = 0;
+					global_data.position.y = 0;
+				}
+				else if (ppm_get_channel(
+						global_data.param[PARAM_PPM_TUNE4_CHANNEL])
+						> PPM_HIGH_TRIG)
+				{
+					//high - Position Hold with setpoint movement TODO
+					global_data.param[PARAM_MIX_POSITION_WEIGHT] = 1;
+					global_data.param[PARAM_MIX_POSITION_YAW_WEIGHT] = 1;
+				}
+				else
+				{
+					//center - Position Hold
+					global_data.param[PARAM_MIX_POSITION_WEIGHT] = 1;
+					global_data.param[PARAM_MIX_POSITION_YAW_WEIGHT] = 1;
+				}
+
 			}
-
-
-
 
 			//			//Integrate YAW setpoint
 			//			if (fabs(

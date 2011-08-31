@@ -573,9 +573,9 @@ void update_system_statemachine(uint64_t loop_start_time)
 		global_data.param[PARAM_MIX_REMOTE_WEIGHT] = 1;
 		break;
 		case MAV_MODE_TEST2:
-			global_data.param[PARAM_MIX_POSITION_WEIGHT] = 1;
-			global_data.param[PARAM_MIX_POSITION_YAW_WEIGHT] = 1;
-			global_data.param[PARAM_MIX_POSITION_Z_WEIGHT] = 1;
+//			global_data.param[PARAM_MIX_POSITION_WEIGHT] = 1;
+//			global_data.param[PARAM_MIX_POSITION_YAW_WEIGHT] = 1;
+//			global_data.param[PARAM_MIX_POSITION_Z_WEIGHT] = 1;
 			global_data.param[PARAM_MIX_OFFSET_WEIGHT] = 1;
 			global_data.param[PARAM_MIX_REMOTE_WEIGHT] = 1;
 			break;
