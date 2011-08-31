@@ -105,23 +105,15 @@ inline void control_quadrotor_position()
 
 		//Inform Controller about saturation. TODO Check if this works and do it for all other controllers.
 		z_axis_controller.saturated=1;
-
-//		debug_message_buffer_sprintf(
-//				"zcontrol output + limited would be*1000=%i", (uint32_t) 1000
-//						* global_data.position_control_output.z);
 	}
 	if (global_data.position_control_output.z
-			< 0)
+			< -global_data.param[PARAM_PID_POS_Z_LIM])
 	{
-		global_data.position_control_output.z
-				= 0;
+		global_data .position_control_output.z
+				= -global_data.param[PARAM_PID_POS_Z_LIM];
 
 		//Inform Controller about saturation. TODO Check if this works and do it for all other controllers.
 		z_axis_controller.saturated=1;
-
-//		debug_message_buffer_sprintf(
-//				"zcontrol output - limited would be*1000=%i", (uint32_t) 1000
-//						* global_data.position_control_output.z);
 	}
 
 	// Factor 0.05 to scale K_P, K_I to better human-readable values
@@ -165,7 +157,7 @@ inline void control_quadrotor_position()
 	}
 
 	//DEBUGGING
-	if (pos_controller_counter++ == 3)
+	if (pos_controller_counter++ == 7)
 	{
 		pos_controller_counter = 0;
 		//run every 8th time

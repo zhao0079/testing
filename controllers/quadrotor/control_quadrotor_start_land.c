@@ -196,6 +196,25 @@ float quadrotor_start_land_motor_thrust()
 						"STARTING ramp finished at %i%% of max thrust",global_data.param[PARAM_POSITION_HOVER_THRUST]*100);
 			}
 		}
+
+
+		// Special Limitation for z Control in this mode don't allow negative output
+		if (global_data.position_control_output.z
+				< 0)
+		{
+			global_data.position_control_output.z
+					= 0;
+
+			//Inform Controller about saturation. TODO Check if this works and do it for all other controllers.
+			z_axis_controller.saturated=1;
+
+	//		debug_message_buffer_sprintf(
+	//				"zcontrol output - limited would be*1000=%i", (uint32_t) 1000
+	//						* global_data.position_control_output.z);
+		}
+
+
+
 		motor_thrust = (global_data.thrust_hover_offset
 				+ global_data.position_control_output.z);
 		if (global_data.state.fly == FLY_LANDING)

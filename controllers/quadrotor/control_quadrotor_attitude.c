@@ -1,4 +1,5 @@
 #include "control_quadrotor_attitude.h"
+#include "control_quadrotor_position.h"
 #include "conf.h"
 #include "ppm.h"
 #include "inttypes.h"
@@ -165,16 +166,48 @@ inline void control_quadrotor_attitude()
 
 
 	// GUIDED AND AUTO MODES
-	if (global_data.state.mav_mode == (uint8_t) MAV_MODE_GUIDED || global_data.state.mav_mode
-			== (uint8_t) MAV_MODE_AUTO || global_data.state.mav_mode
-			== (uint8_t) MAV_MODE_TEST2)
+	if (global_data.state.mav_mode == (uint8_t) MAV_MODE_GUIDED
+			|| global_data.state.mav_mode == (uint8_t) MAV_MODE_AUTO)
 	{
 		motor_thrust = quadrotor_start_land_motor_thrust();
 	}
-	else if (global_data.state.mav_mode == (uint8_t) MAV_MODE_MANUAL)
+	else if ((global_data.state.mav_mode == (uint8_t) MAV_MODE_MANUAL)
+			|| (global_data.state.mav_mode == (uint8_t) MAV_MODE_TEST2
+					&& global_data.param[PARAM_MIX_POSITION_Z_WEIGHT] == 0))
 	{
 		motor_thrust = global_data.gas_remote;
+		global_data.state.fly = FLY_GROUNDED;
+	}
+	else if (global_data.state.mav_mode == (uint8_t) MAV_MODE_TEST2
+			&& global_data.param[PARAM_MIX_POSITION_Z_WEIGHT])
+	{
+		//Z Position Hold mode
+		if (global_data.thrust_hover_offset == 0.0f)
+		{
+			//Just got here from manual Z mode.
+			global_data.thrust_hover_offset = global_data.gas_remote;
+			z_axis_controller.integral = 0;
+			global_data.position_setpoint.z = global_data.position.z;
+			global_data.param[PARAM_POSITION_SETPOINT_Z]
+					= global_data.position.z;
 
+			global_data.state.fly = FLY_FLYING;
+		}
+
+		motor_thrust = (global_data.thrust_hover_offset
+				+ global_data.position_control_output.z);
+
+		global_data.motor_thrust_actual = motor_thrust;
+
+		//Security: thrust never higher than remote control
+		if (motor_thrust > global_data.gas_remote)
+		{
+			motor_thrust = global_data.gas_remote;
+		}
+		else if (motor_thrust < 0)
+		{
+			motor_thrust = 0;
+		}
 	}
 	else if (global_data.state.mav_mode == (uint8_t)MAV_MODE_LOCKED)
 	{
