@@ -237,7 +237,20 @@ void attitude_tobi_laurens(void)
 	acc.y = global_data.accel_raw.y;
 	acc.z = global_data.accel_raw.z;
 
-
+	float acc_norm = acc.x * acc.x + acc.y * acc.y + acc.z * acc.z;
+	static float acc_norm_filt = 0;
+	float acc_norm_lp = 0.05;
+	acc_norm_filt = (1.0f - acc_norm_lp) * acc_norm_filt + acc_norm_lp * acc_norm;
+	static uint8_t i = 0;
+	if (i++ > 10)
+	{
+		i = 0;
+		float_vect3 debug;
+		debug.x = acc_norm;
+		debug.y = acc_norm_filt;
+		debug.z = 0;
+		debug_vect("acc_norm", debug);
+	}
 
 	//	mag.x = (global_data.magnet_corrected.x ) * 1.f / 510.f;
 	//	mag.y = (global_data.magnet_corrected.y) * 1.f / 510.f;
