@@ -365,6 +365,7 @@ void outdoor_position_kalman(void)
 	debug.x = kalman_get_state(&outdoor_position_kalman_x, 0);
 	debug.y = kalman_get_state(&outdoor_position_kalman_y, 0);
 	debug.z = kalman_get_state(&outdoor_position_kalman_z, 0);
+	outdoor_z_position = debug.z;
 
 	debugv.x = kalman_get_state(&outdoor_position_kalman_x, 1);
 	debugv.y = kalman_get_state(&outdoor_position_kalman_y, 1);
@@ -392,4 +393,9 @@ void outdoor_position_kalman(void)
 void altitude_set_local_origin(void){
 	altitude_local_origin = -calc_altitude_pressure(
 			global_data.pressure_raw);
+}
+void altitude_set_local_origin_offset(float offset)
+{
+	altitude_local_origin = -calc_altitude_pressure(global_data.pressure_raw)
+			- offset;
 }

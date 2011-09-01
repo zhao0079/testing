@@ -11,5 +11,7 @@
 void outdoor_position_kalman_init(void);
 void outdoor_position_kalman(void);
 void altitude_set_local_origin(void);
+void altitude_set_local_origin_offset(float offset);
+float outdoor_z_position;
 
 #endif /* OUTDOOR_POSITION_KALMAN_H_ */
