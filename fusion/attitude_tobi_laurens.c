@@ -240,12 +240,12 @@ void attitude_tobi_laurens(void)
 	float acc_norm = sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
 	static float acc_norm_filt = SCA3100_COUNTS_PER_G;
 	float acc_norm_lp = 0.05;
-	acc_norm_filt = (1.0f - acc_norm_lp) * acc_norm_filt + acc_norm_lp * acc_norm;
+	acc_norm_filt = (1.0f - acc_norm_lp) * acc_norm_filt + acc_norm_lp
+			* acc_norm;
 
-
-//	static float acc_norm_filtz = SCA3100_COUNTS_PER_G;
-//	float acc_norm_lpz = 0.05;
-//	acc_norm_filtz = (1.0f - acc_norm_lpz) * acc_norm_filtz + acc_norm_lpz * -acc.z;
+	//	static float acc_norm_filtz = SCA3100_COUNTS_PER_G;
+	//	float acc_norm_lpz = 0.05;
+	//	acc_norm_filtz = (1.0f - acc_norm_lpz) * acc_norm_filtz + acc_norm_lpz * -acc.z;
 
 	float acc_diff = fabs(acc_norm_filt - SCA3100_COUNTS_PER_G);
 	if (acc_diff > 200)
@@ -259,23 +259,23 @@ void attitude_tobi_laurens(void)
 	else if (acc_diff > 100)
 	{
 		//fade linearely out between 100 and 200
-		float mask_lin = (200.0f-acc_diff)/100;
+		float mask_lin = (200.0f - acc_diff) / 100;
 		mask[0] = mask_lin;
 		mask[1] = mask_lin;
 		mask[2] = mask_lin;
 	}
 	//else mask stays 1
 
-	static uint8_t i = 0;
-	if (i++ > 10)
-	{
-		i = 0;
-		float_vect3 debug;
-		debug.x = mask[0];
-		debug.y = acc_norm;
-		debug.z = acc_norm_filt;
-		debug_vect("acc_norm", debug);
-	}
+//	static uint8_t i = 0;
+//	if (i++ > 10)
+//	{
+//		i = 0;
+//		float_vect3 debug;
+//		debug.x = mask[0];
+//		debug.y = acc_norm;
+//		debug.z = acc_norm_filt;
+//		debug_vect("acc_norm", debug);
+//	}
 
 	//	mag.x = (global_data.magnet_corrected.x ) * 1.f / 510.f;
 	//	mag.y = (global_data.magnet_corrected.y) * 1.f / 510.f;
