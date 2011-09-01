@@ -189,7 +189,7 @@ void main_loop_quadrotor(void)
 			if (global_data.state.gps_mode >= 1)
 			{
 //				position_kalman_TL();
-//				outdoor_position_kalman();
+				outdoor_position_kalman();
 			}
 			else
 			{

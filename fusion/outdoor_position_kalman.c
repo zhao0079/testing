@@ -359,14 +359,32 @@ void outdoor_position_kalman(void)
 	//Put measurements into filter
 	kalman_correct(&outdoor_position_kalman_z, z_measurement, z_mask);
 
-// save outputs
-	global_data.position.x = kalman_get_state(&outdoor_position_kalman_x,0);
-	global_data.position.y = kalman_get_state(&outdoor_position_kalman_y,0);
-	global_data.position.z = kalman_get_state(&outdoor_position_kalman_z,0);
+	float_vect3 debug, debugv;
 
-	global_data.velocity.x = kalman_get_state(&outdoor_position_kalman_x,1);
-	global_data.velocity.y = kalman_get_state(&outdoor_position_kalman_y,1);
-	global_data.velocity.z = kalman_get_state(&outdoor_position_kalman_z,1);
+
+	debug.x = kalman_get_state(&outdoor_position_kalman_x, 0);
+	debug.y = kalman_get_state(&outdoor_position_kalman_y, 0);
+	debug.z = kalman_get_state(&outdoor_position_kalman_z, 0);
+
+	debugv.x = kalman_get_state(&outdoor_position_kalman_x, 1);
+	debugv.y = kalman_get_state(&outdoor_position_kalman_y, 1);
+	debugv.z = kalman_get_state(&outdoor_position_kalman_z, 1);
+
+	static uint8_t i;
+	if (i++ > 20)
+	{
+		i = 0;
+		debug_vect("outdoot_pos", debug);
+		debug_vect("outdoot_vel", debugv);
+	}
+	// save outputs
+//	global_data.position.x = kalman_get_state(&outdoor_position_kalman_x,0);
+//	global_data.position.y = kalman_get_state(&outdoor_position_kalman_y,0);
+//	global_data.position.z = kalman_get_state(&outdoor_position_kalman_z,0);
+//
+//	global_data.velocity.x = kalman_get_state(&outdoor_position_kalman_x,1);
+//	global_data.velocity.y = kalman_get_state(&outdoor_position_kalman_y,1);
+//	global_data.velocity.z = kalman_get_state(&outdoor_position_kalman_z,1);
 
 
 
