@@ -244,7 +244,7 @@ void main_loop_quadrotor(void)
 				opt_int.y += global_data.optflow.y;
 
 			}
-			global_data.sonar_distance = sonar_distance_get();
+			global_data.sonar_distance = sonar_distance_get(ADC_5_CHANNEL);
 			opt_int.z = valid;
 			mavlink_msg_optical_flow_send(global_data.param[PARAM_SEND_DEBUGCHAN], loop_start_time + sys_time_clock_get_unix_offset(), 0, global_data.optflow.x, global_data.optflow.y, global_data.optflow.z, global_data.sonar_distance);
 			//optical_flow_debug_vect_send();
@@ -896,7 +896,7 @@ void main_loop_quadrotor(void)
 				loop_stop_time, min_mainloop_time);
 		time_debug.y = max(time_debug.y, global_data.cpu_usage);
 		time_debug.z = max(time_debug.z, global_data.cpu_peak);
-		if (loop_start_time - last_mainloop_idle >= 5000)
+		if (loop_start_time - last_mainloop_idle >= 20000)
 		{
 			debug_message_buffer(
 					"CRITICAL WARNING! CPU LOAD TO HIGH. STARVATION!");
