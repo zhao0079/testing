@@ -238,20 +238,42 @@ void attitude_tobi_laurens(void)
 	acc.z = global_data.accel_raw.z;
 
 	float acc_norm = sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
-	static float acc_norm_filt = 0;
+	static float acc_norm_filt = SCA3100_COUNTS_PER_G;
 	float acc_norm_lp = 0.05;
 	acc_norm_filt = (1.0f - acc_norm_lp) * acc_norm_filt + acc_norm_lp * acc_norm;
-	static float acc_norm_filtz = 0;
-	float acc_norm_lpz = 0.05;
-	acc_norm_filtz = (1.0f - acc_norm_lpz) * acc_norm_filtz + acc_norm_lpz * -acc.z;
+
+
+//	static float acc_norm_filtz = SCA3100_COUNTS_PER_G;
+//	float acc_norm_lpz = 0.05;
+//	acc_norm_filtz = (1.0f - acc_norm_lpz) * acc_norm_filtz + acc_norm_lpz * -acc.z;
+
+	float acc_diff = fabs(acc_norm_filt - SCA3100_COUNTS_PER_G);
+	if (acc_diff > 200)
+	{
+		//Don't correct when acc high
+		mask[0] = 0;
+		mask[1] = 0;
+		mask[2] = 0;
+
+	}
+	else if (acc_diff > 100)
+	{
+		//fade linearely out between 100 and 200
+		float mask_lin = (200.0f-acc_diff)/100;
+		mask[0] = mask_lin;
+		mask[1] = mask_lin;
+		mask[2] = mask_lin;
+	}
+	//else mask stays 1
+
 	static uint8_t i = 0;
 	if (i++ > 10)
 	{
 		i = 0;
 		float_vect3 debug;
-		debug.x = acc_norm;
-		debug.y = acc_norm_filt;
-		debug.z = acc_norm_filtz;
+		debug.x = mask[0];
+		debug.y = acc_norm;
+		debug.z = acc_norm_filt;
 		debug_vect("acc_norm", debug);
 	}
 
