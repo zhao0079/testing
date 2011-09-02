@@ -103,17 +103,17 @@ void optflow_speed_kalman(void)
 				* cos(global_data.attitude.y);
 	}
 
-	float sonar_limit = 1.0f;
-	if (z_position < sonar_limit && sonar_distance < sonar_limit)
-	{
+//	float sonar_limit = 1.0f;
+//	if (z_position < sonar_limit && sonar_distance < sonar_limit)
+//	{
 		//navigation frame has Z down
 		global_data.position.z = -z_position;
 		//altitude_set_local_origin_offset(global_data.position.z);
-	}
-	else
-	{
-		global_data .position.z = outdoor_z_position;
-	}
+//	}
+//	else
+//	{
+//		global_data .position.z = outdoor_z_position;
+//	}
 
 
 
