@@ -163,6 +163,9 @@ void communication_send_raw_data(uint64_t loop_start_time)
 				global_data.magnet_raw.x,
 				global_data.magnet_raw.y,
 				global_data.magnet_raw.z);
+		mavlink_msg_raw_pressure_send(global_data.param[PARAM_SEND_DEBUGCHAN],
+				sys_time_clock_get_unix_offset() + loop_start_time,
+				global_data.pressure_raw, 0, 0, global_data.temperature);
 	}
 }
 
