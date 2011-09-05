@@ -110,7 +110,11 @@ inline void remote_control(void)
 				//switch on motors
 				global_data.state.status = MAV_STATE_ACTIVE;
 				global_data.state.fly = FLY_WAIT_MOTORS;
-//				this will be done by setpoint
+				//this will be done by setpoint
+				if (global_data.state.mav_mode == MAV_MODE_TEST2)
+				{
+					global_data.state.fly = FLY_FLYING;
+				}
 			}
 
 			//		Switch off MAV_STATE_STANDBY
@@ -124,7 +128,7 @@ inline void remote_control(void)
 				}
 				//switch off motors
 				global_data.state.status = MAV_STATE_STANDBY;
-
+				global_data.state.fly = FLY_GROUNDED;
 
 			}
 
@@ -177,10 +181,12 @@ inline void remote_control(void)
 				if (ppm_get_channel(global_data.param[PARAM_PPM_TUNE1_CHANNEL])
 						< PPM_LOW_TRIG)
 				{
+					//z-controller disabled
 					global_data.param[PARAM_MIX_POSITION_Z_WEIGHT] = 0;
 				}
 				else
 				{
+					//z-controller enabled
 					global_data.param[PARAM_MIX_POSITION_Z_WEIGHT] = 1;
 				}
 
@@ -322,15 +328,19 @@ inline void remote_control(void)
 			}
 			else
 			{
+				static uint16_t countdown;
 				//already the second time
 				// Emergency Landing
 				if (global_data.state.fly != FLY_GROUNDED
-						&& global_data.state.fly != FLY_RAMP_DOWN)
+						&& global_data.state.fly != FLY_RAMP_DOWN && global_data.state.fly != FLY_LANDING)
 				{
+					debug_message_buffer_sprintf("global_data.state.fly=%i",global_data.state.fly);
 					sys_set_state(MAV_STATE_EMERGENCY);
 					global_data.state.fly = FLY_LANDING;//start landing
 					debug_message_buffer(
 							"EMERGENCY LANDING STARTED. No remote signal");
+
+					countdown = 50 * 5; // 5 seconds
 				}
 				else
 				{
@@ -349,6 +359,24 @@ inline void remote_control(void)
 						//won't come here anymore if once in locked mode
 						debug_message_buffer(
 								"EMERGENCY LANDING. No remote signal");
+
+					}
+				}
+
+				if(global_data.state.mav_mode == MAV_MODE_TEST2 && global_data.state.fly != FLY_GROUNDED){
+
+					//z-controller enabled
+					global_data.param[PARAM_MIX_POSITION_Z_WEIGHT] = 1;
+					global_data.position_setpoint.z = global_data.position.z
+							+ 0.01;
+					global_data.param[PARAM_POSITION_SETPOINT_Z]
+							= global_data.position.z + 0.01;
+					if (countdown-- <= 1)
+					{
+						global_data.state.fly = FLY_GROUNDED;
+						//global_data.param[PARAM_MIX_POSITION_Z_WEIGHT] = 0;
+						debug_message_buffer(
+								"EMERGENCY LANDING Z control finished");
 					}
 				}
 			}

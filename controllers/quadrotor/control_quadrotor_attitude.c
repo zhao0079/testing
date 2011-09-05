@@ -176,7 +176,7 @@ inline void control_quadrotor_attitude()
 					&& global_data.param[PARAM_MIX_POSITION_Z_WEIGHT] == 0))
 	{
 		motor_thrust = global_data.gas_remote;
-		global_data.state.fly = FLY_GROUNDED;
+		//global_data.state.fly = FLY_GROUNDED;
 	}
 	else if (global_data.state.mav_mode == (uint8_t) MAV_MODE_TEST2
 			&& global_data.param[PARAM_MIX_POSITION_Z_WEIGHT])
@@ -190,8 +190,6 @@ inline void control_quadrotor_attitude()
 			global_data.position_setpoint.z = global_data.position.z;
 			global_data.param[PARAM_POSITION_SETPOINT_Z]
 					= global_data.position.z;
-
-			global_data.state.fly = FLY_FLYING;
 		}
 
 		motor_thrust = (global_data.thrust_hover_offset

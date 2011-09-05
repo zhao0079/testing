@@ -720,6 +720,7 @@ static inline void global_data_reset(void)
 	global_data.state.magnet_ok=0;
 	global_data.state.ground_distance_ok=0;
 	global_data.state.position_fix=0;
+	global_data.state.fly = FLY_GROUNDED;
 
 	global_data.comm.uart0_rx_drop_count = 0;
 	global_data.comm.uart0_rx_success_count = 0;
