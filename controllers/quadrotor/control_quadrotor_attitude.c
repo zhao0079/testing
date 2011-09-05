@@ -124,16 +124,16 @@ inline void control_quadrotor_attitude()
 
 	//	Control Yaw Speed
 	float yaw = pid_calculate(&yaw_speed_controller,
-			global_data.attitude_setpoint.z, global_data.gyros_si.z, 0,
+			global_data.attitude_setpoint.z, global_data.attitude_rate.z, 0,
 			CONTROL_PID_ATTITUDE_INTERVAL); //ATTENTION WE ARE CONTROLLING YAWspeed to YAW angle
 	//Control Nick
 	float nick = pid_calculate(&nick_controller,
 			global_data.attitude_setpoint.y, global_data.attitude.y,
-			global_data.gyros_si.y, CONTROL_PID_ATTITUDE_INTERVAL);
+			global_data.attitude_rate.y, CONTROL_PID_ATTITUDE_INTERVAL);
 	//Control Roll
 	float roll = pid_calculate(&roll_controller,
 			global_data.attitude_setpoint.x, global_data.attitude.x,
-			global_data.gyros_si.x, CONTROL_PID_ATTITUDE_INTERVAL);
+			global_data.attitude_rate.x, CONTROL_PID_ATTITUDE_INTERVAL);
 
 	//compensation to keep force in z-direction
 	float zcompensation;
