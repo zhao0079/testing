@@ -73,4 +73,12 @@
 #include "imu_conf_v250.h"
 #endif
 
+#ifdef IMU_PIXHAWK_V260
+#include "imu_conf_v260.h"
+#endif
+
+#ifdef IMU_PIXHAWK_V260_EXTERNAL_MAG
+#include "imu_conf_v260_external_mag.h"
+#endif
+
 #endif /* _CONF_H_ */

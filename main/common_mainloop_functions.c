@@ -377,6 +377,7 @@ void handle_controller_timeouts(uint64_t loop_start_time)
 void sync_state_parameters(void){
 	//Here all parameters that need to be checked often should be converted to uint8
 	global_data.state.gps_mode=global_data.param[PARAM_GPS_MODE];
+	global_data.state.yaw_estimation_mode = global_data.param[PARAM_ATT_KAL_YAW_ESTIMATION_MODE];
 
 	if (global_data.state.gps_mode == 20)
 	{

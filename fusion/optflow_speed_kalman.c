@@ -103,6 +103,8 @@ void optflow_speed_kalman(void)
 				* cos(global_data.attitude.y);
 	}
 
+	global_data.sonar_distance_filtered = z_position;
+
 //	float sonar_limit = 1.0f;
 //	if (z_position < sonar_limit && sonar_distance < sonar_limit)
 //	{

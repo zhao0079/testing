@@ -17,6 +17,7 @@
 #include "debug.h"
 #include "sensors.h"
 #include "math.h"
+#include "conf.h"
 #include "altitude_speed.h"
 #include "transformation.h"
 #include "gps_transformations.h"
@@ -223,9 +224,9 @@ void attitude_tobi_laurens(void)
 	m_elem mask[9] =
 	{ 1, 1, 1, 0, 0, 0, 1, 1, 1 };
 
-	float_vect3 acc;
-	float_vect3 mag;
-	float_vect3 gyro;
+	static float_vect3 acc;
+	static float_vect3 mag;
+	static float_vect3 gyro;
 
 
 
@@ -233,11 +234,21 @@ void attitude_tobi_laurens(void)
 	//	acc.y = global_data.accel_raw.y * 9.81f / 690;
 	//	acc.z = global_data.accel_raw.z * 9.81f / 690;
 
+#ifdef IMU_PIXHAWK_V250
+
+	acc.x = global_data.accel_raw.x * (650.0f/900.0f);
+	acc.y = global_data.accel_raw.y * (650.0f/900.0f);
+	acc.z = global_data.accel_raw.z * (650.0f/900.0f);
+
+#else
+
 	acc.x = global_data.accel_raw.x;
 	acc.y = global_data.accel_raw.y;
 	acc.z = global_data.accel_raw.z;
 
-	float acc_norm = sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
+#endif
+
+	float acc_norm = sqrt(global_data.accel_raw.x * global_data.accel_raw.x + global_data.accel_raw.y * global_data.accel_raw.y + global_data.accel_raw.z * global_data.accel_raw.z);
 	static float acc_norm_filt = SCA3100_COUNTS_PER_G;
 	float acc_norm_lp = 0.05;
 	acc_norm_filt = (1.0f - acc_norm_lp) * acc_norm_filt + acc_norm_lp
@@ -301,9 +312,31 @@ void attitude_tobi_laurens(void)
 	measurement[1] = acc.y;
 	measurement[2] = acc.z;
 
-	measurement[3] = mag.x;
-	measurement[4] = mag.y;
-	measurement[5] = mag.z;
+//	if (global_data.state.yaw_estimation_mode == YAW_ESTIMATION_MODE_INTEGRATION)
+//	{
+//		// Set a zero value (1 0 0 vector scaled to the magnetometer sensor units)
+//		measurement[3] = 0.0f;
+//		measurement[4] = 916.0f;
+//		measurement[5] = 0.0f;
+//	}
+	if (global_data.state.yaw_estimation_mode == YAW_ESTIMATION_MODE_VISION)
+	{
+		measurement[3] = global_data.vision_magnetometer_replacement.x;
+		measurement[4] = global_data.vision_magnetometer_replacement.y;
+		measurement[5] = global_data.vision_magnetometer_replacement.z;
+	} // YAW_ESTIMATION_MODE_MAGNETOMETER
+	else
+	{
+		measurement[3] = mag.x;
+		measurement[4] = mag.y;
+		measurement[5] = mag.z;
+//		debug_vect("mag_f", mag);
+	}
+
+
+//	measurement[3] = global_data.vision_magnetometer_replacement.x;
+//	measurement[4] = global_data.vision_magnetometer_replacement.y;
+//	measurement[5] = global_data.vision_magnetometer_replacement.z;
 
 	measurement[6] = gyro.x;
 	measurement[7] = gyro.y;
@@ -363,7 +396,7 @@ void attitude_tobi_laurens(void)
 	global_data.attitude.x = atan2(z_n_b.y, z_n_b.z);
 	global_data.attitude.y = -asin(z_n_b.x);
 
-	if (global_data.param[PARAM_ATT_KAL_IYAW])
+	if (global_data.state.yaw_estimation_mode == YAW_ESTIMATION_MODE_INTEGRATION)
 	{
 		global_data.attitude.z += 0.005 * global_data.gyros_si.z;
 	}

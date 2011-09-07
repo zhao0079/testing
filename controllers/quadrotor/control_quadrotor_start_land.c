@@ -59,35 +59,6 @@ void quadrotor_start_land_handler(uint64_t loop_start_time)
 		nick_controller.integral = 0;
 		roll_controller.integral = 0;
 
-		// reset Kalman Filters as Ramp starts
-
-		float_vect3 pos_est2,pos_est3,vel_est2,vel_est3,accel_est2;
-		pos_est2.x = global_data.position_setpoint.x;
-		pos_est2.y = global_data.position_setpoint.y;
-		pos_est2.z = 0;
-		pos_est3.x = global_data.position_setpoint.x;
-		pos_est3.y = global_data.position_setpoint.y;
-		pos_est3.z = 0; //would not start without grounddistance sensor. becouse z-error = 0 if vision not yet available
-//		pos_est3.z = global_data.position_setpoint.z; //this filter is not integrating so it would not see ramp up
-
-		vel_est2.x = 0;
-		vel_est2.y = 0;
-		vel_est2.z = 0;
-		vel_est3.x = 0;
-		vel_est3.y = 0;
-		vel_est3.z = 0;
-
-		accel_est2.x = 0;
-		accel_est2.y = 0;
-		accel_est2.z = -9.81;
-
-		//reinitiate filters at these points
-		kalman2_init(&pos_est2, &vel_est2, &accel_est2);
-		position_kalman3_init(&pos_est3, &vel_est3);
-
-		//set integrated yaw to setpoint
-		global_data.attitude.z = global_data.yaw_pos_setpoint;
-
 		global_data.entry_critical = loop_start_time;
 
 		debug_message_buffer("STARTING ramp up");

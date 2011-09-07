@@ -246,7 +246,7 @@ void main_loop_quadrotor(void)
 			}
 			global_data.sonar_distance = sonar_distance_get(ADC_5_CHANNEL);
 			opt_int.z = valid;
-			mavlink_msg_optical_flow_send(global_data.param[PARAM_SEND_DEBUGCHAN], loop_start_time + sys_time_clock_get_unix_offset(), 0, global_data.optflow.x, global_data.optflow.y, global_data.optflow.z, global_data.sonar_distance);
+			mavlink_msg_optical_flow_send(global_data.param[PARAM_SEND_DEBUGCHAN], loop_start_time + sys_time_clock_get_unix_offset(), 0, global_data.optflow.x, global_data.optflow.y, global_data.optflow.z, global_data.sonar_distance_filtered);
 			//optical_flow_debug_vect_send();
 			//debug_vect("opt_int", opt_int);
 			optical_flow_start_read(80);
@@ -409,7 +409,7 @@ void main_loop_quadrotor(void)
 			mavlink_msg_system_time_send(MAVLINK_COMM_1,
 					sys_time_clock_get_unix_time());
 
-			//update state from recieved parameters
+			//update state from received parameters
 			sync_state_parameters();
 
 			//debug number of execution
@@ -444,9 +444,9 @@ void main_loop_quadrotor(void)
 
 			//Send execution times for debugging
 			// Executiontime debugging
-			time_debug.x = 0;
-			time_debug.y = 0;
-			time_debug.z = 0;
+//			time_debug.x = 0;
+//			time_debug.y = 0;
+//			time_debug.z = 0;
 
 			//enable gps push thru:
 			//global_data.param[PARAM_GPS_MODE]=20;

@@ -11,6 +11,7 @@
 #include "float_checks.h"
 #include "sys_time.h"
 #include "global_data.h"
+#include "lookup_sin_cos.h"
 
 #include "debug.h"
 #include "transformation.h"
@@ -136,28 +137,24 @@ void vision_buffer_handle_data(mavlink_vision_position_estimate_t* pos)
 
 			//Project correction to present
 
-			float_vect3 pos_e;
-			pos_e.x = pos->x - vision_buffer[i].pos.x;
-			pos_e.y = pos->y - vision_buffer[i].pos.y;
-			pos_e.z = pos->z - vision_buffer[i].pos.z;
+//			float_vect3 pos_e;
+//			pos_e.x = pos->x - vision_buffer[i].pos.x;
+//			pos_e.y = pos->y - vision_buffer[i].pos.y;
+//			pos_e.z = pos->z - vision_buffer[i].pos.z;
 
 //			debug_vect("pos_e", pos_e);
 
-			//Correct yaw angle because it is not yet implemented in vision.
-			float yaw_navi = pos->yaw
-					- global_data.param[PARAM_VISION_YAWCORRECT];
-
-			float yaw_e = yaw_navi - vision_buffer[i].ang.z;
-
-			float_vect3 pos_diff;
-			pos_diff.x = global_data.position.x - vision_buffer[i].pos.x;
-			pos_diff.y = global_data.position.y - vision_buffer[i].pos.y;
-			pos_diff.z = global_data.position.z - vision_buffer[i].pos.z;
-
-			//turn pos_diff clockwise if yaw_e positive
-			float_vect3 pos_diff_turned;
-			//correct for yaw error
-			turn_xy_plane(&pos_diff, yaw_e, &pos_diff_turned);
+//			float yaw_e = pos->yaw - vision_buffer[i].ang.z;
+//
+//			float_vect3 pos_diff;
+//			pos_diff.x = global_data.position.x - vision_buffer[i].pos.x;
+//			pos_diff.y = global_data.position.y - vision_buffer[i].pos.y;
+//			pos_diff.z = global_data.position.z - vision_buffer[i].pos.z;
+//
+//			//turn pos_diff clockwise if yaw_e positive
+//			float_vect3 pos_diff_turned;
+//			//correct for yaw error
+//			turn_xy_plane(&pos_diff, yaw_e, &pos_diff_turned);
 
 			//or don't correct for yaw error
 //			turn_xy_plane(&pos_diff, 0, &pos_diff_turned);
@@ -176,7 +173,12 @@ void vision_buffer_handle_data(mavlink_vision_position_estimate_t* pos)
 			global_data.vision_data.pos.y = pos->y;
 			global_data.vision_data.pos.z = pos->z;
 
-			//Onlz use vision yaw because of Lorenz not trusting integration and prediction
+			// If yaw input from vision is enabled, feed vision
+			// directly into state estimator
+			global_data.vision_magnetometer_replacement.x = 200.0f*lookup_cos(pos->yaw); //916.0f*cos(pos->yaw);
+			global_data.vision_magnetometer_replacement.y = 200.0f*(-lookup_sin(pos->yaw)); //916.0f*sin(pos->yaw);
+			global_data.vision_magnetometer_replacement.z = -60.f;
+
 			//	global_data.hack_yaw = pos->yaw;
 			//global_data.vision_data.ang.z = pos.yaw;
 
@@ -207,7 +209,7 @@ void vision_buffer_handle_data(mavlink_vision_position_estimate_t* pos)
 			//Correct YAW
 			//global_data.attitude.z = global_data.attitude.z + yaw_e;
 			//set yaw directly
-			global_data.attitude.z = pos->yaw;
+//			global_data.attitude.z = pos->yaw;
 
 			//If yaw goes to infinity (no idea why) set it to setpoint, next time will be better
 			if (global_data.attitude.z > 18.8495559 || global_data.attitude.z < -18.8495559)
@@ -225,10 +227,9 @@ void vision_buffer_handle_data(mavlink_vision_position_estimate_t* pos)
 			//rejected outlayer
 			if (vision_buffer_reject_count++ % 16 == 0)
 			{
-				debug_message_buffer_sprintf("vision_buffer outlayer rejected %u",
+				debug_message_buffer_sprintf("vision_buffer rejected outlier #%u",
 						vision_buffer_reject_count);
 			}
-			//debug_message_buffer("vision_buffer outlayer rejected");
 		}
 		if (global_data.param[PARAM_SEND_SLOT_DEBUG_1] == 1)
 		{

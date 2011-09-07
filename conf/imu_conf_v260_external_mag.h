@@ -147,7 +147,7 @@
 #define SCA3100_Y_AXIS 1
 #define SCA3100_Z_AXIS 2
 
-#define SCA3100_COUNTS_PER_G 900	//+-2g Sensor
+#define SCA3100_COUNTS_PER_G 650	//+-6g Sensor
 //@}
 
 /*======================================================================*/
@@ -157,7 +157,7 @@
 //@{
 //DATAREADY PIN///////////////////////////////////////////////////////////
 //Dataready pin on P0.30/EINT3
-#define HMC5843_I2C_BUS 1
+#define HMC5843_I2C_BUS 0
 #define HMC5843_DRDY_PINSEL PINSEL1
 #define HMC5843_DRDY_PINSEL_BIT 28
 #define HMC5843_DRDY_PINSEL_VAL 2

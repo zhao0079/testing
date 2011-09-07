@@ -106,6 +106,9 @@ inline void remote_control(void)
 				if (global_data.state.status != MAV_STATE_ACTIVE)
 				{
 					debug_message_buffer("MAV_STATE_ACTIVE Motors started");
+
+					//debug_message_buffer("CALIBRATING GYROS");
+					//start_gyro_calibration();
 				}
 				//switch on motors
 				global_data.state.status = MAV_STATE_ACTIVE;
@@ -173,6 +176,17 @@ inline void remote_control(void)
 						global_data.param[PARAM_SYSTEM_ID], MAV_COMP_ID_IMU,
 						MAV_ACTION_REC_STOP);
 				//should actually go to capturer not IMU
+			}
+
+			if (global_data.state.mav_mode == MAV_MODE_GUIDED)
+			{
+				// Reset position to 0,0, mostly useful for optical flow with setpoint at 0,0
+				if (ppm_get_channel(global_data.param[PARAM_PPM_TUNE4_CHANNEL])
+						< PPM_LOW_TRIG)
+				{
+					global_data.position.x = 0;
+					global_data.position.y = 0;
+				}
 			}
 
 			if (global_data.state.mav_mode == MAV_MODE_TEST2)

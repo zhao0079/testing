@@ -117,7 +117,7 @@ enum
 
 	PARAM_VEL_DAMP,
 	PARAM_ATT_KAL_KACC,
-	PARAM_ATT_KAL_IYAW,
+	PARAM_ATT_KAL_YAW_ESTIMATION_MODE,
 
 	PARAM_GYRO_OFFSET_X,
 	PARAM_GYRO_OFFSET_Y,
@@ -142,7 +142,6 @@ enum
 	PARAM_ACC_NAVI_OFFSET_Y,
 	PARAM_ACC_NAVI_OFFSET_Z,
 
-	PARAM_VISION_YAWCORRECT,
 	PARAM_VISION_ANG_OUTLAYER_TRESHOLD,
 
 	PARAM_VICON_MODE,
@@ -228,6 +227,13 @@ enum uartmodes
 	UART_MODE_BYTE_FORWARD = 2
 };
 
+enum YAW_ESTIMATION_MODE
+{
+	YAW_ESTIMATION_MODE_INTEGRATION = 0,
+	YAW_ESTIMATION_MODE_MAGNETOMETER = 1,
+	YAW_ESTIMATION_MODE_VISION = 2
+};
+
 typedef struct
 {
 	float_vect3 pos;
@@ -269,6 +275,7 @@ typedef struct
 	enum MAV_NAV nav_mode;
 	enum MAV_TYPE type;
 	enum MAV_STATE status;
+	enum YAW_ESTIMATION_MODE yaw_estimation_mode;
 	uint8_t gps_mode;//< comes from parameter for faster check
 	uint8_t uart0mode;
 	uint8_t uart1mode;
@@ -356,8 +363,10 @@ struct global_struct
 	float ground_distance;
 	float ground_distance_unfiltered;
 	float sonar_distance;
+	float sonar_distance_filtered;
 	float_vect3 vicon_data;
 	vision_t vision_data;                     ///< Data from computer vision system
+	float_vect3 vision_magnetometer_replacement;  ///< Values in magnetometer units (norm of vector: ~920) to replace the mag with vision input HACK!
 	uint64_t pos_last_valid;
 	uint64_t vicon_last_valid;
 	uint64_t entry_critical;
@@ -601,9 +610,8 @@ static inline void global_data_reset_param_defaults(void){
 	global_data.param[PARAM_ATT_KAL_KACC] = 0.0033;
 	strcpy(global_data.param_name[PARAM_ATT_KAL_KACC], "ATT_KAL_KACC");
 
-	//We don't have Magnetometer therfore we integrate yaw gyro between vision data
-	global_data.param[PARAM_ATT_KAL_IYAW] = 1;
-	strcpy(global_data.param_name[PARAM_ATT_KAL_IYAW], "ATT_KAL_IYAW");
+	global_data.param[PARAM_ATT_KAL_YAW_ESTIMATION_MODE] = YAW_ESTIMATION_MODE_MAGNETOMETER;
+	strcpy(global_data.param_name[PARAM_ATT_KAL_YAW_ESTIMATION_MODE], "ATT_KAL_YAWMOD");
 
 	global_data.param[PARAM_ATT_OFFSET_X] =0;// -0.08;//-0.11;
 	strcpy(global_data.param_name[PARAM_ATT_OFFSET_X], "ATT_OFFSET_X");
@@ -647,8 +655,6 @@ static inline void global_data_reset_param_defaults(void){
 	strcpy(global_data.param_name[PARAM_MIX_POSITION_YAW_WEIGHT], "MIX_POS_YAW");
 	global_data.param[PARAM_MIX_OFFSET_WEIGHT] = 1;
 	strcpy(global_data.param_name[PARAM_MIX_OFFSET_WEIGHT], "MIX_OFFSET");
-	global_data.param[PARAM_VISION_YAWCORRECT] = 0;//now done by multitracker //turn by 180 degree 1.57;//turn by 90 degree
-	strcpy(global_data.param_name[PARAM_VISION_YAWCORRECT], "VIS_YAWCORR");
 
 	global_data.param[PARAM_VISION_ANG_OUTLAYER_TRESHOLD] = 0.2;
 	strcpy(global_data.param_name[PARAM_VISION_ANG_OUTLAYER_TRESHOLD], "VIS_OUTL_TRESH");
@@ -747,6 +753,11 @@ static inline void global_data_reset(void)
 	global_data.position_control_output.z = 0.0f;
 
 	global_data.position_yaw_control_output = 0.0f;
+
+	// Set to straight north as long as no vision input is available
+	global_data.vision_magnetometer_replacement.x = 200;
+	global_data.vision_magnetometer_replacement.y = 0;
+	global_data.vision_magnetometer_replacement.z = -60;
 
 	//safe corridor
 	global_data.position_setpoint_min.x=-20;

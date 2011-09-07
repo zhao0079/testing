@@ -15,8 +15,6 @@
 #include "debug.h"
 
 uint8_t hmc5843_address = 0x3c;
-//uint8_t hmc5843_bus = 1;
-uint8_t hmc5843_bus = 0;//for external
 int16_vect3 hmc5843_result;
 int8_t hmc5843_data_valid = 0;
 
@@ -69,7 +67,7 @@ void hmc5843_init()
 	package_write.length = 2;
 	package_write.direction = I2C_WRITE;
 	package_write.slave_address = hmc5843_address;
-	package_write.bus_number = hmc5843_bus;
+	package_write.bus_number = HMC5843_I2C_BUS;
 	package_write.write_read = 0;
 	package_write.i2c_done_handler = NULL;
 	i2c_op(&package_write);
@@ -80,7 +78,7 @@ void hmc5843_init()
 	package_write.length = 2;
 	package_write.direction = I2C_WRITE;
 	package_write.slave_address = hmc5843_address;
-	package_write.bus_number = hmc5843_bus;
+	package_write.bus_number = HMC5843_I2C_BUS;
 	package_write.write_read = 0;
 	package_write.i2c_done_handler = NULL;
 	i2c_op(&package_write);
@@ -92,14 +90,14 @@ void hmc5843_start_read()
 	package_write.length = 1;
 	package_write.direction = I2C_WRITE;
 	package_write.slave_address = hmc5843_address;
-	package_write.bus_number = hmc5843_bus;
+	package_write.bus_number = HMC5843_I2C_BUS;
 	package_write.write_read = 1;
 	package_write.i2c_done_handler = NULL;
 
 	package_read.length = 6;
 	package_read.direction = I2C_READ;
 	package_read.slave_address = hmc5843_address + 1;
-	package_read.bus_number = hmc5843_bus;
+	package_read.bus_number = HMC5843_I2C_BUS;
 	package_read.write_read = 1; // make repeated start after this package to receive data
 	package_read.i2c_done_handler = (void*) &hmc5843_read_handler;
 
