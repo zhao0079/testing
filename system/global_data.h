@@ -231,7 +231,8 @@ enum YAW_ESTIMATION_MODE
 {
 	YAW_ESTIMATION_MODE_INTEGRATION = 0,
 	YAW_ESTIMATION_MODE_MAGNETOMETER = 1,
-	YAW_ESTIMATION_MODE_VISION = 2
+	YAW_ESTIMATION_MODE_VISION = 2,
+	YAW_ESTIMATION_MODE_VICON = 3
 };
 
 typedef struct
@@ -366,7 +367,8 @@ struct global_struct
 	float sonar_distance_filtered;
 	float_vect3 vicon_data;
 	vision_t vision_data;                     ///< Data from computer vision system
-	float_vect3 vision_magnetometer_replacement;  ///< Values in magnetometer units (norm of vector: ~920) to replace the mag with vision input HACK!
+	float_vect3 vision_magnetometer_replacement;  ///< Values in magnetometer units (norm of vector: ~200) to replace the mag with vision input HACK!
+	float_vect3 vicon_magnetometer_replacement;  ///< Values in magnetometer units (norm of vector: ~200) to replace the mag with vicon input HACK!
 	uint64_t pos_last_valid;
 	uint64_t vicon_last_valid;
 	uint64_t entry_critical;
@@ -755,9 +757,13 @@ static inline void global_data_reset(void)
 	global_data.position_yaw_control_output = 0.0f;
 
 	// Set to straight north as long as no vision input is available
-	global_data.vision_magnetometer_replacement.x = 200;
-	global_data.vision_magnetometer_replacement.y = 0;
-	global_data.vision_magnetometer_replacement.z = -60;
+	global_data.vision_magnetometer_replacement.x = 0;
+	global_data.vision_magnetometer_replacement.y = 200;
+	global_data.vision_magnetometer_replacement.z = 0;
+
+	global_data.vicon_magnetometer_replacement.x = 0;
+	global_data.vicon_magnetometer_replacement.y = 200;
+	global_data.vicon_magnetometer_replacement.z = 0;
 
 	//safe corridor
 	global_data.position_setpoint_min.x=-20;

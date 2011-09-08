@@ -312,20 +312,26 @@ void attitude_tobi_laurens(void)
 	measurement[1] = acc.y;
 	measurement[2] = acc.z;
 
-//	if (global_data.state.yaw_estimation_mode == YAW_ESTIMATION_MODE_INTEGRATION)
-//	{
-//		// Set a zero value (1 0 0 vector scaled to the magnetometer sensor units)
-//		measurement[3] = 0.0f;
-//		measurement[4] = 916.0f;
-//		measurement[5] = 0.0f;
-//	}
+	if (global_data.state.yaw_estimation_mode == YAW_ESTIMATION_MODE_INTEGRATION)
+	{
+		// Set a zero value (1 0 0 vector scaled to the magnetometer sensor units)
+		measurement[3] = 200.0f;
+		measurement[4] = 0.0f;
+		measurement[5] = 0.0f;
+	}
 	if (global_data.state.yaw_estimation_mode == YAW_ESTIMATION_MODE_VISION)
 	{
 		measurement[3] = global_data.vision_magnetometer_replacement.x;
 		measurement[4] = global_data.vision_magnetometer_replacement.y;
 		measurement[5] = global_data.vision_magnetometer_replacement.z;
-	} // YAW_ESTIMATION_MODE_MAGNETOMETER
-	else
+	}
+	if (global_data.state.yaw_estimation_mode == YAW_ESTIMATION_MODE_VICON)
+	{
+		measurement[3] = global_data.vicon_magnetometer_replacement.x;
+		measurement[4] = global_data.vicon_magnetometer_replacement.y;
+		measurement[5] = global_data.vicon_magnetometer_replacement.z;
+	}
+	else // YAW_ESTIMATION_MODE_MAGNETOMETER
 	{
 		measurement[3] = mag.x;
 		measurement[4] = mag.y;

@@ -464,6 +464,10 @@ void handle_mavlink_message(mavlink_channel_t chan,
 		global_data.vicon_last_valid = sys_time_clock_get_time_usec();
 		global_data.state.vicon_ok=1;
 
+		global_data.vicon_magnetometer_replacement.x = 200.0f*-lookup_sin(pos.yaw);
+		global_data.vicon_magnetometer_replacement.y = 200.0f*(lookup_cos(pos.yaw));
+		global_data.vicon_magnetometer_replacement.z = 0.f;
+
 //		//Set data from Vicon into vision filter
 //		global_data.vision_data.ang.x = pos.roll;
 //		global_data.vision_data.ang.y = pos.pitch;

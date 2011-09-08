@@ -175,9 +175,9 @@ void vision_buffer_handle_data(mavlink_vision_position_estimate_t* pos)
 
 			// If yaw input from vision is enabled, feed vision
 			// directly into state estimator
-			global_data.vision_magnetometer_replacement.x = 200.0f*lookup_cos(pos->yaw); //916.0f*cos(pos->yaw);
-			global_data.vision_magnetometer_replacement.y = 200.0f*(-lookup_sin(pos->yaw)); //916.0f*sin(pos->yaw);
-			global_data.vision_magnetometer_replacement.z = -60.f;
+			global_data.vision_magnetometer_replacement.x = 200.0f*(-lookup_sin(pos->yaw));
+			global_data.vision_magnetometer_replacement.y = 200.0f*lookup_cos(pos->yaw);
+			global_data.vision_magnetometer_replacement.z = 0.f;
 
 			//	global_data.hack_yaw = pos->yaw;
 			//global_data.vision_data.ang.z = pos.yaw;
