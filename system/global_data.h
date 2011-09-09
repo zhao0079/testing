@@ -144,7 +144,7 @@ enum
 
 	PARAM_VISION_ANG_OUTLAYER_TRESHOLD,
 
-	PARAM_VICON_MODE,
+	PARAM_POSITION_ESTIMATION_MODE,
 	PARAM_VICON_TAKEOVER_DISTANCE,
 	PARAM_VICON_TAKEOVER_TIMEOUT,
 
@@ -235,6 +235,19 @@ enum YAW_ESTIMATION_MODE
 	YAW_ESTIMATION_MODE_VICON = 3
 };
 
+enum POSITION_ESTIMATION_MODE
+{
+	POSITION_ESTIMATION_MODE_NONE = 0,
+	POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_INTEGRATING = 1,
+	POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_NON_INTEGRATING = 2,
+	POSITION_ESTIMATION_MODE_VICON_ONLY = 3,
+	POSITION_ESTIMATION_MODE_VISION_VICON_BACKUP = 4,
+	POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_ADD_VICON_AS_OFFSET = 5,   ///< Position is only influenced by optical flow, Vicon is added to position control setpoint
+	POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_ADD_VISION_AS_OFFSET = 6,  ///< Position is only influenced by optical flow, vision is added to position control setpoint
+	POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_ODOMETRY_ADD_VISION_AS_OFFSET = 7, ///< Position is influenced by optical flow and odometry, vision is offset
+	POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_VICON = 8 ///< Position is fused from optical flow and Vicon (Z of Vicon is ignored)
+};
+
 typedef struct
 {
 	float_vect3 pos;
@@ -277,6 +290,7 @@ typedef struct
 	enum MAV_TYPE type;
 	enum MAV_STATE status;
 	enum YAW_ESTIMATION_MODE yaw_estimation_mode;
+	enum POSITION_ESTIMATION_MODE position_estimation_mode;
 	uint8_t gps_mode;//< comes from parameter for faster check
 	uint8_t uart0mode;
 	uint8_t uart1mode;
@@ -342,6 +356,7 @@ struct global_struct
 	float_vect3 attitude_setpoint_remote;     ///< (from remote)
 	float_vect3 attitude_setpoint_offset;     ///< (not aligned IMU to frame, not eliminated sensor offset)
 	float_vect3 attitude_setpoint;            ///< angles for the attitude controller
+	float_vect3 position_setpoint_offset;     ///< Offset to position setpoint
 
 	float gas_remote;
 	/*position error in body coordinates*/
@@ -661,10 +676,10 @@ static inline void global_data_reset_param_defaults(void){
 	global_data.param[PARAM_VISION_ANG_OUTLAYER_TRESHOLD] = 0.2;
 	strcpy(global_data.param_name[PARAM_VISION_ANG_OUTLAYER_TRESHOLD], "VIS_OUTL_TRESH");
 
-	global_data.param[PARAM_VICON_MODE] = 2;
+	global_data.param[PARAM_POSITION_ESTIMATION_MODE] = POSITION_ESTIMATION_MODE_VICON_ONLY;
 	global_data.param[PARAM_VICON_TAKEOVER_DISTANCE] = 0.5;
 	global_data.param[PARAM_VICON_TAKEOVER_TIMEOUT] = 2;
-	strcpy(global_data.param_name[PARAM_VICON_MODE], "VICON_MODE");
+	strcpy(global_data.param_name[PARAM_POSITION_ESTIMATION_MODE], "POS_ESTIM_MODE");
 	strcpy(global_data.param_name[PARAM_VICON_TAKEOVER_DISTANCE],
 			"VICON_TKO_DIST");
 	strcpy(global_data.param_name[PARAM_VICON_TAKEOVER_TIMEOUT],
@@ -743,10 +758,13 @@ static inline void global_data_reset(void)
 	global_data.pos_last_valid = 0; // Make sure there is an overflow in the initial condition
 	global_data.vicon_last_valid=0;
 
-	//DONT CHANGE use PARAM!!
 	global_data.attitude_setpoint_offset.x = 0.00;
 	global_data.attitude_setpoint_offset.y = 0.00;
 	global_data.attitude_setpoint_offset.z = 0;
+
+	global_data.position_setpoint_offset.x = 0.00;
+	global_data.position_setpoint_offset.y = 0.00;
+	global_data.position_setpoint_offset.z = 0;
 
 	global_data.yaw_pos_setpoint=0;
 
@@ -757,12 +775,12 @@ static inline void global_data_reset(void)
 	global_data.position_yaw_control_output = 0.0f;
 
 	// Set to straight north as long as no vision input is available
-	global_data.vision_magnetometer_replacement.x = 0;
-	global_data.vision_magnetometer_replacement.y = 200;
+	global_data.vision_magnetometer_replacement.x = 200;
+	global_data.vision_magnetometer_replacement.y = 0;
 	global_data.vision_magnetometer_replacement.z = 0;
 
-	global_data.vicon_magnetometer_replacement.x = 0;
-	global_data.vicon_magnetometer_replacement.y = 200;
+	global_data.vicon_magnetometer_replacement.x = 200;
+	global_data.vicon_magnetometer_replacement.y = 0;
 	global_data.vicon_magnetometer_replacement.z = 0;
 
 	//safe corridor
@@ -772,6 +790,10 @@ static inline void global_data_reset(void)
 	global_data.position_setpoint_max.x=20;
 	global_data.position_setpoint_max.y=20;
 	global_data.position_setpoint_max.z=0;
+
+	global_data.position_setpoint_offset.x = 0;
+	global_data.position_setpoint_offset.y = 0;
+	global_data.position_setpoint_offset.z = 0;
 
 	// start landing variables initialization
 	global_data.thrust_hover_offset = 0.0f;//0.65f;

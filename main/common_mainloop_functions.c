@@ -378,6 +378,14 @@ void sync_state_parameters(void){
 	//Here all parameters that need to be checked often should be converted to uint8
 	global_data.state.gps_mode=global_data.param[PARAM_GPS_MODE];
 	global_data.state.yaw_estimation_mode = global_data.param[PARAM_ATT_KAL_YAW_ESTIMATION_MODE];
+	global_data.state.position_estimation_mode = global_data.param[PARAM_POSITION_ESTIMATION_MODE];
+
+	if (global_data.state.position_estimation_mode != POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_ADD_VICON_AS_OFFSET)
+	{
+		global_data.position_setpoint_offset.x = 0;
+		global_data.position_setpoint_offset.y = 0;
+		global_data.position_setpoint_offset.z = 0;
+	}
 
 	if (global_data.state.gps_mode == 20)
 	{
@@ -583,10 +591,12 @@ void update_system_statemachine(uint64_t loop_start_time)
 			global_data.param[PARAM_MIX_OFFSET_WEIGHT] = 1;
 			global_data.param[PARAM_MIX_REMOTE_WEIGHT] = 1;
 			break;
-		case MAV_MODE_TEST3:
-			//				break;
-
 		case MAV_MODE_LOCKED:
+			global_data.param[PARAM_MIX_POSITION_WEIGHT] = 1;
+			global_data.param[PARAM_MIX_POSITION_YAW_WEIGHT] = 1;
+			global_data.param[PARAM_MIX_POSITION_Z_WEIGHT] = 1;
+			break;
+		case MAV_MODE_TEST3:
 			//				break;
 
 		case MAV_MODE_READY:
@@ -639,48 +649,48 @@ void send_system_state(void)
 	//					global_data.pressure_raw);
 }
 
-void fuse_vision_altitude_200hz(void)
-{
-	// Filter states
-	static float_vect3 pos_est3;
-	static float_vect3 vel_est3;
-
-	// Just Vision Kalman Filter
-	x_position_kalman3(&global_data.vision_data, &pos_est3, &vel_est3);
-	y_position_kalman3(&global_data.vision_data, &pos_est3, &vel_est3);
-	z_position_kalman3(&global_data.vision_data, &pos_est3, &vel_est3);
-
-	global_data.position.x = pos_est3.x;
-	global_data.position.y = pos_est3.y;
-	global_data.position.z = pos_est3.z;
-
-	global_data.velocity.x = vel_est3.x;
-	global_data.velocity.y = vel_est3.y;
-	global_data.velocity.z = vel_est3.z;
-
-	if (global_data.vision_data.new_data)
-	{
-		uint32_t vision_delay = (uint32_t) (global_data.vision_data.comp_end - global_data.vision_data.time_captured);
-		// Debug Time for Vision Processing
-		mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 100, ((float)vision_delay)/1000.f);
-	}
-
-	global_data.vision_data.new_data = 0;
-
-	//Switch to Grounddistance sensor for z if we don't have vision
-//	if (global_data.state.vision_ok == 0)
+//void fuse_vision_altitude_200hz(void)
+//{
+//	// Filter states
+//	static float_vect3 pos_est3;
+//	static float_vect3 vel_est3;
+//
+//	// Just Vision Kalman Filter
+//	x_position_kalman3(&global_data.vision_data, &pos_est3, &vel_est3);
+//	y_position_kalman3(&global_data.vision_data, &pos_est3, &vel_est3);
+//	z_position_kalman3(&global_data.vision_data, &pos_est3, &vel_est3);
+//
+//	global_data.position.x = pos_est3.x;
+//	global_data.position.y = pos_est3.y;
+//	global_data.position.z = pos_est3.z;
+//
+//	global_data.velocity.x = vel_est3.x;
+//	global_data.velocity.y = vel_est3.y;
+//	global_data.velocity.z = vel_est3.z;
+//
+//	if (global_data.vision_data.new_data)
 //	{
-//		if (global_data.state.ground_distance_ok == 1)
-//		{
-//			global_data.position.z = -global_data.ground_distance;
-//		}
-//		else
-//		{
-//			global_data.position.z = -1;
-//		}
-//		global_data.velocity.z = 0;
+//		uint32_t vision_delay = (uint32_t) (global_data.vision_data.comp_end - global_data.vision_data.time_captured);
+//		// Debug Time for Vision Processing
+//		mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 100, ((float)vision_delay)/1000.f);
 //	}
-}
+//
+//	global_data.vision_data.new_data = 0;
+//
+//	//Switch to Grounddistance sensor for z if we don't have vision
+////	if (global_data.state.vision_ok == 0)
+////	{
+////		if (global_data.state.ground_distance_ok == 1)
+////		{
+////			global_data.position.z = -global_data.ground_distance;
+////		}
+////		else
+////		{
+////			global_data.position.z = -1;
+////		}
+////		global_data.velocity.z = 0;
+////	}
+//}
 
 
 

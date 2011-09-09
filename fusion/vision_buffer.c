@@ -129,35 +129,8 @@ void vision_buffer_handle_data(mavlink_vision_position_estimate_t* pos)
 				&& fabs(vision_buffer[i].ang.y - pos->pitch)
 						< global_data.param[PARAM_VISION_ANG_OUTLAYER_TRESHOLD])
 		{
-			//Do outlayer rejection
-			//debug_message_buffer("vision_buffer data found OK");
-
 			// Update validity time
 			global_data.pos_last_valid = sys_time_clock_get_time_usec();
-
-			//Project correction to present
-
-//			float_vect3 pos_e;
-//			pos_e.x = pos->x - vision_buffer[i].pos.x;
-//			pos_e.y = pos->y - vision_buffer[i].pos.y;
-//			pos_e.z = pos->z - vision_buffer[i].pos.z;
-
-//			debug_vect("pos_e", pos_e);
-
-//			float yaw_e = pos->yaw - vision_buffer[i].ang.z;
-//
-//			float_vect3 pos_diff;
-//			pos_diff.x = global_data.position.x - vision_buffer[i].pos.x;
-//			pos_diff.y = global_data.position.y - vision_buffer[i].pos.y;
-//			pos_diff.z = global_data.position.z - vision_buffer[i].pos.z;
-//
-//			//turn pos_diff clockwise if yaw_e positive
-//			float_vect3 pos_diff_turned;
-//			//correct for yaw error
-//			turn_xy_plane(&pos_diff, yaw_e, &pos_diff_turned);
-
-			//or don't correct for yaw error
-//			turn_xy_plane(&pos_diff, 0, &pos_diff_turned);
 
 			//Pack new vision_data package
 			global_data.vision_data.time_captured
@@ -175,41 +148,9 @@ void vision_buffer_handle_data(mavlink_vision_position_estimate_t* pos)
 
 			// If yaw input from vision is enabled, feed vision
 			// directly into state estimator
-			global_data.vision_magnetometer_replacement.x = 200.0f*(-lookup_sin(pos->yaw));
-			global_data.vision_magnetometer_replacement.y = 200.0f*lookup_cos(pos->yaw);
+			global_data.vision_magnetometer_replacement.x = 200.0f*lookup_cos(pos->yaw);
+			global_data.vision_magnetometer_replacement.y = -200.0f*lookup_sin(pos->yaw);
 			global_data.vision_magnetometer_replacement.z = 0.f;
-
-			//	global_data.hack_yaw = pos->yaw;
-			//global_data.vision_data.ang.z = pos.yaw;
-
-//			global_data.vision_data.pos.x = pos->x;
-//			global_data.vision_data.pos.y = pos->y;
-//			global_data.vision_data.pos.z = pos->z;
-
-
-			//take directly the Vision position and speed
-			//		global_data.position.x = pos->x;
-			//		global_data.position.y = pos->y;
-			//		global_data.position.z = pos->z;
-			//////update velocity
-			//
-			//
-			//		global_data.velocity.x = pos->vx;
-			//		global_data.velocity.y = pos->vy;
-			//		global_data.velocity.z = pos->vz;
-
-			//		use predicted error
-//							global_data.vision_data.pos.x = vision_buffer[i].pos.x
-//									+ pos_diff_turned.x + pos_e.x;
-//							global_data.vision_data.pos.y = vision_buffer[i].pos.y
-//									+ pos_diff_turned.y + pos_e.y;
-//							global_data.vision_data.pos.z = vision_buffer[i].pos.z
-//									+ pos_diff_turned.z + pos_e.z;
-
-			//Correct YAW
-			//global_data.attitude.z = global_data.attitude.z + yaw_e;
-			//set yaw directly
-//			global_data.attitude.z = pos->yaw;
 
 			//If yaw goes to infinity (no idea why) set it to setpoint, next time will be better
 			if (global_data.attitude.z > 18.8495559 || global_data.attitude.z < -18.8495559)

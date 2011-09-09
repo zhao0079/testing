@@ -142,12 +142,12 @@ void optflow_speed_kalman(void)
 	float flow_distance = z_position;
 
 	// initializes x and y to global position
-	if (global_data.param[PARAM_VICON_MODE] == 3)
+	if (global_data.state.position_estimation_mode == POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_VICON)
 	{
 		global_data.position.x = global_data.vicon_data.x;
 		global_data.position.y = global_data.vicon_data.y;
 	}
-	else if (global_data.param[PARAM_VICON_MODE] == 4)
+	else if (global_data.state.position_estimation_mode == POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_NON_INTEGRATING)
 	{
 		global_data.position.x = 0;
 		global_data.position.y = 0;

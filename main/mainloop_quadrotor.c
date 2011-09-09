@@ -111,7 +111,10 @@ void main_loop_quadrotor(void)
 	control_quadrotor_position_init();
 	control_quadrotor_attitude_init();
 	attitude_tobi_laurens_init();
-	outdoor_position_kalman_init();
+
+	// FIXME XXX Make proper mode switching
+
+//	outdoor_position_kalman_init();
 	//vision_position_kalman_init();
 	//vicon_position_kalman_init();
 	optflow_speed_kalman_init();
@@ -186,10 +189,12 @@ void main_loop_quadrotor(void)
 
 			//position_integrate(&global_data.attitude,&global_data.position,&global_data.velocity,&global_data.accel_si);
 
+			// FIXME XXX Change to position estimation mode
+
 			if (global_data.state.gps_mode >= 1)
 			{
 //				position_kalman_TL();
-				outdoor_position_kalman();
+//				outdoor_position_kalman();
 			}
 			else
 			{
@@ -255,15 +260,6 @@ void main_loop_quadrotor(void)
 
 			optflow_speed_kalman();
 
-
-			mavlink_msg_roll_pitch_yaw_thrust_setpoint_send(
-					global_data.param[PARAM_SEND_DEBUGCHAN],
-					loop_start_time + sys_time_clock_get_unix_offset(),
-					global_data.attitude_setpoint.x,
-					global_data.attitude_setpoint.y,
-					global_data.position_yaw_control_output,
-					global_data.thrust_control_output);
-
 			// Send the raw sensor/ADC values
 			communication_send_raw_data(loop_start_time);
 		}
@@ -290,6 +286,14 @@ void main_loop_quadrotor(void)
 
 			update_system_statemachine(loop_start_time);
 			update_controller_setpoints();
+
+			mavlink_msg_roll_pitch_yaw_thrust_setpoint_send(
+					global_data.param[PARAM_SEND_DEBUGCHAN],
+					loop_start_time + sys_time_clock_get_unix_offset(),
+					global_data.attitude_setpoint.x,
+					global_data.attitude_setpoint.y,
+					global_data.position_yaw_control_output,
+					global_data.thrust_control_output);
 
 			//STARTING AND LANDING
 			quadrotor_start_land_handler(loop_start_time);
@@ -404,6 +408,10 @@ void main_loop_quadrotor(void)
 		{
 			// Send system state, mode, battery voltage, etc.
 			send_system_state();
+
+			// FIXME XXX REMOVE
+			// Send position setpoint offset
+			debug_vect("pos offs", global_data.position_setpoint_offset);
 
 			// Send current onboard time
 			mavlink_msg_system_time_send(MAVLINK_COMM_1,

@@ -44,6 +44,8 @@
 #include "calibration.h"
 #include "sys_state.h"
 
+#include "lookup_sin_cos.h"
+
 #include "vision_buffer.h"
 
 #include "control_quadrotor_position.h"
@@ -125,7 +127,7 @@ void handle_mavlink_message(mavlink_channel_t chan,
 	{
 	case MAVLINK_COMM_0:
 	{
-		if (msg->msgid != MAVLINK_MSG_ID_VISION_POSITION_ESTIMATE && msg->msgid != MAVLINK_MSG_ID_VICON_POSITION_ESTIMATE)
+		if (msg->msgid != MAVLINK_MSG_ID_VISION_POSITION_ESTIMATE && msg->msgid != MAVLINK_MSG_ID_VICON_POSITION_ESTIMATE && msg->msgid != MAVLINK_MSG_ID_IMAGE_TRIGGER_CONTROL)
 		{
 			// Copy to COMM 1
 			len = mavlink_msg_to_send_buffer(buf, msg);
@@ -138,7 +140,7 @@ void handle_mavlink_message(mavlink_channel_t chan,
 	break;
 	case MAVLINK_COMM_1:
 	{
-		if (msg->msgid != MAVLINK_MSG_ID_VISION_POSITION_ESTIMATE && msg->msgid != MAVLINK_MSG_ID_VICON_POSITION_ESTIMATE)
+		if (msg->msgid != MAVLINK_MSG_ID_VISION_POSITION_ESTIMATE && msg->msgid != MAVLINK_MSG_ID_VICON_POSITION_ESTIMATE && msg->msgid != MAVLINK_MSG_ID_IMAGE_TRIGGER_CONTROL)
 		{
 			// Copy to COMM 0
 			len = mavlink_msg_to_send_buffer(buf, msg);
@@ -464,35 +466,24 @@ void handle_mavlink_message(mavlink_channel_t chan,
 		global_data.vicon_last_valid = sys_time_clock_get_time_usec();
 		global_data.state.vicon_ok=1;
 
-		global_data.vicon_magnetometer_replacement.x = 200.0f*-lookup_sin(pos.yaw);
-		global_data.vicon_magnetometer_replacement.y = 200.0f*(lookup_cos(pos.yaw));
+		global_data.vicon_magnetometer_replacement.x = 200.0f*lookup_cos(pos.yaw);
+		global_data.vicon_magnetometer_replacement.y = -200.0f*lookup_sin(pos.yaw);
 		global_data.vicon_magnetometer_replacement.z = 0.f;
-
-//		//Set data from Vicon into vision filter
-//		global_data.vision_data.ang.x = pos.roll;
-//		global_data.vision_data.ang.y = pos.pitch;
-//		global_data.vision_data.ang.z = pos.yaw;
-//
-//		global_data.vision_data.pos.x = pos.x;
-//		global_data.vision_data.pos.y = pos.y;
-//		global_data.vision_data.pos.z = pos.z;
-//
-//		global_data.vision_data.new_data = 1;
 
 		if (!global_data.state.vision_ok)
 		{
-			//Correct YAW
-			global_data.attitude.z = pos.yaw;
-			//If yaw goes to infy (no idea why) set it to setpoint, next time will be better
-			if (global_data.attitude.z > 18.8495559 || global_data.attitude.z
-					< -18.8495559)
-			{
-				global_data.attitude.z = global_data.yaw_pos_setpoint;
-				debug_message_buffer(
-						"vicon CRITICAL FAULT yaw was bigger than 6 PI! prevented crash");
-			}
+			global_data.vision_magnetometer_replacement.x = 200.0f*lookup_cos(pos.yaw);
+			global_data.vision_magnetometer_replacement.y = -200.0f*lookup_sin(pos.yaw);
+			global_data.vision_magnetometer_replacement.z = 0.f;
 		}
 
+		// Set position setpoint offset to compensate optical flow drift
+		if (global_data.state.position_estimation_mode == POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_ADD_VICON_AS_OFFSET)
+		{
+			global_data.position_setpoint_offset.x = global_data.position_setpoint_offset.x*0.8f + 0.2f*(global_data.position.x - global_data.vicon_data.x);
+			global_data.position_setpoint_offset.y = global_data.position_setpoint_offset.y*0.8f + 0.2f*(global_data.position.y - global_data.vicon_data.y);
+			global_data.position_setpoint_offset.z = 0; // Z estimation has no drift, no offset desirable
+		}
 
 		//send the vicon message to UART0 with new timestamp, but only if the message was not received over UART0 (otherwise we'll have message echoing)
 		if (chan != MAVLINK_COMM_0)

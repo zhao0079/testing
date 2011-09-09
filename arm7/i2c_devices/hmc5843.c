@@ -107,6 +107,7 @@ void hmc5843_start_read()
 
 void hmc5843_read_handler(i2c_package *package)
 {
+	hmc5843_data_valid = 0;
 	if (package->i2c_error_code != I2C_CODE_ERROR)
 	{
 		hmc5843_result.x = twos_complement_decode16((package->data[0] << 8)
@@ -118,7 +119,7 @@ void hmc5843_read_handler(i2c_package *package)
 
 		//Check if the sensors are saturated
 		if (hmc5843_result.x == -4096 || hmc5843_result.y == -4096
-				|| hmc5843_result.z == -4096)
+				|| hmc5843_result.z == -4096 || hmc5843_result.x < -4096 || hmc5843_result.x > 4096 || hmc5843_result.y < -4096 || hmc5843_result.y > 4096 || hmc5843_result.z < -4096 || hmc5843_result.z > 4096)
 		{
 			hmc5843_data_valid = 0;
 		}
@@ -126,10 +127,6 @@ void hmc5843_read_handler(i2c_package *package)
 		{
 			hmc5843_data_valid = 1;
 		}
-	}
-	else
-	{
-		hmc5843_data_valid = 0;
 	}
 }
 

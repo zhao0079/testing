@@ -224,11 +224,9 @@ void attitude_tobi_laurens(void)
 	m_elem mask[9] =
 	{ 1, 1, 1, 0, 0, 0, 1, 1, 1 };
 
-	static float_vect3 acc;
-	static float_vect3 mag;
-	static float_vect3 gyro;
-
-
+	float_vect3 acc;
+	float_vect3 mag;
+	float_vect3 gyro;
 
 	//	acc.x = global_data.accel_raw.x * 9.81f /690;
 	//	acc.y = global_data.accel_raw.y * 9.81f / 690;
@@ -312,20 +310,13 @@ void attitude_tobi_laurens(void)
 	measurement[1] = acc.y;
 	measurement[2] = acc.z;
 
-	if (global_data.state.yaw_estimation_mode == YAW_ESTIMATION_MODE_INTEGRATION)
-	{
-		// Set a zero value (1 0 0 vector scaled to the magnetometer sensor units)
-		measurement[3] = 200.0f;
-		measurement[4] = 0.0f;
-		measurement[5] = 0.0f;
-	}
 	if (global_data.state.yaw_estimation_mode == YAW_ESTIMATION_MODE_VISION)
 	{
 		measurement[3] = global_data.vision_magnetometer_replacement.x;
 		measurement[4] = global_data.vision_magnetometer_replacement.y;
 		measurement[5] = global_data.vision_magnetometer_replacement.z;
 	}
-	if (global_data.state.yaw_estimation_mode == YAW_ESTIMATION_MODE_VICON)
+	else if (global_data.state.yaw_estimation_mode == YAW_ESTIMATION_MODE_VICON)
 	{
 		measurement[3] = global_data.vicon_magnetometer_replacement.x;
 		measurement[4] = global_data.vicon_magnetometer_replacement.y;
@@ -339,11 +330,6 @@ void attitude_tobi_laurens(void)
 //		debug_vect("mag_f", mag);
 	}
 
-
-//	measurement[3] = global_data.vision_magnetometer_replacement.x;
-//	measurement[4] = global_data.vision_magnetometer_replacement.y;
-//	measurement[5] = global_data.vision_magnetometer_replacement.z;
-
 	measurement[6] = gyro.x;
 	measurement[7] = gyro.y;
 	measurement[8] = gyro.z;
@@ -352,7 +338,8 @@ void attitude_tobi_laurens(void)
 
 
 	static int j = 0;
-	if (j >= 3)
+
+	if (j >= 3 && global_data.state.magnet_ok && !global_data.state.yaw_estimation_mode == YAW_ESTIMATION_MODE_INTEGRATION)
 	{
 		j = 0;
 

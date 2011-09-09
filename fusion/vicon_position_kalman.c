@@ -192,7 +192,7 @@ void vicon_position_kalman(void)
 	float vision_taken = 0.f;
 	if (global_data.vision_data.new_data || global_data.state.vicon_new_data)
 	{
-		if (global_data.param[PARAM_VICON_MODE] > 1)
+		if (global_data.state.position_estimation_mode == POSITION_ESTIMATION_MODE_VISION_VICON_BACKUP)
 		{
 			//measure difference:
 			float difference = sqrtf((global_data.vision_data.pos.x	- global_data.vicon_data.x) * (global_data.vision_data.pos.x - global_data.vicon_data.x)
@@ -224,7 +224,7 @@ void vicon_position_kalman(void)
 				z_mask[0] = 1;
 			}
 		}
-		else if (global_data.param[PARAM_VICON_MODE] == 1)
+		else if (global_data.state.position_estimation_mode == POSITION_ESTIMATION_MODE_VICON_ONLY)
 		{
 			if (global_data.state.vicon_new_data)
 			{ //vicon
