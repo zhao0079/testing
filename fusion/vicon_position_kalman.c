@@ -14,7 +14,7 @@
 #include "transformation.h"
 #include "gps_transformations.h"
 
-#define ONLY_Z 1
+//#define ONLY_Z
 
 //#define VELOCITY_HOLD 0.999f
 //#define ACCELERATION_HOLD 0.99f

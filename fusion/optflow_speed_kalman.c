@@ -94,9 +94,10 @@ void optflow_speed_kalman(void)
 	//Low-pass filter for sonar without spikes
 	//only update this low-pass if the signal is close to one of these two low-pass filters.
 	static float z_position = 0;
-	float z_lp = 0.1; // real low-pass on spike rejected data.
-	if ((fabs(sonar_distance - global_data.sonar_distance) < 0.2) ||
-			(fabs(z_position - global_data.sonar_distance) < 0.2))
+	float z_lp = 0.2; // real low-pass on spike rejected data.
+	float spike_reject_threshold = 0.2f; // 0.4 m
+	if ((fabs(sonar_distance - global_data.sonar_distance) < spike_reject_threshold) ||
+			(fabs(z_position - global_data.sonar_distance) < spike_reject_threshold))
 	{
 		z_position = (1 - z_lp) * z_position + z_lp
 				* global_data.sonar_distance * cos(global_data.attitude.x)
@@ -104,20 +105,7 @@ void optflow_speed_kalman(void)
 	}
 
 	global_data.sonar_distance_filtered = z_position;
-
-//	float sonar_limit = 1.0f;
-//	if (z_position < sonar_limit && sonar_distance < sonar_limit)
-//	{
-		//navigation frame has Z down
-		global_data.position.z = -z_position;
-		//altitude_set_local_origin_offset(global_data.position.z);
-//	}
-//	else
-//	{
-//		global_data .position.z = outdoor_z_position;
-//	}
-
-
+	global_data.position.z = -z_position;
 
 	// transform optical flow into global frame
 	float_vect3 flow, flowQuad, flowWorld;//, flowQuadUncorr, flowWorldUncorr;
@@ -228,7 +216,10 @@ void optflow_speed_kalman(void)
 
 	//debug.x = (global_data.gyros_si.x - gyro_x_offset);
 	//debug.y = (global_data.attitude_rate.x);
-	debug.y = z_position;
-	debug.z = sonar_distance;
-//	debug_vect("KALMAN", debug);
+//	debug.x =
+//	= z_position;
+	debug.x = global_data.sonar_distance;
+	debug.y = sonar_distance;
+	debug.z = global_data.sonar_distance_filtered;
+	debug_vect("SON_DIST", debug);
 }

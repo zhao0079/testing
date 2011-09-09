@@ -245,7 +245,9 @@ enum POSITION_ESTIMATION_MODE
 	POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_ADD_VICON_AS_OFFSET = 5,   ///< Position is only influenced by optical flow, Vicon is added to position control setpoint
 	POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_ADD_VISION_AS_OFFSET = 6,  ///< Position is only influenced by optical flow, vision is added to position control setpoint
 	POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_ODOMETRY_ADD_VISION_AS_OFFSET = 7, ///< Position is influenced by optical flow and odometry, vision is offset
-	POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_VICON = 8 ///< Position is fused from optical flow and Vicon (Z of Vicon is ignored)
+	POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_VICON = 8, ///< Position is fused from optical flow and Vicon (Z of Vicon is ignored)
+	POSITION_ESTIMATION_MODE_GPS_ONLY = 9, ///< Position is fused from GPS only
+	POSITION_ESTIMATION_MODE_GPS_OPTICAL_FLOW = 10, ///< Position is fused from GPS only
 };
 
 typedef struct

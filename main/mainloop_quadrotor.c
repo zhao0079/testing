@@ -116,7 +116,9 @@ void main_loop_quadrotor(void)
 
 //	outdoor_position_kalman_init();
 	//vision_position_kalman_init();
-	//vicon_position_kalman_init();
+
+	// Default filters, allow Vision, Vicon and optical flow inputs
+	vicon_position_kalman_init();
 	optflow_speed_kalman_init();
 
 	/**
@@ -191,16 +193,25 @@ void main_loop_quadrotor(void)
 
 			// FIXME XXX Change to position estimation mode
 
-			if (global_data.state.gps_mode >= 1)
+//			if (global_data.state.gps_mode >= 1)
+//			{
+////				position_kalman_TL();
+////
+//			}
+//			else
+//			{
+////				vision_position_kalman();
+////				fuse_vision_altitude_200hz();
+//			}
+
+			if (global_data.state.position_estimation_mode == POSITION_ESTIMATION_MODE_VICON_ONLY ||
+				global_data.state.position_estimation_mode == POSITION_ESTIMATION_MODE_VISION_VICON_BACKUP)
 			{
-//				position_kalman_TL();
-//				outdoor_position_kalman();
+				vicon_position_kalman();
 			}
-			else
+			else if (global_data.state.position_estimation_mode == POSITION_ESTIMATION_MODE_GPS_ONLY)
 			{
-//				vicon_position_kalman();
-//				vision_position_kalman();
-//				fuse_vision_altitude_200hz();
+				outdoor_position_kalman();
 			}
 
 			control_quadrotor_attitude();
@@ -249,16 +260,26 @@ void main_loop_quadrotor(void)
 				opt_int.y += global_data.optflow.y;
 
 			}
-			global_data.sonar_distance = sonar_distance_get(ADC_5_CHANNEL);
+
+			uint8_t supersampling = 20;
+			for (int i = 0; i < supersampling; ++i)
+			{
+				global_data.sonar_distance += sonar_distance_get(ADC_5_CHANNEL);
+			}
+
+			global_data.sonar_distance /= supersampling;
+
 			opt_int.z = valid;
 			mavlink_msg_optical_flow_send(global_data.param[PARAM_SEND_DEBUGCHAN], loop_start_time + sys_time_clock_get_unix_offset(), 0, global_data.optflow.x, global_data.optflow.y, global_data.optflow.z, global_data.sonar_distance_filtered);
 			//optical_flow_debug_vect_send();
 			//debug_vect("opt_int", opt_int);
 			optical_flow_start_read(80);
 
-
-
-			optflow_speed_kalman();
+			if (global_data.state.position_estimation_mode != POSITION_ESTIMATION_MODE_VICON_ONLY &&
+			    global_data.state.position_estimation_mode != POSITION_ESTIMATION_MODE_VISION_VICON_BACKUP)
+			{
+				optflow_speed_kalman();
+			}
 
 			// Send the raw sensor/ADC values
 			communication_send_raw_data(loop_start_time);
