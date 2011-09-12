@@ -275,8 +275,24 @@ void main_loop_quadrotor(void)
 			//debug_vect("opt_int", opt_int);
 			optical_flow_start_read(80);
 
-			if (global_data.state.position_estimation_mode != POSITION_ESTIMATION_MODE_VICON_ONLY &&
-			    global_data.state.position_estimation_mode != POSITION_ESTIMATION_MODE_VISION_VICON_BACKUP)
+			if (global_data.state.position_estimation_mode
+					== POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_INTEGRATING
+					|| global_data.state.position_estimation_mode
+							== POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_NON_INTEGRATING
+					|| global_data.state.position_estimation_mode
+							== POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_ADD_VICON_AS_OFFSET
+					|| global_data.state.position_estimation_mode
+							== POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_ADD_VISION_AS_OFFSET
+					|| global_data.state.position_estimation_mode
+							== POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_ODOMETRY_ADD_VISION_AS_OFFSET
+					|| global_data.state.position_estimation_mode
+							== POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_VICON
+					|| global_data.state.position_estimation_mode
+							== POSITION_ESTIMATION_MODE_GPS_OPTICAL_FLOW
+					|| global_data.state.position_estimation_mode
+							== POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_GLOBAL_VISION
+					|| global_data.state.position_estimation_mode
+							== POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_VISUAL_ODOMETRY_GLOBAL_VISION)
 			{
 				optflow_speed_kalman();
 			}
