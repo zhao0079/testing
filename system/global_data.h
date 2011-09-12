@@ -248,6 +248,8 @@ enum POSITION_ESTIMATION_MODE
 	POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_VICON = 8, ///< Position is fused from optical flow and Vicon (Z of Vicon is ignored)
 	POSITION_ESTIMATION_MODE_GPS_ONLY = 9, ///< Position is fused from GPS only
 	POSITION_ESTIMATION_MODE_GPS_OPTICAL_FLOW = 10, ///< Position is fused from GPS only
+	POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_GLOBAL_VISION = 11, ///< Position is estimated from global localization and optical flow
+	POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_VISUAL_ODOMETRY_GLOBAL_VISION = 12 ///< Position is estimated from optical flow, visual odometry and global vision
 };
 
 typedef struct
