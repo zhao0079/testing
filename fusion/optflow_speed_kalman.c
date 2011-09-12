@@ -87,25 +87,30 @@ void optflow_speed_kalman(void)
 //	gyro_y_offset = (1 - lp) * gyro_y_offset + lp * global_data.gyros_si.y;
 
 	//Low-pass filter for sonar with all spikes. Makes filter following big steps.
-	static float sonar_distance = 0;
-	float sonar_distance_lp = 0.1; // ~ 1/time to get to new step
-	sonar_distance = (1 - sonar_distance_lp) * sonar_distance + sonar_distance_lp * global_data.sonar_distance;
+	static float sonar_distance_spike = 0;
+	float sonar_distance_spike_lp = 0.1; // ~ 1/time to get to new step
+	sonar_distance_spike = (1 - sonar_distance_spike_lp) * sonar_distance_spike + sonar_distance_spike_lp * global_data.sonar_distance;
 
 	//Low-pass filter for sonar without spikes
 	//only update this low-pass if the signal is close to one of these two low-pass filters.
-	static float z_position = 0;
+	static float sonar_distance = 0;
 	float z_lp = 0.2; // real low-pass on spike rejected data.
 	float spike_reject_threshold = 0.2f; // 0.4 m
-	if ((fabs(sonar_distance - global_data.sonar_distance) < spike_reject_threshold) ||
-			(fabs(z_position - global_data.sonar_distance) < spike_reject_threshold))
+	if ((fabs(sonar_distance_spike - global_data.sonar_distance) < spike_reject_threshold) ||
+			(fabs(sonar_distance - global_data.sonar_distance) < spike_reject_threshold))
 	{
-		z_position = (1 - z_lp) * z_position + z_lp
+		sonar_distance = (1 - z_lp) * sonar_distance + z_lp
 				* global_data.sonar_distance * cos(global_data.attitude.x)
 				* cos(global_data.attitude.y);
 	}
 
-	global_data.sonar_distance_filtered = z_position;
-	global_data.position.z = -z_position;
+	global_data.sonar_distance_filtered = sonar_distance;
+	global_data.position.z = -sonar_distance;
+
+
+
+
+
 
 	// transform optical flow into global frame
 	float_vect3 flow, flowQuad, flowWorld;//, flowQuadUncorr, flowWorldUncorr;
@@ -127,7 +132,7 @@ void optflow_speed_kalman(void)
 
 	//distance from flow sensor to ground
 	//float flow_distance = -global_data.vicon_data.z;
-	float flow_distance = z_position;
+	float flow_distance = sonar_distance;
 
 	// initializes x and y to global position
 	if (global_data.state.position_estimation_mode == POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_VICON)
@@ -217,9 +222,9 @@ void optflow_speed_kalman(void)
 	//debug.x = (global_data.gyros_si.x - gyro_x_offset);
 	//debug.y = (global_data.attitude_rate.x);
 //	debug.x =
-//	= z_position;
+//	= sonar_distance;
 	debug.x = global_data.sonar_distance;
-	debug.y = sonar_distance;
+	debug.y = sonar_distance_spike;
 	debug.z = global_data.sonar_distance_filtered;
 	debug_vect("SON_DIST", debug);
 }
