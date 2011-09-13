@@ -150,6 +150,8 @@ void main_loop_quadrotor(void)
 			gyro_read();
 			sensors_read_acc();
 
+			sensors_pressure_bmp085_read_out();
+
 			// Read out magnetometer at its default 50 Hz rate
 			static uint8_t mag_count = 0;
 
