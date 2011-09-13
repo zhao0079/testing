@@ -128,14 +128,14 @@ typedef struct  {
 #define BMP085_PARAM_MH     		-7357       ///<calibration parameter
 #define BMP085_PARAM_MI      		3791        ///<calibration parameter
 
-
 /** conversion timeouts for different pressure modes */
-#define BMP085_PRESS_0_CONVERSION_TIME		6000
+#define BMP085_PRESS_0_CONVERSION_TIME		4500
 #define BMP085_PRESS_1_CONVERSION_TIME		9000
 #define BMP085_PRESS_2_CONVERSION_TIME		15000
 
+
 /** conversion timeout for temperature measurement mode */
-#define BMP085_TEMP_CONVERSION_TIME			6000
+#define BMP085_TEMP_CONVERSION_TIME			4500
 
 
 
