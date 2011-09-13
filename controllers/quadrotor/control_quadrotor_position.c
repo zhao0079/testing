@@ -38,7 +38,7 @@ inline void control_quadrotor_position_init()
 	pid_init(&y_axis_controller, 10, 0, 0,
 			global_data.param[PARAM_PID_POS_AWU], PID_MODE_DERIVATIV_SET, 151);//151
 	pid_init(&z_axis_controller, 10, 0, 0,
-			global_data.param[PARAM_PID_POS_Z_AWU], PID_MODE_DERIVATIV_CALC, 152);// calculate this for sonar ground distance
+			global_data.param[PARAM_PID_POS_Z_AWU], PID_MODE_DERIVATIV_SET, 152);// calculate this for sonar ground distance
 
 }
 
