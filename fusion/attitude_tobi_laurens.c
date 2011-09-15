@@ -316,6 +316,12 @@ void attitude_tobi_laurens(void)
 		measurement[4] = global_data.vision_magnetometer_replacement.y;
 		measurement[5] = global_data.vision_magnetometer_replacement.z;
 	}
+	else if (global_data.state.yaw_estimation_mode == YAW_ESTIMATION_MODE_GLOBAL_VISION)
+	{
+		measurement[3] = global_data.vision_global_magnetometer_replacement.x;
+		measurement[4] = global_data.vision_global_magnetometer_replacement.y;
+		measurement[5] = global_data.vision_global_magnetometer_replacement.z;
+	}
 	else if (global_data.state.yaw_estimation_mode == YAW_ESTIMATION_MODE_VICON)
 	{
 		measurement[3] = global_data.vicon_magnetometer_replacement.x;
@@ -339,17 +345,78 @@ void attitude_tobi_laurens(void)
 
 	static int j = 0;
 
-	if (j >= 3 && global_data.state.magnet_ok && !global_data.state.yaw_estimation_mode == YAW_ESTIMATION_MODE_INTEGRATION)
+	// MASK
+	if (global_data.state.yaw_estimation_mode == YAW_ESTIMATION_MODE_INTEGRATION)
 	{
-		j = 0;
+		// Do nothing, pure integration
+	}
+	else if (global_data.state.yaw_estimation_mode == YAW_ESTIMATION_MODE_VICON)
+	{
+		// If our iteration count is right and new vicon data is available, update measurement
+		if (j >= 3 && global_data.state.vicon_attitude_new_data == 1)
+		{
+			j = 0;
 
-		mask[3]=1;
-		mask[4]=1;
-		mask[5]=1;
-		j=0;
+			mask[3]=1;
+			mask[4]=1;
+			mask[5]=1;
+		}
+		else
+		{
+			j++;
+		}
+		global_data.state.vicon_attitude_new_data = 0;
+	}
+	else if (global_data.state.yaw_estimation_mode == YAW_ESTIMATION_MODE_VISION)
+	{
+		// If the iteration count is right and new vision data is available, update measurement
+		if (j >= 3 && global_data.state.vision_attitude_new_data == 1)
+		{
+			j = 0;
 
-	}else{
-		j++;}
+			mask[3]=1;
+			mask[4]=1;
+			mask[5]=1;
+		}
+		else
+		{
+			j++;
+		}
+		global_data.state.vision_attitude_new_data = 0;
+	}
+//	else if (global_data.state.yaw_estimation_mode == YAW_ESTIMATION_MODE_GLOBAL_VISION)
+//		{
+//			// If the iteration count is right and new vision data is available, update measurement
+//			if (j >= 3 && global_data.state.global_vision_attitude_new_data == 1)
+//			{
+//				j = 0;
+//
+//				mask[3]=1;
+//				mask[4]=1;
+//				mask[5]=1;
+//				j=0;
+//			}
+//			else
+//			{
+//				j++;
+//			}
+//			global_data.state.global_vision_attitude_new_data = 0;
+//		}
+	else
+	{
+		if (j >= 3 && global_data.state.magnet_ok)
+		{
+			j = 0;
+
+			mask[3]=1;
+			mask[4]=1;
+			mask[5]=1;
+		}
+		else
+		{
+			j++;
+		}
+	}
 
 	kalman_correct(&attitude_tobi_laurens_kal, measurement, mask);
 

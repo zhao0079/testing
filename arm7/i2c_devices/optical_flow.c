@@ -23,8 +23,8 @@ uint8_t optical_flow_valid = 0;
 
 uint8_t optical_flow_get_dxy(uint8_t address, float * delta_x, float * delta_y, float * qual)
 {
-	*delta_x = optical_flow_result.x;
-	*delta_y = optical_flow_result.y;
+	*delta_x = optical_flow_result.y;
+	*delta_y = -optical_flow_result.x;
 	*qual = optical_flow_result.z;
 
 	if (optical_flow_valid)

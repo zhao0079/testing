@@ -261,7 +261,7 @@ void main_loop_quadrotor(void)
 
 			}
 
-			uint8_t supersampling = 20;
+			uint8_t supersampling = 10;
 			for (int i = 0; i < supersampling; ++i)
 			{
 				global_data.sonar_distance += sonar_distance_get(ADC_5_CHANNEL);

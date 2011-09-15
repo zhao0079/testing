@@ -453,6 +453,15 @@ void handle_mavlink_message(mavlink_channel_t chan,
 
 	}
 	break;
+	case MAVLINK_MSG_ID_GLOBAL_VISION_POSITION_ESTIMATE:
+		{
+			mavlink_global_vision_position_estimate_t pos;
+			mavlink_msg_global_vision_position_estimate_decode(msg, &pos);
+
+			vision_buffer_handle_global_data(&pos);
+			// Update validity time is done in vision buffer
+		}
+		break;
 	case MAVLINK_MSG_ID_VICON_POSITION_ESTIMATE:
 	{
 		mavlink_vicon_position_estimate_t pos;
@@ -465,6 +474,7 @@ void handle_mavlink_message(mavlink_channel_t chan,
 		// Update validity time
 		global_data.vicon_last_valid = sys_time_clock_get_time_usec();
 		global_data.state.vicon_ok=1;
+		global_data.state.vicon_attitude_new_data=1;
 
 		global_data.vicon_magnetometer_replacement.x = 200.0f*lookup_cos(pos.yaw);
 		global_data.vicon_magnetometer_replacement.y = -200.0f*lookup_sin(pos.yaw);

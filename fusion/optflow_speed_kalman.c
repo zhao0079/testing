@@ -129,11 +129,45 @@ void optflow_speed_kalman(void)
 	//float flow_distance = -global_data.vicon_data.z;
 	float flow_distance = z_position;
 
+	static float px = 0.0;
+	static float py = 0.0;
+	float QxLocal = 0.1, QyLocal = 0.1;
+	float RxLocal = 0.1, RyLocal = 0.1;
+
 	// initializes x and y to global position
 	if (global_data.state.position_estimation_mode == POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_VICON)
 	{
 		global_data.position.x = global_data.vicon_data.x;
 		global_data.position.y = global_data.vicon_data.y;
+	}
+	else if (global_data.state.position_estimation_mode == POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_GLOBAL_VISION && global_data.vision_data_global.new_data == 1)
+	{
+//		global_data.position.x = global_data.position.x*0.6f + 0.4f*global_data.vision_data_global.pos.x;
+//		global_data.position.y = global_data.position.y*0.6f + 0.4f*global_data.vision_data_global.pos.y;
+
+		//simple 1D Kalman filtering (x direction)
+		float x_ = global_data.position.x;
+		float px_ = px + QxLocal;
+
+		float Kx = 0.4f;//px_/(px_ + RxLocal);
+
+		float x = x_ + Kx*(global_data.vision_data_global.pos.x - x_);
+		px = (1.0 - Kx)*px_;
+
+		global_data.position.x = x;
+
+		//simple 1D Kalman filtering (y direction)
+		float y_ = global_data.position.y;
+		float py_ = py + QyLocal;
+
+		float Ky = 0.4f;//py_/(py_ + RyLocal);
+
+		float y = y_ + Ky*(global_data.vision_data_global.pos.y - y_);
+		py = (1.0 - Ky)*py_;
+
+		global_data.position.y = y;
+
+		global_data.vision_data_global.new_data = 0;
 	}
 	else if (global_data.state.position_estimation_mode == POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_NON_INTEGRATING)
 	{
@@ -170,7 +204,8 @@ void optflow_speed_kalman(void)
 	// otherwise take only the prediction
 	else
 	{
-		vx = vx_;
+		// Let speed decay to zero if no measurements are available
+		vx = vx_*0.95;
 		pvx = pvx_;
 	}
 
@@ -203,7 +238,8 @@ void optflow_speed_kalman(void)
 	// otherwise take only the prediction
 	else
 	{
-		vy = vy_;
+		// Let speed decay to zero if no measurements are available
+		vy = vy_*0.95;
 		pvy = pvy_;
 	}
 

@@ -232,7 +232,8 @@ enum YAW_ESTIMATION_MODE
 	YAW_ESTIMATION_MODE_INTEGRATION = 0,
 	YAW_ESTIMATION_MODE_MAGNETOMETER = 1,
 	YAW_ESTIMATION_MODE_VISION = 2,
-	YAW_ESTIMATION_MODE_VICON = 3
+	YAW_ESTIMATION_MODE_VICON = 3,
+	YAW_ESTIMATION_MODE_GLOBAL_VISION = 4,
 };
 
 enum POSITION_ESTIMATION_MODE
@@ -269,7 +270,9 @@ typedef struct
 typedef struct
 {
 	uint8_t vision_ok;//used to switch of position controller in case of vision loss
+	uint8_t vision_attitude_new_data;
 	uint8_t vicon_ok;
+	uint8_t vicon_attitude_new_data;
 	uint8_t vicon_new_data;
 	uint8_t gps_ok;
 	uint8_t gps_new_data;
@@ -386,7 +389,10 @@ struct global_struct
 	float sonar_distance_filtered;
 	float_vect3 vicon_data;
 	vision_t vision_data;                     ///< Data from computer vision system
+	vision_t vision_data_global;              ///< Data from global computer vision system
+//	float_vect3 vision_data_global_last_optical_flow_position ///< Last optical flow position
 	float_vect3 vision_magnetometer_replacement;  ///< Values in magnetometer units (norm of vector: ~200) to replace the mag with vision input HACK!
+	float_vect3 vision_global_magnetometer_replacement;  ///< Values in magnetometer units (norm of vector: ~200) to replace the mag with vision input HACK!
 	float_vect3 vicon_magnetometer_replacement;  ///< Values in magnetometer units (norm of vector: ~200) to replace the mag with vicon input HACK!
 	uint64_t pos_last_valid;
 	uint64_t vicon_last_valid;
@@ -782,6 +788,10 @@ static inline void global_data_reset(void)
 	global_data.vision_magnetometer_replacement.x = 200;
 	global_data.vision_magnetometer_replacement.y = 0;
 	global_data.vision_magnetometer_replacement.z = 0;
+
+	global_data.vision_global_magnetometer_replacement.x = 200;
+	global_data.vision_global_magnetometer_replacement.y = 0;
+	global_data.vision_global_magnetometer_replacement.z = 0;
 
 	global_data.vicon_magnetometer_replacement.x = 200;
 	global_data.vicon_magnetometer_replacement.y = 0;
