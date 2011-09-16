@@ -271,6 +271,7 @@ typedef struct
 {
 	uint8_t vision_ok;//used to switch of position controller in case of vision loss
 	uint8_t vision_attitude_new_data;
+	uint8_t global_vision_attitude_new_data;
 	uint8_t vicon_ok;
 	uint8_t vicon_attitude_new_data;
 	uint8_t vicon_new_data;

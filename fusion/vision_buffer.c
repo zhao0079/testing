@@ -177,10 +177,10 @@ void vision_buffer_handle_data(mavlink_vision_position_estimate_t* pos)
 
 			//mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 202, global_data.attitude.z);
 
-			//mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 210, pos.x);
-			//mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 211, pos.y);
-			//mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 212, pos.z);
-			//mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 215, pos.yaw);
+			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 210, pos->x);
+			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 211, pos->y);
+			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 212, pos->z);
+			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 215, pos->yaw);
 			//mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 212, pos.z);
 			//mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 203, pos.r1);
 			//mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 204, pos.confidence);
@@ -222,8 +222,7 @@ void vision_buffer_handle_global_data(mavlink_global_vision_position_estimate_t*
 		debug_message_buffer("ERROR VIS BUF: buffer empty");
 		return;
 	}
-	vision_buffer_index_read = (vision_buffer_index_read + 1)
-			% VISION_BUFFER_COUNT;
+	vision_buffer_index_read = (vision_buffer_index_read + 1) % VISION_BUFFER_COUNT;
 
 	//TODO: find data and process it
 	uint8_t for_count = 0;
@@ -270,6 +269,7 @@ void vision_buffer_handle_global_data(mavlink_global_vision_position_estimate_t*
 			// Set roll and pitch absolutely
 			global_data.vision_data_global.ang.x = pos->roll;
 			global_data.vision_data_global.ang.y = pos->pitch;
+			global_data.vision_data_global.ang.z = pos->yaw;
 
 			// Project yaw
 			//global_data.vision_data_global.ang.z = pos->yaw-vision_buffer[i].ang.z;
@@ -294,8 +294,9 @@ void vision_buffer_handle_global_data(mavlink_global_vision_position_estimate_t*
 
 			// If yaw input from vision is enabled, feed vision
 			// directly into state estimator
-			global_data.vision_global_magnetometer_replacement.x = 200.0f*lookup_cos(pos->yaw);
-			global_data.vision_global_magnetometer_replacement.y = -200.0f*lookup_sin(pos->yaw);
+			float lpYaw = pos->yaw*0.5f+global_data.attitude.z*0.5f;
+			global_data.vision_global_magnetometer_replacement.x = 200.0f*lookup_cos(lpYaw);
+			global_data.vision_global_magnetometer_replacement.y = -200.0f*lookup_sin(lpYaw);
 			global_data.vision_global_magnetometer_replacement.z = 0.f;
 
 			//If yaw goes to infinity (no idea why) set it to setpoint, next time will be better
@@ -306,8 +307,23 @@ void vision_buffer_handle_global_data(mavlink_global_vision_position_estimate_t*
 			}
 
 			global_data.vision_data_global.new_data = 1;
+			global_data.state.global_vision_attitude_new_data = 1;
 			debug_message_buffer_sprintf("vision_buffer data found skipped %i data sets", for_count);
 			//TODO correct also all buffer data needed if we are going to have overlapping vision data
+
+			if (global_data.param[PARAM_SEND_SLOT_DEBUG_1] == 1)
+			{
+
+				//mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 202, global_data.attitude.z);
+
+				mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 220, pos->x);
+				mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 221, pos->y);
+				mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 222, pos->z);
+				mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 225, pos->yaw);
+				//mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 212, pos.z);
+				//mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 203, pos.r1);
+				//mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 204, pos.confidence);
+			}
 		}
 		else
 		{

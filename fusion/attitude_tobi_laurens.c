@@ -318,9 +318,9 @@ void attitude_tobi_laurens(void)
 	}
 	else if (global_data.state.yaw_estimation_mode == YAW_ESTIMATION_MODE_GLOBAL_VISION)
 	{
-		measurement[3] = global_data.vision_global_magnetometer_replacement.x;
-		measurement[4] = global_data.vision_global_magnetometer_replacement.y;
-		measurement[5] = global_data.vision_global_magnetometer_replacement.z;
+//		measurement[3] = global_data.vision_global_magnetometer_replacement.x;
+//		measurement[4] = global_data.vision_global_magnetometer_replacement.y;
+//		measurement[5] = global_data.vision_global_magnetometer_replacement.z;
 	}
 	else if (global_data.state.yaw_estimation_mode == YAW_ESTIMATION_MODE_VICON)
 	{
@@ -328,12 +328,24 @@ void attitude_tobi_laurens(void)
 		measurement[4] = global_data.vicon_magnetometer_replacement.y;
 		measurement[5] = global_data.vicon_magnetometer_replacement.z;
 	}
-	else // YAW_ESTIMATION_MODE_MAGNETOMETER
+	else if (global_data.state.yaw_estimation_mode == YAW_ESTIMATION_MODE_INTEGRATION)
+	{
+		// Do nothing
+		// KEEP THIS IN HERE
+	}
+	else if (global_data.state.yaw_estimation_mode == YAW_ESTIMATION_MODE_MAGNETOMETER) // YAW_ESTIMATION_MODE_MAGNETOMETER
 	{
 		measurement[3] = mag.x;
 		measurement[4] = mag.y;
 		measurement[5] = mag.z;
 //		debug_vect("mag_f", mag);
+	}
+	else
+	{
+		static uint8_t errcount = 0;
+		if (errcount == 0) debug_message_buffer("ATT EST. ERROR: No valid yaw estimation mode set!");
+		errcount++;
+		global_data.state.status = MAV_STATE_CRITICAL;
 	}
 
 	measurement[6] = gyro.x;
@@ -384,8 +396,8 @@ void attitude_tobi_laurens(void)
 		}
 		global_data.state.vision_attitude_new_data = 0;
 	}
-//	else if (global_data.state.yaw_estimation_mode == YAW_ESTIMATION_MODE_GLOBAL_VISION)
-//		{
+	else if (global_data.state.yaw_estimation_mode == YAW_ESTIMATION_MODE_GLOBAL_VISION)
+		{
 //			// If the iteration count is right and new vision data is available, update measurement
 //			if (j >= 3 && global_data.state.global_vision_attitude_new_data == 1)
 //			{
@@ -401,7 +413,7 @@ void attitude_tobi_laurens(void)
 //				j++;
 //			}
 //			global_data.state.global_vision_attitude_new_data = 0;
-//		}
+		}
 	else
 	{
 		if (j >= 3 && global_data.state.magnet_ok)
@@ -459,6 +471,23 @@ void attitude_tobi_laurens(void)
 	if (global_data.state.yaw_estimation_mode == YAW_ESTIMATION_MODE_INTEGRATION)
 	{
 		global_data.attitude.z += 0.005 * global_data.gyros_si.z;
+	}
+	else if (global_data.state.yaw_estimation_mode == YAW_ESTIMATION_MODE_GLOBAL_VISION)
+	{
+		global_data.attitude.z += 0.0049f * global_data.gyros_si.z;
+		if (global_data.state.global_vision_attitude_new_data == 1)
+		{
+			global_data.attitude.z = 0.995f*global_data.attitude.z + 0.005f*global_data.vision_data_global.ang.z;
+
+			// Reset new data flag at roughly 1 Hz, detecting a vision timeout
+			static uint8_t new_data_reset = 0;
+
+			if (new_data_reset == 0)
+			{
+				global_data.state.global_vision_attitude_new_data = 0;
+			}
+			new_data_reset++;
+		}
 	}
 	else
 	{
