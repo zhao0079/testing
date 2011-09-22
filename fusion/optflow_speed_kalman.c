@@ -38,8 +38,9 @@ float Qy, Ry;
 float scale;
 int flag = 1;
 
-
+#ifdef IMU_PIXHAWK_V260_EXTERNAL_MAG
 kalman_t outdoor_position_kalman_z;
+#endif
 
 void optflow_speed_kalman_init(void)
 {
@@ -73,7 +74,7 @@ void optflow_speed_kalman_init(void)
 	scale = 0.0008 / VEL_KF_TIME_STEP_X;
 
 
-
+#ifdef IMU_PIXHAWK_V260_EXTERNAL_MAG
 	//Altitude Kalmanfilter
 	//initalize matrices
 #define TIME_STEP_Z (1.0f / 50.0f)
@@ -134,17 +135,11 @@ void optflow_speed_kalman_init(void)
 	kalman_init(&outdoor_position_kalman_z, 4, 2, kal_z_a, kal_z_c,
 			kal_z_gain_start, kal_z_gain, kal_z_x_apriori, kal_z_x_aposteriori,
 			100);
-
+#endif
 }
 
 void optflow_speed_kalman(void)
 {
-
-	static float viconPre = 0.0;
-	float_vect3 debug;
-	//    float vx_ = 0.0;
-
-
 	//Transform accelerometer used in all directions
 	float_vect3 acc_nav;
 	body2navi(&global_data.accel_si, &global_data.attitude, &acc_nav);
@@ -181,6 +176,7 @@ void optflow_speed_kalman(void)
 	global_data.sonar_distance_filtered = sonar_distance;
 
 
+#ifdef IMU_PIXHAWK_V260_EXTERNAL_MAG
 	//pressure altitude
 
 	//Altitude Kalman Filter
@@ -232,11 +228,7 @@ void optflow_speed_kalman(void)
 	}
 	//use velocity always
 	global_data.velocity.z = kalman_get_state(&outdoor_position_kalman_z, 1);
-
-
-
-
-
+#endif
 
 
 	// transform optical flow into global frame
@@ -264,7 +256,7 @@ void optflow_speed_kalman(void)
 	static float px = 0.0;
 	static float py = 0.0;
 	float QxLocal = 0.1, QyLocal = 0.1;
-	float RxLocal = 0.1, RyLocal = 0.1;
+	//float RxLocal = 0.1, RyLocal = 0.1;
 
 	// initializes x and y to global position
 	if (global_data.state.position_estimation_mode == POSITION_ESTIMATION_MODE_OPTICAL_FLOW_ULTRASONIC_VICON)
@@ -379,17 +371,15 @@ void optflow_speed_kalman(void)
 	global_data.velocity.y = vy;
 	global_data.position.y += vy * VEL_KF_TIME_STEP_Y;
 
-//	float xvel = (global_data.vicon_data.x - viconPre) / VEL_KF_TIME_STEP_X;
-	viconPre = global_data.vicon_data.x;
-
+//	float_vect3 debug;
 	//debug.x = (global_data.gyros_si.x - gyro_x_offset);
 	//debug.y = (global_data.attitude_rate.x);
 //	debug.x =
 //	= sonar_distance;
-	debug.x =- calc_altitude_pressure(global_data.pressure_raw);
+//	debug.x =- calc_altitude_pressure(global_data.pressure_raw);
 //	debug.y = sonar_distance_spike;
 //	debug.z = global_data.sonar_distance_filtered;
-	debug.y=kalman_get_state(&outdoor_position_kalman_z, 0);
-	debug.z=ground_altitude;
-	debug_vect("altitude", debug);
+//	debug.y=kalman_get_state(&outdoor_position_kalman_z, 0);
+//	debug.z=ground_altitude;
+//	debug_vect("altitude", debug);
 }
