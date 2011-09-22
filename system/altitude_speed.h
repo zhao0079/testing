@@ -9,6 +9,7 @@
 #define ALTITUDE_SPEED_H_
 
 #include "math.h"
+#include "global_data.h"
 
 #define air_gas_constant 8.31432f
 #define air_density_sea_level 1.225f

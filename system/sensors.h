@@ -180,7 +180,7 @@ static inline void sensors_pressure_bmp085_read_out(void)
 		break;
 	case 11:
 		global_data.pressure_raw = bmp085_get_pressure();
-		pressure_lowpass = pressure_lowpass * 0.99f + 0.01f
+		pressure_lowpass = pressure_lowpass * 0.9f + 0.1f
 				* (float) global_data.pressure_raw;
 		if (fabs(pressure_lowpass - (float) global_data.pressure_raw) > 1500)
 		{
