@@ -149,7 +149,7 @@ void optflow_speed_kalman(void)
 		float x_ = global_data.position.x;
 		float px_ = px + QxLocal;
 
-		float Kx = px_/(px_ + RxLocal);
+		float Kx = 0.4f;//px_/(px_ + RxLocal);
 
 		float x = x_ + Kx*(global_data.vision_data_global.pos.x - x_);
 		px = (1.0 - Kx)*px_;
@@ -160,7 +160,7 @@ void optflow_speed_kalman(void)
 		float y_ = global_data.position.y;
 		float py_ = py + QyLocal;
 
-		float Ky = py_/(py_ + RyLocal);
+		float Ky = 0.4f;//py_/(py_ + RyLocal);
 
 		float y = y_ + Ky*(global_data.vision_data_global.pos.y - y_);
 		py = (1.0 - Ky)*py_;

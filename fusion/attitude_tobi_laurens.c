@@ -491,7 +491,8 @@ void attitude_tobi_laurens(void)
 	}
 	else
 	{
-		global_data.attitude.z = atan2(y_n_b.x, x_n_b.x);
+//		static hackMagLowpass = 0.0f;
+		global_data.attitude.z = global_data.attitude.z*0.9f+0.1f*atan2(y_n_b.x, x_n_b.x);
 	}
 
 	//save rates
