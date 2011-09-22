@@ -528,7 +528,6 @@ void handle_mavlink_message(mavlink_channel_t chan,
 						<= global_data.position_setpoint_max.y && sp.z
 						<= global_data.position_setpoint_max.z)
 				{
-					debug_message_buffer("Setpoint accepted and set.");
 					global_data.param[PARAM_POSITION_SETPOINT_X] = sp.x;
 					global_data.param[PARAM_POSITION_SETPOINT_Y] = sp.y;
 					global_data.param[PARAM_POSITION_SETPOINT_Z] = sp.z;
@@ -582,6 +581,8 @@ void handle_mavlink_message(mavlink_channel_t chan,
 					{
 						global_data.param[PARAM_POSITION_SETPOINT_Z] = -0.7;//with lowpass
 					}
+
+					debug_message_buffer("Setpoint accepted and set.");
 				}
 				else
 				{

@@ -1038,6 +1038,10 @@ void update_controller_setpoints(void)
 		{
 			global_data.position_setpoint.x -= setpoint_step;
 		}
+		else
+		{
+			global_data.position_setpoint.x = global_data.param[PARAM_POSITION_SETPOINT_X];
+		}
 
 		if (global_data.position_setpoint.y + setpoint_step
 				< global_data.param[PARAM_POSITION_SETPOINT_Y])
@@ -1048,6 +1052,10 @@ void update_controller_setpoints(void)
 				> global_data.param[PARAM_POSITION_SETPOINT_Y])
 		{
 			global_data.position_setpoint.y -= setpoint_step;
+		}
+		else
+		{
+			global_data.position_setpoint.y = global_data.param[PARAM_POSITION_SETPOINT_Y];
 		}
 
 		if (global_data.position_setpoint.z + setpoint_step
@@ -1060,17 +1068,54 @@ void update_controller_setpoints(void)
 		{
 			global_data.position_setpoint.z -= setpoint_step;
 		}
+		else
+		{
+			global_data.position_setpoint.z = global_data.param[PARAM_POSITION_SETPOINT_Z];
+		}
 
-		if (global_data.yaw_pos_setpoint + setpoint_step_yaw
-				< global_data.param[PARAM_POSITION_SETPOINT_YAW])
+		//TODO Fix Yaw ramp
+
+		float yaw_e = global_data.param[PARAM_POSITION_SETPOINT_YAW] - global_data.yaw_pos_setpoint;
+
+		// don't turn around the wrong side (only works if yaw angle is between +- 180 degree)
+		if (yaw_e > 3.14)
+		{
+			yaw_e -= 2 * 3.14;
+		}
+		if (yaw_e < -3.14)
+		{
+			yaw_e += 2 * 3.14;
+		}
+
+
+		if (yaw_e > 0 && yaw_e > setpoint_step_yaw)
 		{
 			global_data.yaw_pos_setpoint += setpoint_step_yaw;
 		}
-		else if (global_data.yaw_pos_setpoint - setpoint_step_yaw
-				> global_data.param[PARAM_POSITION_SETPOINT_YAW])
+		else if (yaw_e < 0 && -yaw_e > setpoint_step_yaw)
 		{
 			global_data.yaw_pos_setpoint -= setpoint_step_yaw;
 		}
+		else
+		{
+			global_data.yaw_pos_setpoint = global_data.param[PARAM_POSITION_SETPOINT_YAW];
+		}
+
+//		//TODO Fix Yaw ramp
+//		if (global_data.yaw_pos_setpoint + setpoint_step_yaw
+//				< global_data.param[PARAM_POSITION_SETPOINT_YAW])
+//		{
+//			global_data.yaw_pos_setpoint += setpoint_step_yaw;
+//		}
+//		else if (global_data.yaw_pos_setpoint - setpoint_step_yaw
+//				> global_data.param[PARAM_POSITION_SETPOINT_YAW])
+//		{
+//			global_data.yaw_pos_setpoint -= setpoint_step_yaw;
+//		}
+//		else
+//		{
+//			global_data.yaw_pos_setpoint = global_data.param[PARAM_POSITION_SETPOINT_YAW];
+//		}
 
 	}
 }
