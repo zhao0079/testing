@@ -17,7 +17,6 @@
 //############### GENERAL SETUP #####################
 
 #define ONBOARD_PARAM_NAME_LENGTH 15    ///< Parameter names are transmitted with max. 15 chars over MAVLink
-#define MAVLINK_USE_CONVENIENCE_FUNCTIONS
 #define SW_VERSION 2000
 #define PPM_SAFETY_SWITCH_CHANNEL 5     ///< The PPM remote control channel where the safety switch is attached to
 

@@ -7,18 +7,18 @@
 
 #include "conf.h"
 
-#if PX_VEHICLE_TYPE == PX_AIRFRAME_QUADROTOR
-
 #include "mainloop_quadrotor.h"
 #include "common_mainloop_functions.h"
-#include "mainloop_generic.h"
 
 #include "inttypes.h"
 #include "mcu_init.h"
 
 // Include comm
 #include "comm.h"
-#include "mavlink.h"
+
+extern mavlink_system_t mavlink_system;
+
+#include "pixhawk/mavlink.h"
 
 // Include globals
 #include "global_data.h"
@@ -99,6 +99,193 @@ static const uint32_t min_mainloop_time = 5000; ///< The minimum wait interval b
 static uint64_t last_mainloop_idle = 0; ///< Starvation Prevention
 
 
+/**
+* @brief Initialize the whole system
+*
+* All functions that need to be called before the first mainloop iteration
+* should be placed here.
+*/
+void main_init_generic(void)
+{
+
+	// Reset to safe values
+	global_data_reset();
+
+	// Load default eeprom parameters as fallback
+	global_data_reset_param_defaults();
+
+	// LOWLEVEL INIT, ONLY VERY BASIC SYSTEM FUNCTIONS
+	hw_init();
+	enableIRQ();
+	led_init();
+	led_on(LED_GREEN);
+//	buzzer_init();
+	sys_time_init();
+	sys_time_periodic_init();
+	sys_time_clock_init();
+	ppm_init();
+	pwm_init();
+
+	// Lowlevel periphel support init
+	adc_init();
+	// FIXME SDCARD
+//	MMC_IO_Init();
+	spi_init();
+	i2c_init();
+
+	// Sensor init
+	sensors_init();
+	debug_message_buffer("Sensor initialized");
+
+	// Shutter init
+	shutter_init();
+	shutter_control(0);
+
+	// Debug output init
+	debug_message_init();
+	debug_message_buffer("Text message buffer initialized");
+
+	// MEDIUM LEVEL INIT, INITIALIZE I2C, EEPROM, WAIT FOR MOTOR CONTROLLERS
+	// Try to reach the EEPROM
+	eeprom_check_start();
+
+	// WAIT FOR 2 SECONDS FOR THE USER TO NOT TOUCH THE UNIT
+	while (sys_time_clock_get_time_usec() < 2000000)
+	{
+	}
+
+	// Do the auto-gyro calibration for 1 second
+	// Get current temperature
+	led_on(LED_RED);
+	gyro_init();
+
+//	uint8_t timeout = 3;
+//	// Check for SD card
+//	while (sys_time_clock_get_time_usec() < 2000000)
+//	{
+//		while (GetDriveInformation() != F_OK && timeout--)
+//		  {
+//		   debug_message_buffer("MMC/SD-Card not found ! retrying..");
+//		  }
+//	}
+//
+//	if (GetDriveInformation() == F_OK)
+//	{
+//		debug_message_buffer("MMC/SD-Card SUCCESS: FOUND");
+//	}
+//	else
+//	{
+//		debug_message_buffer("MMC/SD-Card FAILURE: NOT FOUND");
+//	}
+	//FIXME redo init because of SD driver decreasing speed
+	//spi_init();
+	led_off(LED_RED);
+
+	// Stop trying to reach the EEPROM - if it has not been found by now, assume
+	// there is no EEPROM mounted
+	if (eeprom_check_ok())
+	{
+		param_read_all();
+		debug_message_buffer("EEPROM detected - reading parameters from EEPROM");
+
+		for (int i = 0; i < ONBOARD_PARAM_COUNT * 2 + 20; i++)
+		{
+			param_handler();
+			//sleep 1 ms
+			sys_time_wait(1000);
+		}
+	}
+	else
+	{
+		debug_message_buffer("NO EEPROM - reading onboard parameters from FLASH");
+	}
+
+	// Set mavlink system
+	mavlink_system.compid = MAV_COMP_ID_IMU;
+	mavlink_system.sysid = global_data.param[PARAM_SYSTEM_ID];
+
+	//Magnet sensor
+	hmc5843_init();
+	acc_init();
+
+	// Comm parameter init
+	mavlink_system.sysid = global_data.param[PARAM_SYSTEM_ID]; // System ID, 1-255
+	mavlink_system.compid = global_data.param[PARAM_COMPONENT_ID]; // Component/Subsystem ID, 1-255
+
+	// Comm init has to be
+	// AFTER PARAM INIT
+	comm_init(MAVLINK_COMM_0);
+	comm_init(MAVLINK_COMM_1);
+
+	// UART initialized, now initialize COMM peripherals
+	communication_init();
+	gps_init();
+
+	us_run_init();
+
+	servos_init();
+
+	//position_kalman3_init();
+	//	buzzer_init();
+
+	// Calibration starts (this can take a few seconds)
+	//	led_on(LED_GREEN);
+	//	led_on(LED_RED);
+
+	// Read out first time battery
+	global_data.battery_voltage = battery_get_value();
+
+	global_data.state.mav_mode = MAV_MODE_PREFLIGHT;
+	global_data.state.status = MAV_STATE_CALIBRATING;
+
+	send_system_state();
+
+	float_vect3 init_state_accel;
+	init_state_accel.x = 0.0f;
+	init_state_accel.y = 0.0f;
+	init_state_accel.z = -1000.0f;
+	float_vect3 init_state_magnet;
+	init_state_magnet.x = 1.0f;
+	init_state_magnet.y = 0.0f;
+	init_state_magnet.z = 0.0f;
+
+
+	//auto_calibration();
+
+
+	attitude_observer_init(init_state_accel, init_state_magnet);
+
+	debug_message_buffer("Attitude Filter initialized");
+	led_on(LED_RED);
+
+	send_system_state();
+
+	debug_message_buffer("System is initialized");
+
+	// Calibration stopped
+	led_off(LED_RED);
+
+	global_data.state.mav_mode = MAV_MODE_FLAG_MANUAL_INPUT_ENABLED;
+	global_data.state.status = MAV_STATE_STANDBY;
+
+	send_system_state();
+
+	debug_message_buffer("Checking if remote control is switched on:");
+	if (radio_control_status() == RADIO_CONTROL_ON)
+	{
+		global_data.state.mav_mode = MAV_MODE_FLAG_MANUAL_INPUT_ENABLED | MAV_MODE_FLAG_TEST_ENABLED;
+		debug_message_buffer("RESULT: remote control switched ON");
+		debug_message_buffer("Now in MAV_MODE_TEST2 position hold tobi_laurens");
+		led_on(LED_GREEN);
+	}
+	else
+	{
+		global_data.state.mav_mode = MAV_MODE_FLAG_MANUAL_INPUT_ENABLED;
+		debug_message_buffer("RESULT: remote control switched OFF");
+		led_off(LED_GREEN);
+	}
+}
+
 void main_loop_quadrotor(void)
 {
 	/**
@@ -171,40 +358,7 @@ void main_loop_quadrotor(void)
 			}
 
 			// Correction step of observer filter
-			//attitude_observer_correct_accel(global_data.accel_raw);
-
-			// Write in roll and pitch
-			//static float_vect3 att; //if not static we have spikes in roll and pitch on bravo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-			//attitude_observer_get_angles(&att);
-//			global_data.attitude.x = att.x;
-//			global_data.attitude.y = att.y;
-//			if (global_data.param[PARAM_ATT_KAL_IYAW])
-//			{
-//				global_data.attitude.z += 0.005 * global_data.gyros_si.z;
-//			}
-//			else
-//			{
-//				global_data.attitude.z = att.z;
-//			}
-			// Prediction step of observer
-			//attitude_observer_predict(global_data.gyros_si);
 			attitude_tobi_laurens();
-			//sequential_kalmanfilter();
-
-			//position_integrate(&global_data.attitude,&global_data.position,&global_data.velocity,&global_data.accel_si);
-
-			// FIXME XXX Change to position estimation mode
-
-//			if (global_data.state.gps_mode >= 1)
-//			{
-////				position_kalman_TL();
-////
-//			}
-//			else
-//			{
-////				vision_position_kalman();
-////				fuse_vision_altitude_200hz();
-//			}
 
 			if (global_data.state.position_estimation_mode == POSITION_ESTIMATION_MODE_VICON_ONLY ||
 				global_data.state.position_estimation_mode == POSITION_ESTIMATION_MODE_VISION_VICON_BACKUP)
@@ -367,14 +521,10 @@ void main_loop_quadrotor(void)
 			debug_message_send_one();
 
 			// Toggle status led
-			//led_toggle(LED_YELLOW);
-			led_toggle(LED_RED); // just for green LED on alpha at the moment
+			led_toggle(LED_RED);
 
 			// Toggle active mode led
-			if (global_data.state.mav_mode == MAV_MODE_MANUAL
-					|| global_data.state.mav_mode == MAV_MODE_GUIDED
-					|| global_data.state.mav_mode == MAV_MODE_AUTO
-					|| global_data.state.mav_mode == MAV_MODE_TEST2)
+			if (global_data.state.mav_mode & MAV_MODE_FLAG_SAFETY_ARMED)
 			{
 				led_on(LED_GREEN);
 			}
@@ -395,47 +545,13 @@ void main_loop_quadrotor(void)
 			// Pressure sensor driver works, but not tested regarding stability
 			//			sensors_pressure_bmp085_read_out();
 
-			//
-			//			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 50, calc_altitude_pressure(global_data.pressure_raw));
-			//			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 51, global_data.pressure_raw);
-
 			if (global_data.param[PARAM_POSITION_YAW_TRACKING] == 1)
 			{
-				mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN],
+				mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 0,
 						90, global_data.param[PARAM_POSITION_SETPOINT_YAW]);
-				mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN],
+				mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 0,
 						91, global_data.yaw_pos_setpoint);
 			}
-			//			//testing gps
-			//			//uint8_t gps_send_buf[]={0x01,0x01,0x00,0x00};
-			//			uint8_t gps_send_buf[]={0x01,0x04,0x00,0x00};
-			//
-			//			uint8_t n=2;
-			//			uint8_t CK_A = 0, CK_B = 0;
-			//			for(uint8_t i=0;i<n;i++)
-			//			{
-			//			CK_A = CK_A + gps_send_buf[i];
-			//			CK_B = CK_B + CK_A;
-			//			}
-			//
-			//			//pol
-			//			//ublox start
-			//			uart1_transmit(0xb5);
-			//			uart1_transmit(0x62);
-			//			for(uint8_t i=0;i<n;i++){
-			//				uart1_transmit(gps_send_buf[i]);
-			//			}
-			//			uart1_transmit(CK_A);
-			//			uart1_transmit(CK_B);
-			//
-			//
-			//			uint8_t gps_nmea_send_buf[] = "$PUBX,04*37\n";
-			//
-			//			uint8_t n_nmea = 12;
-			//			for (uint8_t i = 0; i < n_nmea; i++)
-			//			{
-			//				uart1_transmit(gps_nmea_send_buf[i]);
-			//			}
 		}
 		///////////////////////////////////////////////////////////////////////////
 
@@ -448,55 +564,18 @@ void main_loop_quadrotor(void)
 			// Send system state, mode, battery voltage, etc.
 			send_system_state();
 
-			// FIXME XXX REMOVE
 			// Send position setpoint offset
 			debug_vect("pos offs", global_data.position_setpoint_offset);
 
 			// Send current onboard time
-			mavlink_msg_system_time_send(MAVLINK_COMM_1,
+			mavlink_msg_system_time_send(MAVLINK_COMM_1, 0,
 					sys_time_clock_get_unix_time());
 
 			//update state from received parameters
 			sync_state_parameters();
 
 			//debug number of execution
-			/*			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN],
-			 101, count);*/
 			count = 0;
-
-			//			TESTING MATRIX MULTIPLICATION
-			//			m_elem testA[4*4]={123478,2,12343,21345,
-			//			1123,2,12343,6,
-			//			132,234,123,3,
-			//			1231234,76697,23,23};
-			//			matrix_t tA = matrix_create(4,4,testA);
-			//			m_elem test2[4*4]={
-			//			41529137736.0000,1640232687.00000,1526122764.00000,2636165886.00000
-			//			,147684720,3350694,15404202,24007614
-			//			,20271816,259605,4532736,2819382
-			//			,152144764001.000,4385275,16143795691.0000,26281150510.0000};
-			//
-			//			matrix_t t2= matrix_create(4,4,test2);
-			//
-			//			m_elem testr[4*4]={};
-			//			matrix_t tr= matrix_create(4,4,testr);
-			//			matrix_mult(tA,tA,tr);
-			//			matrix_sub(t2,tr,tA);
-			//			int error=0;
-			//			for(int i=0;i<16;i++){
-			//				//if(testA[i]){
-			//					debug_message_buffer_sprintf("result %i",(int) (testA[i]*1000));
-			//				//}
-			//			}
-
-			//Send execution times for debugging
-			// Executiontime debugging
-//			time_debug.x = 0;
-//			time_debug.y = 0;
-//			time_debug.z = 0;
-
-			//enable gps push thru:
-			//global_data.param[PARAM_GPS_MODE]=20;
 
 			if (global_data.param[PARAM_GPS_MODE] >= 10)
 			{
@@ -511,9 +590,6 @@ void main_loop_quadrotor(void)
 			else if (global_data.param[PARAM_GPS_MODE] == 9
 					|| global_data.param[PARAM_GPS_MODE] == 8)
 			{
-				//				static float_vect3 gps_local, gps_local_home;
-				//				static bool gps_local_home_init = false;
-				//				static float gps_cos_home_lat;
 
 				if (global_data.param[PARAM_GPS_MODE] == 8)
 				{
@@ -531,23 +607,6 @@ void main_loop_quadrotor(void)
 					debug_vect("GPS local", gps_local);
 					gps_get_local_velocity(&gps_local_velocity);
 					debug_vect("GPS loc velocity", gps_local_velocity);
-					//					const float r_earth = 6378140;
-					//					if (!gps_local_home_init)
-					//					{
-					//						gps_local_home.x = gps_lat / 1e7f;
-					//						gps_local_home.y = gps_lon / 1e7f;
-					//						gps_local_home.z = gps_alt / 100e0f;
-					//						gps_cos_home_lat = cos(gps_local_home.x * 3.1415 / 180);
-					//						gps_local_home_init = true;
-					//						debug_message_buffer("GPS Local Origin saved");
-					//					}
-					//
-					//					gps_local.x = r_earth * tan((gps_lat / 1e7f
-					//							- gps_local_home.x) * 3.1415 / 180);
-					//					gps_local.y = r_earth * gps_cos_home_lat * tan((gps_lon
-					//							/ 1e7f - gps_local_home.y) * 3.1415 / 180);
-					//					gps_local.z = gps_alt / 100e0f - gps_local_home.z;
-					//					debug_vect("GPS local", gps_local);
 				}
 			}
 			if (global_data.state.gps_mode)
@@ -555,41 +614,6 @@ void main_loop_quadrotor(void)
 				gps_send_local_origin();
 			}
 			beep_on_low_voltage();
-
-			if (global_data.state.mav_mode == MAV_MODE_RC_TRAINING)
-			{
-				send_system_state();
-				static uint8_t uart_unconfigured = 1;
-				if (uart_unconfigured)
-				{
-					// Mode for FMSPIC adapter
-					uart1_init(19200, COMM_UART_MODE, UART_FIFO_8);
-					uart_unconfigured = 0;
-				}
-
-				while (1)
-				{
-					loop_start_time = sys_time_clock_get_time_usec();
-
-					///////////////////////////////////////////////////////////////////////////
-					/// RC INTERFACE HACK AT 50 Hz
-					///////////////////////////////////////////////////////////////////////////
-					if (us_run_every(20000, COUNTER8, loop_start_time))
-					{
-						// Write start byte
-						uart1_transmit(0xFF);
-
-						// Write channels 1-8
-						// The format works with FMS and CRRCSim model flight simulators
-						for (int i = 1; i < 9; i++)
-						{
-							uart1_transmit(
-									clamp((radio_control_get_channel(i)+1)*127, 0, 254));
-						}
-						led_toggle(LED_RED);
-					}
-				}
-			}
 
 		}
 		///////////////////////////////////////////////////////////////////////////
@@ -633,296 +657,6 @@ void main_loop_quadrotor(void)
 				//Check if parameters should be written or read
 				param_handler();
 			}
-#if 0
-			/*
-			 //debug_message_buffer("HAllo Kalman");
-
-			 //altitude kalman filter
-
-			 //initalize matrices
-			 const float t = 1.0f / 200.0f;
-
-			 m_elem kal_z_a_a[4*4] =
-			 { 1, t, t * t / 2, 0,
-			 0, 1, t, 0 ,
-			 0, 0, 1, 0 ,
-			 0, 0, 0, 1  };
-			 matrix_t kal_z_a=matrix_create(4,4,kal_z_a_a);
-
-			 m_elem kal_z_c_a[2*4] =
-			 {
-			 1, 0, 0, 0 ,
-			 0, 0, 1, 1  };
-			 matrix_t kal_z_c=matrix_create(2,4,kal_z_c_a);
-
-			 //			m_elem kal_z_gain_a[4*2] =
-			 //			{
-			 //			 0.003309636393353, 3.737518562014015e-08 ,
-			 //			 0.001096997145729, 1.491062811791067e-05 ,
-			 //			 6.708962603091765e-06, 0.997017866024232 ,
-			 //			 -6.708911968356911e-06, 9.995411940282084e-11  };
-			 //			matrix_t kal_z_gain = matrix_create(4, 2, kal_z_gain_a);
-
-			 m_elem kal_z_gain_combo_a[4 * 2] =
-			 {
-			 0.0148553889079401,	3.73444963864759e-08,
-			 0.00555539506146299,	1.49106022715582e-05,
-			 0.000421844252811475,	0.997017766710577,
-			 -0.000421844052617397,	9.97097528182815e-08};
-			 //			{ 0.0131153410622187, 3.73751856201402e-08,
-			 //			0.00432570190765015, 1.49106281179107e-05,
-			 //			1.33518572806910e-05, 0.997017866024232,
-			 //			-1.33516567327080e-05, 0.001 };
-			 matrix_t kal_z_gain_combo=matrix_create(4,2,kal_z_gain_combo_a);
-
-
-			 m_elem kal_z_gain_start_a[4*2] =
-			 {
-			 0.060188321659420, 3.566208652525075e-16 ,
-			 0.008855645697701, 1.495920063190432e-13 ,
-			 6.514669086807784e-04, 9.997000796699675e-08 ,
-			 -6.514669086807778e-04, 0.999700079925069  };
-			 matrix_t kal_z_gain_start=matrix_create(4,2,kal_z_gain_start_a);
-
-			 m_elem kal_z_gain_start_part_a[4*2] = {};
-			 matrix_t kal_z_gain_start_part=matrix_create(4,2,kal_z_gain_start_part_a);
-
-			 m_elem kal_z_gain_part_a[4*2] = {};
-			 matrix_t kal_z_gain_part=matrix_create(4,2,kal_z_gain_part_a);
-
-			 m_elem kal_z_gain_sum_a[4*2] = {};
-			 matrix_t kal_z_gain_sum=matrix_create(4,2,kal_z_gain_sum_a);
-
-			 static m_elem kal_z_x_apriori_a[4*1] =
-			 {
-			 0 ,
-			 0 ,
-			 0 ,
-			 -9.81  };
-			 static matrix_t kal_z_x_apriori;
-			 kal_z_x_apriori=matrix_create(4,1,kal_z_x_apriori_a);
-
-			 static m_elem kal_z_x_aposteriori_a[4*1] =
-			 {
-			 0 ,
-			 0 ,
-			 0 ,
-			 -9.81  };
-			 static matrix_t kal_z_x_aposteriori;
-			 kal_z_x_aposteriori=matrix_create(4,1,kal_z_x_aposteriori_a);
-
-			 m_elem kal_z_measurement_a[2*1] =
-			 {
-			 0 ,
-			 0  };
-			 matrix_t kal_z_measurement=matrix_create(2,1,kal_z_measurement_a);
-
-
-			 m_elem kal_z_error_a[2*1] =
-			 {
-			 0 ,
-			 0  };
-			 matrix_t kal_z_error=matrix_create(2,1,kal_z_error_a);
-
-			 m_elem kal_z_measurement_estimate_a[2*1] =
-			 {
-			 0 ,
-			 0  };
-			 matrix_t kal_z_measurement_estimate=matrix_create(2,1,kal_z_measurement_estimate_a);
-
-			 m_elem kal_z_x_update_a[4*1] =
-			 {
-			 0 ,
-			 0 ,
-			 0 ,
-			 0  };
-			 matrix_t kal_z_x_update=matrix_create(4,1,kal_z_x_update_a);
-
-			 static int nopressure=0;
-			 if(nopressure++==3){
-			 nopressure=0;
-			 //prepare measurement data
-			 //measurement #1 pressure => relative altitude
-			 sensors_pressure_bmp085_read_out();
-
-			 static float altitude_local_origin = 0;
-
-			 if (abs(calc_altitude_pressure(global_data.pressure_raw))
-			 < 2000)
-			 {
-			 if (altitude_local_origin)
-			 {
-			 M(kal_z_measurement, 0, 0) = -calc_altitude_pressure(
-			 global_data.pressure_raw)
-			 - altitude_local_origin;
-			 }
-			 else
-			 {
-			 altitude_local_origin = -calc_altitude_pressure(
-			 global_data.pressure_raw);
-			 }
-			 mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN],
-			 50, M(kal_z_measurement, 0, 0));
-			 }
-			 }
-			 if(nopressure==2){
-			 //for temp measurement
-			 sensors_pressure_bmp085_read_out();
-			 }
-
-
-			 //measurement #2 acceleration
-			 float_vect3 acc_nav;
-			 body2navi(&global_data.accel_si, &global_data.attitude,
-			 &acc_nav);
-			 M(kal_z_measurement,1,0)=acc_nav.z;
-
-			 //			M(kal_z_measurement,0,0)=0;
-			 //			M(kal_z_measurement,1,0)=0;
-
-			 //			if (!isnumber(M(kal_z_x_aposteriori, 0, 0))
-			 //				||(!isnumber(M(kal_z_x_aposteriori, 1, 0)))
-			 //					 ||(!isnumber(M(kal_z_x_aposteriori, 2, 0)))
-			 //						|| (!isnumber(M(kal_z_x_aposteriori, 3, 0)))){
-			 //				M(kal_z_x_aposteriori, 0, 0) = 0;
-			 //				M(kal_z_x_aposteriori, 1, 0) = 0;
-			 //				M(kal_z_x_aposteriori, 2, 0) = 0;
-			 //				M(kal_z_x_aposteriori, 3, 0) = 0;}
-
-			 //time update
-			 //kal_z_x_apriori = kal_z_a * kal_z_x_aposteriori
-			 matrix_mult(kal_z_a, kal_z_x_aposteriori, kal_z_x_apriori);
-
-			 //
-			 //			if (!isnumber(M(kal_z_x_apriori, 0, 0)))
-			 //				M(kal_z_x_apriori, 0, 0) = 0;
-			 //			if (!isnumber(M(kal_z_x_apriori, 1, 0)))
-			 //				M(kal_z_x_apriori, 1, 0) = 0;
-			 //			if (!isnumber(M(kal_z_x_apriori, 2, 0)))
-			 //				M(kal_z_x_apriori, 2, 0) = 0;
-			 //			if (!isnumber(M(kal_z_x_apriori, 3, 0)))
-			 //				M(kal_z_x_apriori, 3, 0) = 0;
-
-
-			 //measurement update
-			 //both measurements
-			 //x(:,i+1)=xapriori+(gainfactor*[M_50(:,1) M(:,2)]+(1-gainfactor)*M_start)*(z-C*xapriori);
-
-
-			 //est=C*xapriori;
-			 matrix_mult(kal_z_c, kal_z_x_apriori, kal_z_measurement_estimate);
-			 //error=(z-C*xapriori) = measurement-estimate
-			 matrix_sub(kal_z_measurement, kal_z_measurement_estimate,
-			 kal_z_error);
-			 if(nopressure){
-			 M(kal_z_error,0,0)=0;
-			 }
-			 //
-			 //				m_elem kal_z_no_pressure_a[2*2] =
-			 //				{
-			 //				 0,0 ,
-			 //				 0,1  };
-			 //				matrix_t kal_z_no_pressure=matrix_create(2,1,kal_z_no_pressure_a);
-			 //				matrix_mult(kal_z_no_pressure,kal_z_error,kal_z_error); //works because of the structure of matrix
-			 //			}
-
-			 //			//dont update from measurements for testing
-			 //			M(kal_z_error,0,0)=0;
-			 //			M(kal_z_error,1,0)=0;
-
-			 const float gainfactor_steps = 1000;
-			 static float gainfactor=0;
-			 gainfactor = gainfactor * (1 - 1 / gainfactor_steps)
-			 + 1 * 1 / gainfactor_steps;
-
-			 matrix_mult_scalar(gainfactor, kal_z_gain_combo, kal_z_gain_part);
-
-			 matrix_mult_scalar(1 - gainfactor, kal_z_gain_start,
-			 kal_z_gain_start_part);
-
-			 matrix_add(kal_z_gain_start_part,kal_z_gain_part,kal_z_gain_sum);
-
-			 //gain*(z-C*xapriori)
-			 matrix_mult(kal_z_gain_sum, kal_z_error, kal_z_x_update);
-
-			 //xaposteriori = xapriori + update
-
-			 matrix_add(kal_z_x_apriori,kal_z_x_update,kal_z_x_aposteriori);
-
-			 float_vect3 acc_press;
-			 //			global_data.position.z = M(kal_z_x_aposteriori,0,0);
-			 acc_press.x = M(kal_z_x_aposteriori,0,0);
-			 acc_press.y = M(kal_z_x_aposteriori,1,0);
-			 acc_press.z = M(kal_z_x_aposteriori, 2, 0);
-			 debug_vect("press_accel", acc_press);
-
-
-
-			 //			//testing old single kalman
-			 //			float kal_z = calc_altitude_pressure(global_data.pressure_raw);
-			 //			if (abs(kal_z) > 2000)
-			 //			{
-			 //				kal_z = 0;
-			 //			}
-			 //			else
-			 //			{
-
-			 //				const float kal_num = 200;		//Anzahl der Werte über die ~ gefiltert wird
-			 //				static float kal_mean = 0;		//Tiefpass =~ Mittelwert
-			 //				static float kal_variance = 0;	//Varianz
-			 //
-			 //				if (kal_mean == 0)
-			 //				{
-			 //					kal_mean = kal_z;
-			 //				}
-			 //
-			 //				kal_mean = kal_mean * (1 - 1 / kal_num) + kal_z / kal_num;
-			 //
-			 //				kal_variance = kal_variance * (1 - 1 / kal_num) + (kal_z
-			 //						- kal_mean) * (kal_z - kal_mean) / kal_num;
-
-			 //				static float kal_x = 0;
-			 //				static float kal_p = 100000000;
-			 //				static float kal_k = 1;
-			 //
-			 //				static float kal_q = 0.00001;
-			 //				static float kal_r = 4;
-			 //
-			 //				//predict
-			 //				kal_x = kal_x;
-			 //				kal_p = kal_p + kal_q;
-			 //
-			 //				//correct
-			 //				kal_k = kal_p / (kal_p + kal_r);
-			 //				kal_x = kal_x + kal_k * (kal_z - kal_x);
-			 //				kal_p = (1 - kal_k) * kal_p;
-			 //
-			 //				float_vect3 kal;
-			 //				kal.x = kal_x;
-			 //				kal.y = kal_p;
-			 //				kal.z = kal_k;
-			 //				kal.y = kal_mean;
-			 //				kal.z = kal_variance;
-
-			 //debug_vect("alt_kal", kal);
-
-			 //mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN],
-			 //	50, kal_z);
-			 //					mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 51, global_data.pressure_raw);
-
-
-			 //for logging
-			 //				float_vect3 acc_nav;
-			 //				body2navi(&global_data.accel_si, &global_data.attitude,
-			 //						&acc_nav);
-			 //				float_vect3 acc_press;
-			 //				acc_press.x = kal_z;
-			 //				acc_press.y = acc_nav.z;
-			 //				acc_press.z = global_data.temperature;
-			 //				debug_vect("press_accel", acc_press);
-			 //			}
-			 */
-#endif
 		}
 		///////////////////////////////////////////////////////////////////////////
 
@@ -1073,18 +807,16 @@ void update_controller_setpoints(void)
 			global_data.position_setpoint.z = global_data.param[PARAM_POSITION_SETPOINT_Z];
 		}
 
-		//TODO Fix Yaw ramp
-
 		float yaw_e = global_data.param[PARAM_POSITION_SETPOINT_YAW] - global_data.yaw_pos_setpoint;
 
 		// don't turn around the wrong side (only works if yaw angle is between +- 180 degree)
-		if (yaw_e > 3.14)
+		if (yaw_e > 3.14f)
 		{
-			yaw_e -= 2 * 3.14;
+			yaw_e -= 2.0f * 3.14f;
 		}
-		if (yaw_e < -3.14)
+		if (yaw_e < -3.14f)
 		{
-			yaw_e += 2 * 3.14;
+			yaw_e += 2.0f * 3.14f;
 		}
 
 
@@ -1120,4 +852,3 @@ void update_controller_setpoints(void)
 	}
 }
 
-#endif

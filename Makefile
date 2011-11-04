@@ -9,10 +9,7 @@ MAVLINKUSERDIR = ../mavlink/include/user
 Q = @
 TOOLS = tools
 
-SRCARM += main/mainloop_generic.c
-SRCARM += main/mainloop_fixed_wing.c
 SRCARM += main/mainloop_quadrotor.c
-SRCARM += main/mainloop_ground_car.c
 SRCARM += main/common_mainloop_functions.c
 SRCARM += math/lookup_sin_cos.c
 SRCARM += arm7/adc.c
@@ -23,9 +20,7 @@ SRCARM += arm7/led.c
 SRCARM += arm7/spi.c
 SRCARM += arm7/i2c.c
 SRCARM += arm7/spi_devices/ads8341.c
-SRCARM += arm7/spi_devices/ms2100.c
 SRCARM += arm7/spi_devices/sca3100.c
-SRCARM += arm7/spi_devices/sca3000.c
 SRCARM += arm7/i2c_devices/bmp085.c
 SRCARM += arm7/i2c_devices/eeprom.c
 SRCARM += arm7/i2c_devices/i2c_motor_controller.c
@@ -139,13 +134,13 @@ CFLAGS += -I $(MAVLINKBASEDIR)
 CFLAGS += -I $(MAVLINKDIR)
 	
 CFLAGS += -O2
-CFLAGS += -Wall -Wcast-qual -Wimplicit -Wcast-align
+CFLAGS += -w -Wall -Wcast-qual -Wimplicit -Wcast-align
 CFLAGS += -Wpointer-arith -Wswitch
 CFLAGS += -Wredundant-decls -Wreturn-type -Wshadow -Wunused
 CFLAGS += -Wa,-adhlns=$(OBJDIR)/$(notdir $(subst $(suffix $<),.lst,$<))
 CFLAGS += -Wstrict-prototypes -Wmissing-declarations
 CFLAGS += -Wmissing-prototypes -Wnested-externs
-CFLAGS += -std=gnu99
+CFLAGS += -std=gnu99 -DMAVLINK_USE_CONVENIENCE_FUNCTIONS -DMAVLINK_COMM_NUM_BUFFERS=2
  
 # Linker flags.
 LDFLAGS = -n -nostartfiles -Wl,-Map=$(OBJDIR)/$(TARGET).map,--cref

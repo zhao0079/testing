@@ -42,7 +42,11 @@ extern "C"
 #include "mav_vect.h"
 #include "pid.h"
 #include "string.h"
+
 #include "mavlink_types.h"
+extern mavlink_system_t mavlink_system;
+
+#include "pixhawk/mavlink.h"
 #include "stdbool.h"
 //#include "mavlink.h"
 
@@ -293,8 +297,8 @@ typedef struct
 	float mix_z_position;
 	float mix_yaw_position;
 	float mix_offset;
-	enum MAV_MODE mav_mode;
-	enum MAV_NAV nav_mode;
+	uint32_t mav_mode;
+	uint32_t nav_mode;
 	enum MAV_TYPE type;
 	enum MAV_STATE status;
 	enum YAW_ESTIMATION_MODE yaw_estimation_mode;
@@ -302,7 +306,9 @@ typedef struct
 	uint8_t gps_mode;//< comes from parameter for faster check
 	uint8_t uart0mode;
 	uint8_t uart1mode;
-
+	uint32_t control_sensors_present_mask;
+	uint32_t control_sensors_enabled_mask;
+	uint32_t control_sensors_health_mask;
 } sys_state_t;
 
 typedef struct
@@ -432,7 +438,7 @@ static inline void global_data_reset_param_defaults(void){
 	global_data.param[PARAM_COMPONENT_ID] = 200;
 	strcpy(global_data.param_name[PARAM_COMPONENT_ID], "SYS_COMP_ID");
 
-	global_data.param[PARAM_SYSTEM_TYPE] = MAV_GENERIC;
+	global_data.param[PARAM_SYSTEM_TYPE] = MAV_TYPE_GENERIC;
 	strcpy(global_data.param_name[PARAM_SYSTEM_TYPE], "SYS_TYPE");
 
 	global_data.param[PARAM_SW_VERSION] = 2000;
@@ -738,8 +744,8 @@ static inline void global_data_reset_param_defaults(void){
  */
 static inline void global_data_reset(void)
 {
-	global_data.state.mav_mode = MAV_MODE_UNINIT;
-	global_data.state.status = MAV_STATE_UNINIT;
+	global_data.state.mav_mode = MAV_MODE_FLAG_MANUAL_INPUT_ENABLED;
+	global_data.state.status = MAV_STATE_BOOT;
 	global_data.cpu_usage = 0;
 	global_data.cpu_peak = 0;
 	global_data.rc_rssi = 0;

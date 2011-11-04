@@ -5,7 +5,10 @@
 #include "global_data.h"
 // Include comm
 #include "comm.h"
-#include "mavlink.h"
+
+extern mavlink_system_t mavlink_system;
+
+#include "pixhawk/mavlink.h"
 #include "debug.h"
 
 #include "i2c_motor_mikrokopter.h"

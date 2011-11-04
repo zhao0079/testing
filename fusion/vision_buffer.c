@@ -177,10 +177,10 @@ void vision_buffer_handle_data(mavlink_vision_position_estimate_t* pos)
 
 			//mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 202, global_data.attitude.z);
 
-			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 210, pos->x);
-			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 211, pos->y);
-			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 212, pos->z);
-			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 215, pos->yaw);
+			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 0, 210, pos->x);
+			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 0, 211, pos->y);
+			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 0, 212, pos->z);
+			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 0, 215, pos->yaw);
 			//mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 212, pos.z);
 			//mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 203, pos.r1);
 			//mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 204, pos.confidence);
@@ -316,10 +316,10 @@ void vision_buffer_handle_global_data(mavlink_global_vision_position_estimate_t*
 
 				//mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 202, global_data.attitude.z);
 
-				mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 220, pos->x);
-				mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 221, pos->y);
-				mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 222, pos->z);
-				mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 225, pos->yaw);
+				mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 0, 220, pos->x);
+				mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 0, 221, pos->y);
+				mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 0, 222, pos->z);
+				mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 0, 225, pos->yaw);
 				//mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 212, pos.z);
 				//mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 203, pos.r1);
 				//mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 204, pos.confidence);

@@ -55,60 +55,56 @@
 
 static uint32_t m_parameter_i = 0;
 
-void execute_action(uint8_t action)
+static void send_system_state(void)
 {
-	switch (action)
+	// Send heartbeat to announce presence of this system
+	// Send over both communication links
+	// Send first message heartbeat
+	mavlink_msg_heartbeat_send(MAVLINK_COMM_1,
+			global_data.param[PARAM_SYSTEM_TYPE], MAV_AUTOPILOT_PIXHAWK, global_data.state.mav_mode, global_data.state.mav_mode,
+			global_data.state.status);
+	mavlink_msg_heartbeat_send(MAVLINK_COMM_0,
+			global_data.param[PARAM_SYSTEM_TYPE], MAV_AUTOPILOT_PIXHAWK, global_data.state.mav_mode, global_data.state.mav_mode,
+			global_data.state.status);
+	// Send first global system status
+	mavlink_msg_sys_status_send(MAVLINK_COMM_0, global_data.state.control_sensors_present_mask, global_data.state.control_sensors_enabled_mask,
+			global_data.state.control_sensors_health_mask, global_data.cpu_usage, global_data.battery_voltage, -1, -1, -1, communication_get_uart_drop_rate(), global_data.i2c0_err_count,
+			global_data.i2c1_err_count, global_data.spi_err_count, global_data.spi_err_count);
+	mavlink_msg_sys_status_send(MAVLINK_COMM_1, global_data.state.control_sensors_present_mask, global_data.state.control_sensors_enabled_mask,
+				global_data.state.control_sensors_health_mask, global_data.cpu_usage, global_data.battery_voltage, -1, -1, -1, communication_get_uart_drop_rate(), global_data.i2c0_err_count,
+				global_data.i2c1_err_count, global_data.spi_err_count, global_data.spi_err_count);
+}
+
+void execute_command(mavlink_command_long_t* cmd)
+{
+	switch (cmd->command)
 	{
-	case MAV_ACTION_LAUNCH:
-		if (global_data.state.mav_mode > (uint8_t)MAV_MODE_LOCKED)
+	case MAV_CMD_PREFLIGHT_STORAGE:
+	{
+		if (cmd->param1 == 0)
 		{
-			global_data.state.status = (uint8_t)MAV_STATE_ACTIVE;
+			param_read_all();
+			debug_message_buffer("Started reading params from eeprom");
 		}
-		break;
-	case MAV_ACTION_MOTORS_START:
-		if (global_data.state.mav_mode > (uint8_t)MAV_MODE_LOCKED)
+		if (cmd->param1 == 1)
 		{
-			global_data.state.status = (uint8_t)MAV_STATE_ACTIVE;
+			debug_message_buffer("Started writing params to eeprom");
+			param_write_all();
 		}
-		break;
-	case MAV_ACTION_MOTORS_STOP:
-		global_data.state.status = (uint8_t)MAV_STATE_STANDBY;
-		break;
-	case MAV_ACTION_EMCY_KILL:
-		global_data.state.status = (uint8_t)MAV_STATE_EMERGENCY;
-		break;
-	case MAV_ACTION_STORAGE_READ:
-		param_read_all();
-		debug_message_buffer("Started reading params from eeprom");
-		break;
-	case MAV_ACTION_STORAGE_WRITE:
-		debug_message_buffer("Started writing params to eeprom");
-		param_write_all();
-		break;
-	case MAV_ACTION_CALIBRATE_GYRO:
-		start_gyro_calibration();
-		m_parameter_i = 0;
-		break;
-	case MAV_ACTION_CALIBRATE_RC:
-		start_rc_calibration();
-		break;
-	case MAV_ACTION_CALIBRATE_MAG:
-		start_mag_calibration();
-		break;
-	case MAV_ACTION_CALIBRATE_PRESSURE:
-		start_pressure_calibration();
-		break;
-	case MAV_ACTION_SET_ORIGIN:
-		// If not flying
-		if (!sys_state_is_flying())
+	}
+	break;
+	case MAV_CMD_PREFLIGHT_CALIBRATION:
+	{
+		if (cmd->param1 == 1)
 		{
-			gps_set_local_origin();
-			altitude_set_local_origin();
+			start_gyro_calibration();
+			m_parameter_i = 0;
 		}
-		break;
+	}
+	break;
 	default:
 		// Should never be reached, ignore unknown commands
-		debug_message_buffer_sprintf("Rejected unknown action Number: %u", action);
+		debug_message_buffer_sprintf("Rejected unknown command number: %u", cmd->command);
 		break;
 	}
 }
@@ -151,6 +147,7 @@ void handle_mavlink_message(mavlink_channel_t chan,
 			break;
 		}
 	}
+	break;
 	default:
 		break;
 	}
@@ -163,41 +160,28 @@ void handle_mavlink_message(mavlink_channel_t chan,
 		mavlink_set_mode_t mode;
 		mavlink_msg_set_mode_decode(msg, &mode);
 		// Check if this system should change the mode
-		if (mode.target == (uint8_t)global_data.param[PARAM_SYSTEM_ID])
+		if (mode.target_system == (uint8_t)global_data.param[PARAM_SYSTEM_ID])
 		{
-			sys_set_mode(mode.mode);
+			sys_set_mode(mode.base_mode);
 
 			// Emit current mode
-			mavlink_msg_sys_status_send(MAVLINK_COMM_0, global_data.state.mav_mode, global_data.state.nav_mode,
-					global_data.state.status, global_data.cpu_usage, global_data.battery_voltage,
-					global_data.motor_block, communication_get_uart_drop_rate());
-			mavlink_msg_sys_status_send(MAVLINK_COMM_1, global_data.state.mav_mode, global_data.state.nav_mode,
-					global_data.state.status, global_data.cpu_usage, global_data.battery_voltage,
-					global_data.motor_block, communication_get_uart_drop_rate());
+			send_system_state();
 
 		}
 	}
 	break;
-	case MAVLINK_MSG_ID_ACTION:
+	case MAVLINK_MSG_ID_COMMAND_LONG:
 	{
-		execute_action(mavlink_msg_action_get_action(msg));
-
-		//Forwart actions from Xbee to Onboard Computer and vice versa
-		if (chan == MAVLINK_COMM_1)
-		{
-			mavlink_send_uart(MAVLINK_COMM_0, msg);
-		}
-		else if (chan == MAVLINK_COMM_0)
-		{
-			mavlink_send_uart(MAVLINK_COMM_1, msg);
-		}
+		mavlink_command_long_t cmd;
+		mavlink_msg_command_long_decode(msg, &cmd);
+		execute_command(&cmd);
 	}
 	break;
 	case MAVLINK_MSG_ID_SYSTEM_TIME:
 	{
 		if (!sys_time_clock_get_unix_offset())
 		{
-			int64_t offset = ((int64_t) mavlink_msg_system_time_get_time_usec(
+			int64_t offset = ((int64_t) mavlink_msg_system_time_get_time_unix_usec(
 					msg)) - (int64_t) sys_time_clock_get_time_usec();
 			sys_time_clock_set_unix_offset(offset);
 
@@ -277,7 +261,7 @@ void handle_mavlink_message(mavlink_channel_t chan,
 					// Report back value
 					mavlink_msg_param_value_send(chan,
 							(int8_t*) global_data.param_name[set.param_index],
-							global_data.param[set.param_index], ONBOARD_PARAM_COUNT, set.param_index);
+							global_data.param[set.param_index], MAVLINK_TYPE_FLOAT, ONBOARD_PARAM_COUNT, set.param_index);
 				}
 			}
 			else
@@ -307,7 +291,7 @@ void handle_mavlink_message(mavlink_channel_t chan,
 						// Report back value
 						mavlink_msg_param_value_send(chan,
 								(int8_t*) global_data.param_name[i],
-								global_data.param[i], ONBOARD_PARAM_COUNT, m_parameter_i);
+								global_data.param[i], MAVLINK_TYPE_FLOAT, ONBOARD_PARAM_COUNT, m_parameter_i);
 					}
 				}
 			}
@@ -366,10 +350,10 @@ void handle_mavlink_message(mavlink_channel_t chan,
 						// Report back new value
 						mavlink_msg_param_value_send(MAVLINK_COMM_0,
 								(int8_t*) global_data.param_name[i],
-								global_data.param[i], ONBOARD_PARAM_COUNT, m_parameter_i);
+								global_data.param[i], MAVLINK_TYPE_FLOAT, ONBOARD_PARAM_COUNT, m_parameter_i);
 						mavlink_msg_param_value_send(MAVLINK_COMM_1,
 								(int8_t*) global_data.param_name[i],
-								global_data.param[i], ONBOARD_PARAM_COUNT, m_parameter_i);
+								global_data.param[i], MAVLINK_TYPE_FLOAT, ONBOARD_PARAM_COUNT, m_parameter_i);
 
 						debug_message_buffer_sprintf("Parameter received param id=%i",i);
 					}
@@ -378,43 +362,19 @@ void handle_mavlink_message(mavlink_channel_t chan,
 		}
 	}
 	break;
-	case MAVLINK_MSG_ID_POSITION_CONTROL_SETPOINT_SET:
+	case MAVLINK_MSG_ID_SET_POSITION_CONTROL_OFFSET:
 	{
-		mavlink_position_control_setpoint_set_t pos;
-		mavlink_msg_position_control_setpoint_set_decode(msg, &pos);
-		if (global_data.param[PARAM_POSITIONSETPOINT_ACCEPT] == 1)
-		{
-			//			global_data.position_setpoint.x = pos.x;
-			//			global_data.position_setpoint.y = pos.y;
-			//			global_data.position_setpoint.z = pos.z;
-			debug_message_buffer("Position setpoint updated. OLD?\n");
-		}
-		else
-		{
-			debug_message_buffer(
-					"Position setpoint recieved but not updated. OLD?\n");
-		}
-
-		// Send back a message confirming the new position
-		mavlink_msg_position_control_setpoint_send(MAVLINK_COMM_0, pos.id,
-				pos.x, pos.y, pos.z, pos.yaw);
-		mavlink_msg_position_control_setpoint_send(MAVLINK_COMM_1, pos.id,
-				pos.x, pos.y, pos.z, pos.yaw);
-	}
-	break;
-	case MAVLINK_MSG_ID_POSITION_CONTROL_OFFSET_SET:
-	{
-		mavlink_position_control_offset_set_t set;
-		mavlink_msg_position_control_offset_set_decode(msg, &set);
+		mavlink_set_position_control_offset_t set;
+		mavlink_msg_set_position_control_offset_decode(msg, &set);
 		//global_data.attitude_setpoint_pos_body_offset.z = set.yaw;
 
 		//Ball Tracking
-		if (global_data.param[PARAM_POSITIONSETPOINT_ACCEPT] == 1 && global_data.param[PARAM_POSITION_YAW_TRACKING]==1)
+		if (global_data.param[PARAM_POSITIONSETPOINT_ACCEPT] == 1.0f && global_data.param[PARAM_POSITION_YAW_TRACKING]==1.0f)
 		{
 			global_data.param[PARAM_POSITION_SETPOINT_YAW]
 			                  = global_data.attitude.z + set.yaw;
 
-			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 92, set.yaw);
+			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 0, 92, set.yaw);
 		}
 	}
 	break;
@@ -513,10 +473,10 @@ void handle_mavlink_message(mavlink_channel_t chan,
 		}
 	}
 	break;
-	case MAVLINK_MSG_ID_LOCAL_POSITION_SETPOINT_SET:
+	case MAVLINK_MSG_ID_SET_LOCAL_POSITION_SETPOINT:
 	{
-		mavlink_local_position_setpoint_set_t sp;
-		mavlink_msg_local_position_setpoint_set_decode(msg, &sp);
+		mavlink_set_local_position_setpoint_t sp;
+		mavlink_msg_set_local_position_setpoint_decode(msg, &sp);
 		if (sp.target_system == global_data.param[PARAM_SYSTEM_ID])
 		{
 			if (global_data.param[PARAM_POSITIONSETPOINT_ACCEPT] == 1)
@@ -616,10 +576,10 @@ void communication_queued_send(void)
 	{
 		mavlink_msg_param_value_send(MAVLINK_COMM_0,
 				(int8_t*) global_data.param_name[m_parameter_i],
-				global_data.param[m_parameter_i], ONBOARD_PARAM_COUNT, m_parameter_i);
+				global_data.param[m_parameter_i], MAVLINK_TYPE_FLOAT, ONBOARD_PARAM_COUNT, m_parameter_i);
 		mavlink_msg_param_value_send(MAVLINK_COMM_1,
 				(int8_t*) global_data.param_name[m_parameter_i],
-				global_data.param[m_parameter_i], ONBOARD_PARAM_COUNT, m_parameter_i);
+				global_data.param[m_parameter_i], MAVLINK_TYPE_FLOAT, ONBOARD_PARAM_COUNT, m_parameter_i);
 		m_parameter_i++;
 	}
 }
@@ -733,11 +693,11 @@ void communication_receive(void)
 				{
 					global_data.state.gps_ok = 1;
 
-					mavlink_msg_gps_raw_send(
-							global_data.param[PARAM_SEND_DEBUGCHAN],
-							sys_time_clock_get_unix_time(), gps_mode, gps_lat
-									/ 1e7f, gps_lon / 1e7f, gps_alt / 100.0f,
-							0.0f, 0.0f, gps_gspeed / 100.0f, gps_course / 10.0f);
+//					mavlink_msg_gps_raw_send(
+//							global_data.param[PARAM_SEND_DEBUGCHAN],
+//							sys_time_clock_get_unix_time(), gps_mode, gps_lat
+//									/ 1e7f, gps_lon / 1e7f, gps_alt / 100.0f,
+//							0.0f, 0.0f, gps_gspeed / 100.0f, gps_course / 10.0f);
 				}
 				//				// Output satellite info
 				//				for (int i = 0; i < gps_nb_channels; i++)

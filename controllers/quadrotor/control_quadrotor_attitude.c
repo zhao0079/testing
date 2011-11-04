@@ -6,7 +6,10 @@
 #include "global_data.h"
 // Include comm
 #include "comm.h"
-#include "mavlink.h"
+
+
+extern mavlink_system_t mavlink_system;
+#include "pixhawk/mavlink.h"
 #include "debug.h"
 
 #include "transformation.h"
@@ -166,20 +169,22 @@ inline void control_quadrotor_attitude()
 
 
 	// GUIDED AND AUTO MODES
-	if (global_data.state.mav_mode == (uint8_t) MAV_MODE_GUIDED
-			|| global_data.state.mav_mode == (uint8_t) MAV_MODE_AUTO)
+	if (((global_data.state.mav_mode & (uint8_t) MAV_MODE_FLAG_GUIDED_ENABLED)
+			|| (global_data.state.mav_mode & (uint8_t) MAV_MODE_FLAG_AUTO_ENABLED))
+			&& (global_data.state.mav_mode & (uint8_t) MAV_MODE_FLAG_SAFETY_ARMED))
 	{
 		motor_thrust = quadrotor_start_land_motor_thrust();
 	}
-	else if ((global_data.state.mav_mode == (uint8_t) MAV_MODE_MANUAL)
-			|| (global_data.state.mav_mode == (uint8_t) MAV_MODE_TEST2
-					&& global_data.param[PARAM_MIX_POSITION_Z_WEIGHT] == 0))
+	else if (((global_data.state.mav_mode & (uint8_t) MAV_MODE_FLAG_TEST_ENABLED)
+					&& global_data.param[PARAM_MIX_POSITION_Z_WEIGHT] == 0)
+		&& (global_data.state.mav_mode & (uint8_t) MAV_MODE_FLAG_SAFETY_ARMED))
 	{
 		motor_thrust = global_data.gas_remote;
 		//global_data.state.fly = FLY_GROUNDED;
 	}
-	else if (global_data.state.mav_mode == (uint8_t) MAV_MODE_TEST2
+	else if (((global_data.state.mav_mode & (uint8_t) MAV_MODE_FLAG_TEST_ENABLED)
 			&& global_data.param[PARAM_MIX_POSITION_Z_WEIGHT])
+			&& (global_data.state.mav_mode & (uint8_t) MAV_MODE_FLAG_SAFETY_ARMED))
 	{
 		//Z Position Hold mode
 		if (global_data.thrust_hover_offset == 0.0f)
@@ -207,7 +212,7 @@ inline void control_quadrotor_attitude()
 			motor_thrust = 0;
 		}
 	}
-	else if (global_data.state.mav_mode == (uint8_t)MAV_MODE_LOCKED)
+	else if ((global_data.state.mav_mode & (uint8_t) MAV_MODE_FLAG_SAFETY_ARMED) == 0)
 	{
 		// LOCKED MODE
 		motor_thrust = 0;
@@ -353,13 +358,16 @@ inline void control_quadrotor_attitude()
 	motor_pwm[1] = (uint8_t) motor_calc[1];
 	motor_pwm[2] = (uint8_t) motor_calc[2];
 	motor_pwm[3] = (uint8_t) motor_calc[3];
+
+	bool valid_mode = (global_data.state.mav_mode & MAV_MODE_FLAG_MANUAL_INPUT_ENABLED) |
+			(global_data.state.mav_mode & MAV_MODE_FLAG_GUIDED_ENABLED) |
+			(global_data.state.mav_mode & MAV_MODE_FLAG_AUTO_ENABLED) |
+			(global_data.state.mav_mode & MAV_MODE_FLAG_TEST_ENABLED);
+
+	bool valid_state = (global_data.state.status == MAV_STATE_ACTIVE) | (global_data.state.status == MAV_STATE_CRITICAL) | (global_data.state.status == MAV_STATE_EMERGENCY);
+
  //Disable for testing without motors
-	if ((global_data.state.mav_mode == MAV_MODE_MANUAL
-			|| global_data.state.mav_mode == MAV_MODE_GUIDED
-			|| global_data.state.mav_mode == MAV_MODE_TEST2)
-			&& (global_data.state.status == MAV_STATE_ACTIVE
-					|| global_data.state.status == MAV_STATE_CRITICAL
-					|| global_data.state.status == MAV_STATE_EMERGENCY))
+	if (valid_mode && valid_state)
 	{
 		// Set MOTORS
 		motor_i2c_set_pwm(MOT1_I2C_SLAVE_ADDRESS, motor_pwm[0]);
@@ -367,32 +375,32 @@ inline void control_quadrotor_attitude()
 		motor_i2c_set_pwm(MOT3_I2C_SLAVE_ADDRESS, motor_pwm[2]);
 		motor_i2c_set_pwm(MOT4_I2C_SLAVE_ADDRESS, motor_pwm[3]);
 	}
-	else
-	{
-		if (global_data.state.mav_mode == MAV_MODE_TEST3
-				&& global_data.param[PARAM_SW_VERSION] >= 0
-				&& global_data.param[PARAM_SW_VERSION] <= 255)
-		{
-			//Testing motor trust with qgroundcontrol. PARAM_SW_VERSION is the thrust
-//			motor_i2c_set_pwm(MOT1_I2C_SLAVE_ADDRESS,
+//	else
+//	{
+//		if (global_data.state.mav_mode == MAV_MODE_TEST3
+//				&& global_data.param[PARAM_SW_VERSION] >= 0
+//				&& global_data.param[PARAM_SW_VERSION] <= 255)
+//		{
+//			//Testing motor trust with qgroundcontrol. PARAM_SW_VERSION is the thrust
+////			motor_i2c_set_pwm(MOT1_I2C_SLAVE_ADDRESS,
+////					global_data.param[PARAM_SW_VERSION]);
+////			motor_i2c_set_pwm(MOT2_I2C_SLAVE_ADDRESS,
+////					global_data.param[PARAM_SW_VERSION]);
+////			motor_i2c_set_pwm(MOT3_I2C_SLAVE_ADDRESS,
+////					global_data.param[PARAM_SW_VERSION]);
+//			motor_i2c_set_pwm(MOT4_I2C_SLAVE_ADDRESS,
 //					global_data.param[PARAM_SW_VERSION]);
-//			motor_i2c_set_pwm(MOT2_I2C_SLAVE_ADDRESS,
-//					global_data.param[PARAM_SW_VERSION]);
-//			motor_i2c_set_pwm(MOT3_I2C_SLAVE_ADDRESS,
-//					global_data.param[PARAM_SW_VERSION]);
-			motor_i2c_set_pwm(MOT4_I2C_SLAVE_ADDRESS,
-					global_data.param[PARAM_SW_VERSION]);
-
-		}
-		else
-		{
-			// Set MOTORS to standby thrust
-			motor_i2c_set_pwm(MOT1_I2C_SLAVE_ADDRESS, 0);
-			motor_i2c_set_pwm(MOT2_I2C_SLAVE_ADDRESS, 0);
-			motor_i2c_set_pwm(MOT3_I2C_SLAVE_ADDRESS, 0);
-			motor_i2c_set_pwm(MOT4_I2C_SLAVE_ADDRESS, 0);
-		}
-	}
+//
+//		}
+//		else
+//		{
+//			// Set MOTORS to standby thrust
+//			motor_i2c_set_pwm(MOT1_I2C_SLAVE_ADDRESS, 0);
+//			motor_i2c_set_pwm(MOT2_I2C_SLAVE_ADDRESS, 0);
+//			motor_i2c_set_pwm(MOT3_I2C_SLAVE_ADDRESS, 0);
+//			motor_i2c_set_pwm(MOT4_I2C_SLAVE_ADDRESS, 0);
+//		}
+//	}
 
 	//DEBUGGING
 	if (controller_counter++ == 1)
@@ -417,13 +425,13 @@ inline void control_quadrotor_attitude()
 			//			//	message_debug_send(MAVLINK_COMM_1, 28, global_data.gyros_si.y);
 			//			//	message_debug_send(MAVLINK_COMM_1, 27, global_data.gyros_si.z);
 
-			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 16,
+			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 0, 16,
 					motor_pwm[0]);
-			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 17,
+			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 0, 17,
 					motor_pwm[1]);
-			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 18,
+			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 0, 18,
 					motor_pwm[2]);
-			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 19,
+			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 0, 19,
 					motor_pwm[3]);
 //			mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 20,
 //					motor_thrust);

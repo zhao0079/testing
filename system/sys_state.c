@@ -64,68 +64,7 @@ uint8_t sys_get_mode(void)
  */
 bool sys_set_mode(uint8_t mode)
 {
-	if (mode == (uint8_t)MAV_MODE_AUTO)
-	{
-		global_data.state.mav_mode = MAV_MODE_AUTO;
-		return true;
-	}
-	else if (mode == (uint8_t)MAV_MODE_GUIDED)
-	{
-		global_data.state.mav_mode = MAV_MODE_GUIDED;
-		return true;
-	}
-	else if (mode == (uint8_t)MAV_MODE_LOCKED)
-	{
-		global_data.state.mav_mode = MAV_MODE_LOCKED;
-		return true;
-	}
-	else if (mode == (uint8_t)MAV_MODE_MANUAL)
-	{
-		global_data.state.mav_mode = MAV_MODE_MANUAL;
-		return true;
-	}
-	else if (mode == (uint8_t)MAV_MODE_READY)
-	{
-		global_data.state.mav_mode = MAV_MODE_READY;
-		return true;
-	}
-	else if (mode == (uint8_t)MAV_MODE_TEST1)
-	{
-		global_data.state.mav_mode = MAV_MODE_TEST1;
-		return true;
-	}
-	else if (mode == (uint8_t)MAV_MODE_TEST2)
-	{
-		global_data.state.mav_mode = MAV_MODE_TEST2;
-		return true;
-	}
-	else if (mode == (uint8_t)MAV_MODE_TEST3)
-	{
-		global_data.state.mav_mode = MAV_MODE_TEST3;
-		return true;
-	}
-	else if (mode == (uint8_t)MAV_MODE_RC_TRAINING)
-	{
-		// Only go into RC training if not flying
-		if (! sys_state_is_flying())
-		{
-			global_data.state.mav_mode = (uint8_t)MAV_MODE_RC_TRAINING;
-			return true;
-		}
-		else
-		{
-			debug_message_buffer("WARNING: SYSTEM IS IN FLIGHT! Denied to switch to RC mode");
-			return false;
-		}
-	}
-	// UNINIT is not a mode that should be actively set
-	// it will thus be rejected like any other invalid mode
-	else
-	{
-		// No valid mode
-		debug_message_buffer("WARNING: Attempted to set invalid mode");
-		return false;
-	}
+	global_data.state.mav_mode = mode;
 }
 
 /**
@@ -201,7 +140,7 @@ void sys_set_type(enum MAV_TYPE type)
 /**
  * @param nav_mode the new navigation mode
  */
-void sys_set_nav_mode(enum MAV_NAV nav_mode)
+void sys_set_nav_mode(uint32_t nav_mode)
 {
 	global_data.state.nav_mode = nav_mode;
 }

@@ -58,6 +58,8 @@ void comm_send_ch(mavlink_channel_t chan, uint8_t ch)
 	}
 }
 
+
+
 uint8_t comm_check_free_space (mavlink_channel_t chan, uint8_t len)
 {
     if (chan == MAVLINK_COMM_0)

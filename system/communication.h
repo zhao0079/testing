@@ -34,9 +34,9 @@
 #include "conf/conf.h"
 #include <stdbool.h>
 #include "comm.h"
-#include <mavlink.h>
+#include <pixhawk/mavlink.h>
 
-void execute_action(uint8_t action);
+void execute_command(mavlink_command_long_t* cmd);
 
 /** @addtogroup COMM */
 //@{

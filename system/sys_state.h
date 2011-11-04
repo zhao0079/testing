@@ -52,6 +52,6 @@ uint8_t sys_get_mode(void);
 void sys_set_type(enum MAV_TYPE type);
 
 /** @brief Set the current navigation mode */
-void sys_set_nav_mode(enum MAV_NAV nav_mode);
+void sys_set_nav_mode(uint32_t nav_mode);
 
 #endif /* SYS_STATE_H_ */

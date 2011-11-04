@@ -32,6 +32,8 @@
 #include "LPC21xx.h"
 #include "watchdog.h"
 
+extern mavlink_system_t mavlink_system;
+
 
 void watchdog_kick(void)
 {

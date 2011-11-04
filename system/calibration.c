@@ -54,16 +54,9 @@ bool calibration_enter(void)
 		calibration_prev_state = sys_get_state();
 		calibration_prev_mode = sys_get_mode();
 		// Lock vehicle during calibration
-		sys_set_mode((uint8_t)MAV_MODE_LOCKED);
 		sys_set_state((uint8_t)MAV_STATE_CALIBRATING);
 		debug_message_buffer("Starting calibration.");
 
-		mavlink_msg_sys_status_send(MAVLINK_COMM_0, global_data.state.mav_mode, global_data.state.nav_mode,
-				global_data.state.status, global_data.cpu_usage, global_data.battery_voltage,
-				global_data.motor_block, communication_get_uart_drop_rate());
-		mavlink_msg_sys_status_send(MAVLINK_COMM_1, global_data.state.mav_mode, global_data.state.nav_mode,
-				global_data.state.status, global_data.cpu_usage, global_data.battery_voltage,
-				global_data.motor_block, communication_get_uart_drop_rate());
 		debug_message_send_one();
 		debug_message_send_one();
 		return true;

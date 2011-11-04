@@ -55,10 +55,7 @@
 inline void remote_control(void)
 {
 
-	if (global_data.state.mav_mode == (uint8_t) MAV_MODE_MANUAL
-			|| global_data.state.mav_mode == (uint8_t) MAV_MODE_GUIDED
-			|| global_data.state.mav_mode == (uint8_t) MAV_MODE_AUTO
-			|| global_data.state.mav_mode == MAV_MODE_TEST2)
+	if (global_data.state.mav_mode & (uint8_t) MAV_MODE_FLAG_MANUAL_INPUT_ENABLED)
 	{
 		if (radio_control_status() == RADIO_CONTROL_ON)
 		{
@@ -114,7 +111,7 @@ inline void remote_control(void)
 				global_data.state.status = MAV_STATE_ACTIVE;
 				global_data.state.fly = FLY_WAIT_MOTORS;
 				//this will be done by setpoint
-				if (global_data.state.mav_mode == MAV_MODE_TEST2)
+				if (global_data.state.mav_mode & MAV_MODE_FLAG_TEST_ENABLED)
 				{
 					global_data.state.fly = FLY_FLYING;
 				}
@@ -156,10 +153,7 @@ inline void remote_control(void)
 							> PPM_HIGH_TRIG) && (ppm_get_channel(
 					global_data.param[PARAM_PPM_ROLL_CHANNEL]) < PPM_LOW_TRIG))
 			{
-				mavlink_msg_action_send(
-						global_data.param[PARAM_SEND_DEBUGCHAN],
-						global_data.param[PARAM_SYSTEM_ID],MAV_COMP_ID_IMU,
-						MAV_ACTION_REC_START);
+				// FIXME LORENZ CAPTURE START
 				//should actually go to capturer not IMU
 			}
 			// Stop capture: left down. right stick right up.
@@ -171,14 +165,11 @@ inline void remote_control(void)
 							> PPM_HIGH_TRIG) && (ppm_get_channel(
 					global_data.param[PARAM_PPM_ROLL_CHANNEL]) > PPM_HIGH_TRIG))
 			{
-				mavlink_msg_action_send(
-						global_data.param[PARAM_SEND_DEBUGCHAN],
-						global_data.param[PARAM_SYSTEM_ID], MAV_COMP_ID_IMU,
-						MAV_ACTION_REC_STOP);
+				// FIXME LORENZ CAPTURE END
 				//should actually go to capturer not IMU
 			}
 
-			if (global_data.state.mav_mode == MAV_MODE_GUIDED)
+			if (global_data.state.mav_mode & MAV_MODE_FLAG_GUIDED_ENABLED)
 			{
 				// Reset position to 0,0, mostly useful for optical flow with setpoint at 0,0
 				if (ppm_get_channel(global_data.param[PARAM_PPM_TUNE4_CHANNEL])
@@ -189,7 +180,7 @@ inline void remote_control(void)
 				}
 			}
 
-			if (global_data.state.mav_mode == MAV_MODE_TEST2)
+			if (global_data.state.mav_mode & MAV_MODE_FLAG_TEST_ENABLED)
 			{
 
 				if (ppm_get_channel(global_data.param[PARAM_PPM_TUNE1_CHANNEL])
@@ -360,7 +351,7 @@ inline void remote_control(void)
 				{
 					if (global_data.state.fly == FLY_GROUNDED)
 					{
-						sys_set_mode(MAV_MODE_LOCKED);
+						sys_set_mode(global_data.state.mav_mode & ~MAV_MODE_FLAG_SAFETY_ARMED);
 						sys_set_state(MAV_STATE_STANDBY);
 
 						debug_message_buffer(
@@ -377,7 +368,7 @@ inline void remote_control(void)
 					}
 				}
 
-				if(global_data.state.mav_mode == MAV_MODE_TEST2 && global_data.state.fly != FLY_GROUNDED){
+				if((global_data.state.mav_mode & MAV_MODE_FLAG_TEST_ENABLED) && global_data.state.fly != FLY_GROUNDED){
 
 					//z-controller enabled
 					global_data.param[PARAM_MIX_POSITION_Z_WEIGHT] = 1;

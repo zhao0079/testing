@@ -5,7 +5,7 @@
  *      Author: Laurens Mackay
  */
 #include "params.h"
-#include "mavlink.h"
+#include "mavlink_types.h"
 #include "debug.h"
 #include "eeprom.h"
 #include "global_data.h"
@@ -25,23 +25,24 @@ uint8_t param_sizecheck = 255;
 float_vect3 debug;
 void param_write(uint32_t param_id)
 {
-	generic_32bit param;
+	mavlink_param_union_t param;
 	switch (param_id)
 	{
 	case PARAM_IMU_RESET:
-		param.f = 0;
+		param.param_float = 0;
 		debug_message_buffer("eeprom param: param IMU_RESET set to 0");
 		break;
 	case ONBOARD_PARAM_COUNT:
-		param.i = EEPROM_PARAM_CHECK_VALUE;// if this value will be changed count of parameters has changed
+		param.param_int32 = EEPROM_PARAM_CHECK_VALUE;// if this value will be changed count of parameters has changed
 		debug_message_buffer("eeprom param: security check written");
 		break;
 	default:
-		param.f = global_data.param[param_id];
+		param.param_float = global_data.param[param_id];
+		break;
 	}
-	eeprom_write(4 * param_id, 4, param.b);
+	eeprom_write(4 * param_id, 4, param.bytes);
 
-	debug.y = param.f;
+	debug.y = param.param_float;
 }
 
 void param_start_read(uint32_t param_id)
@@ -50,8 +51,8 @@ void param_start_read(uint32_t param_id)
 }
 void param_read_update(uint32_t param_id)
 {
-	generic_32bit param;
-	eeprom_read_data(param.b);
+	mavlink_param_union_t param;
+	eeprom_read_data(param.bytes);
 	switch (param_id)
 	{
 	case PARAM_IMU_RESET:
@@ -59,7 +60,7 @@ void param_read_update(uint32_t param_id)
 		break;
 	case ONBOARD_PARAM_COUNT:
 
-		if (param.i == EEPROM_PARAM_CHECK_VALUE)// if this value will be changed count of parameters has changed
+		if (param.param_int32 == EEPROM_PARAM_CHECK_VALUE)// if this value will be changed count of parameters has changed
 		{
 			debug_message_buffer("eeprom param: security check OK");
 			param_sizecheck = 1;
@@ -72,10 +73,11 @@ void param_read_update(uint32_t param_id)
 		}
 		break;
 	default:
-		global_data.param[param_id] = param.f;
+		global_data.param[param_id] = param.param_float;
+		break;
 	}
 
-	debug.z = param.f;
+	debug.z = param.param_float;
 }
 void param_handler()
 {
@@ -145,6 +147,7 @@ void param_handler()
 		break;
 	default:
 		param_handler_step = 0;
+		break;
 	}
 
 	debug.x = param_handler_counter;

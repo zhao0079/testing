@@ -64,7 +64,8 @@ void gps_send_local_origin(void)
 	{
 //		mavlink_msg_gps_local_origin_set_send(global_data.param[PARAM_SEND_DEBUGCHAN], gps_local_origin.x,
 //				gps_local_origin.y, gps_local_origin.z, 0, 0, 0);
-		mavlink_msg_gps_local_origin_set_send(global_data.param[PARAM_SEND_DEBUGCHAN], gps_local_origin.x,
-				gps_local_origin.y, gps_local_origin.z);
+//		mavlink_msg_gps_local_origin_set_send(global_data.param[PARAM_SEND_DEBUGCHAN], gps_local_origin.x,
+//				gps_local_origin.y, gps_local_origin.z);
+		// FIXME LORENZ
 	}
 }

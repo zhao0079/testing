@@ -40,6 +40,8 @@
 */
 
 #include "conf.h" /* Defines the system type in conf/user_conf.h */
+#include "mavlink_types.h"
+mavlink_system_t mavlink_system;
 
 // All mainloops are in folder main/mainloop_xx.h
 // Please note that through the default -O2 optimization
@@ -48,15 +50,7 @@
 // guarded by the define switch, the C-files can be safely
 // compiled along.
 
-
-#include "mainloop_generic.h"
-#if PX_VEHICLE_TYPE == PX_AIRFRAME_FIXED_WING
-#include "mainloop_fixed_wing.h"
-#elif PX_VEHICLE_TYPE == PX_AIRFRAME_QUADROTOR
 #include "mainloop_quadrotor.h"
-#elif PX_VEHICLE_TYPE == PX_GROUND_CAR
-#include "mainloop_ground_car.h"
-#endif
 
 /**
 * @brief Main function
@@ -66,27 +60,6 @@
 */
 int main(void)
 {
-#if PX_VEHICLE_TYPE == PX_GENERIC
-
-	// Please note that the functions of
-	// the generic vehicle are executed
-	// in the main_init and main_loop
-	// functions of the other vehicle types
-	// as well.
-	main_loop_generic();
-#warning "INFO: COMPILING CODE FOR GENERIC VEHICLE"
-
-#elif PX_VEHICLE_TYPE == PX_AIRFRAME_FIXED_WING
-	main_loop_fixed_wing();
-#warning "INFO: COMPILING CODE FOR FIXED WING AIRCRAFT"
-
-#elif PX_VEHICLE_TYPE == PX_AIRFRAME_QUADROTOR
 	main_loop_quadrotor();
-#warning "INFO: COMPILING CODE FOR QUADROTOR"
-
-#elif PX_VEHICLE_TYPE == PX_GROUND_CAR
-	main_loop_ground_car();
-#warning "INFO: COMPILING CODE FOR GROUND CAR"
-#endif
 	return 0;
 }

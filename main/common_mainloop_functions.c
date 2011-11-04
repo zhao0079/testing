@@ -13,7 +13,10 @@
 
 // Include comm
 #include "comm.h"
-#include <mavlink.h>
+
+extern mavlink_system_t mavlink_system;
+
+#include <pixhawk/mavlink.h>
 #include "communication.h"
 
 // Include globals
@@ -197,7 +200,7 @@ void communication_send_attitude_position(uint64_t loop_start_time)
 	if (global_data.param[PARAM_SEND_SLOT_DEBUG_5] == 1)
 	{
 		// Send current position and speed
-		mavlink_msg_local_position_send(global_data.param[PARAM_SEND_DEBUGCHAN], sys_time_clock_get_unix_offset() + loop_start_time,
+		mavlink_msg_local_position_ned_send(global_data.param[PARAM_SEND_DEBUGCHAN], sys_time_clock_get_unix_offset() + loop_start_time,
 				global_data.position.x, global_data.position.y,
 				global_data.position.z, global_data.velocity.x,
 				global_data.velocity.y, global_data.velocity.z);
@@ -213,7 +216,7 @@ void communication_send_remote_control(void)
 {
 	if (global_data.param[PARAM_SEND_SLOT_REMOTE_CONTROL] == 1)
 	{
-		mavlink_msg_rc_channels_raw_send(global_data.param[PARAM_SEND_DEBUGCHAN],
+		mavlink_msg_rc_channels_raw_send(global_data.param[PARAM_SEND_DEBUGCHAN], 0, 0,
 				radio_control_get_channel_raw(1),
 				radio_control_get_channel_raw(2),
 				radio_control_get_channel_raw(3),
@@ -283,7 +286,7 @@ void communication_send_controller_feedback(void)
 void handle_controller_timeouts(uint64_t loop_start_time)
 {
 	// Send position setpoint
-	mavlink_msg_local_position_setpoint_send(MAVLINK_COMM_0,
+	mavlink_msg_local_position_setpoint_send(MAVLINK_COMM_0, MAV_FRAME_LOCAL_NED,
 			global_data.position_setpoint.x,
 			global_data.position_setpoint.y,
 			global_data.position_setpoint.z,
@@ -348,28 +351,6 @@ void handle_controller_timeouts(uint64_t loop_start_time)
 	{
 		global_data.state.position_yaw_control_enabled = 0;
 	}
-
-	// Output control state
-	mavlink_msg_control_status_send(global_data.param[PARAM_SEND_DEBUGCHAN],
-			(global_data.state.vision_ok > 0) ? 3 : global_data.state.position_fix, // Send 3D fix if vision is available
-					(global_data.state.vision_ok > 0) ? 3 : 0, // Send 3D fix for vision always
-							global_data.state.gps_ok,
-							0, // ahrs_health	uint8_t	Attitude estimation health: 0: poor, 255: excellent
-							global_data.state.attitude_control_enabled,
-							global_data.state.position_xy_control_enabled,
-							global_data.state.position_z_control_enabled,
-							global_data.state.position_yaw_control_enabled
-	);
-
-//		mavlink_msg_control_status_send(MAVLINK_COMM_1,
-//			(global_data.state.vision_ok > 0) ? 3 : global_data.state.position_fix, // Send 3D fix if vision is available
-//					(global_data.state.vision_ok > 0) ? 3 : 0, // Send 3D fix for vision always
-//							global_data.state.gps_ok,
-//							global_data.state.attitude_control_enabled,
-//							global_data.state.position_xy_control_enabled,
-//							global_data.state.position_z_control_enabled,
-//							global_data.state.position_yaw_control_enabled
-//		);
 
 }
 
@@ -514,20 +495,8 @@ void adc_read(void)
 void update_system_statemachine(uint64_t loop_start_time)
 {
 	// Update state machine, enable and disable controllers
-	switch (global_data.state.mav_mode)
+	if ((global_data.state.mav_mode & MAV_MODE_FLAG_GUIDED_ENABLED) || (global_data.state.mav_mode & MAV_MODE_FLAG_AUTO_ENABLED))
 	{
-	case MAV_MODE_MANUAL:
-		global_data.param[PARAM_MIX_POSITION_WEIGHT] = 0;
-		global_data.param[PARAM_MIX_POSITION_YAW_WEIGHT] = 0;
-		global_data.param[PARAM_MIX_POSITION_Z_WEIGHT] = 0;
-		global_data.param[PARAM_MIX_OFFSET_WEIGHT] = 1;
-		global_data.param[PARAM_MIX_REMOTE_WEIGHT] = 1;
-		break;
-	case MAV_MODE_AUTO:
-		// Same as guided mode, NO BREAK
-	case MAV_MODE_TEST1:
-		// Same as guided mode, NO BREAK
-	case MAV_MODE_GUIDED:
 		if (global_data.state.position_fix)
 		{
 			if (global_data.state.status == MAV_STATE_CRITICAL)
@@ -580,36 +549,45 @@ void update_system_statemachine(uint64_t loop_start_time)
 			global_data.param[PARAM_MIX_POSITION_WEIGHT] = 0;
 			global_data.param[PARAM_MIX_POSITION_YAW_WEIGHT] = 0;
 			global_data.param[PARAM_MIX_POSITION_Z_WEIGHT] = 0;
+			break;
 		}
 		global_data.param[PARAM_MIX_OFFSET_WEIGHT] = 1;
 		global_data.param[PARAM_MIX_REMOTE_WEIGHT] = 1;
-		break;
-		case MAV_MODE_TEST2:
-//			global_data.param[PARAM_MIX_POSITION_WEIGHT] = 1;
-//			global_data.param[PARAM_MIX_POSITION_YAW_WEIGHT] = 1;
-//			global_data.param[PARAM_MIX_POSITION_Z_WEIGHT] = 1;
-			global_data.param[PARAM_MIX_OFFSET_WEIGHT] = 1;
-			global_data.param[PARAM_MIX_REMOTE_WEIGHT] = 1;
-			break;
-		case MAV_MODE_LOCKED:
-			global_data.param[PARAM_MIX_POSITION_WEIGHT] = 1;
-			global_data.param[PARAM_MIX_POSITION_YAW_WEIGHT] = 1;
-			global_data.param[PARAM_MIX_POSITION_Z_WEIGHT] = 1;
-			break;
-		case MAV_MODE_TEST3:
-			//				break;
-
-		case MAV_MODE_READY:
-			//				break;
-		case MAV_MODE_UNINIT:
-			//				break;
-		default:
-			global_data.param[PARAM_MIX_POSITION_WEIGHT] = 0;
-			global_data.param[PARAM_MIX_POSITION_YAW_WEIGHT] = 0;
-			global_data.param[PARAM_MIX_POSITION_Z_WEIGHT] = 0;
-			global_data.param[PARAM_MIX_OFFSET_WEIGHT] = 0;
-			global_data.param[PARAM_MIX_REMOTE_WEIGHT] = 0;
 	}
+	else if (global_data.state.mav_mode & MAV_MODE_FLAG_TEST_ENABLED)
+	{
+		//			global_data.param[PARAM_MIX_POSITION_WEIGHT] = 1;
+		//			global_data.param[PARAM_MIX_POSITION_YAW_WEIGHT] = 1;
+		//			global_data.param[PARAM_MIX_POSITION_Z_WEIGHT] = 1;
+		global_data.param[PARAM_MIX_OFFSET_WEIGHT] = 1;
+		global_data.param[PARAM_MIX_REMOTE_WEIGHT] = 1;
+	}
+
+	else if ((global_data.state.mav_mode & MAV_MODE_FLAG_MANUAL_INPUT_ENABLED) || (global_data.state.mav_mode & MAV_MODE_FLAG_STABILIZE_ENABLED))
+	{
+		global_data.param[PARAM_MIX_POSITION_WEIGHT] = 0;
+		global_data.param[PARAM_MIX_POSITION_YAW_WEIGHT] = 0;
+		global_data.param[PARAM_MIX_POSITION_Z_WEIGHT] = 0;
+		global_data.param[PARAM_MIX_OFFSET_WEIGHT] = 1;
+		global_data.param[PARAM_MIX_REMOTE_WEIGHT] = 1;
+	}
+	else
+	{
+		global_data.param[PARAM_MIX_POSITION_WEIGHT] = 0;
+		global_data.param[PARAM_MIX_POSITION_YAW_WEIGHT] = 0;
+		global_data.param[PARAM_MIX_POSITION_Z_WEIGHT] = 0;
+		global_data.param[PARAM_MIX_OFFSET_WEIGHT] = 0;
+		global_data.param[PARAM_MIX_REMOTE_WEIGHT] = 0;
+	}
+
+	// SAFETY OVERRIDE
+	if (global_data.state.mav_mode & MAV_MODE_FLAG_SAFETY_ARMED == 0)
+	{
+		global_data.param[PARAM_MIX_POSITION_WEIGHT] = 1;
+		global_data.param[PARAM_MIX_POSITION_YAW_WEIGHT] = 1;
+		global_data.param[PARAM_MIX_POSITION_Z_WEIGHT] = 1;
+	}
+
 	if (global_data.state.remote_ok == 0)
 	{
 		global_data.param[PARAM_MIX_REMOTE_WEIGHT] = 0;
@@ -620,77 +598,21 @@ void send_system_state(void)
 {
 	// Send heartbeat to announce presence of this system
 	// Send over both communication links
+	// Send first message heartbeat
 	mavlink_msg_heartbeat_send(MAVLINK_COMM_1,
-			global_data.param[PARAM_SYSTEM_TYPE], MAV_AUTOPILOT_PIXHAWK);
+			global_data.param[PARAM_SYSTEM_TYPE], MAV_AUTOPILOT_PIXHAWK, global_data.state.mav_mode, global_data.state.nav_mode,
+			global_data.state.status);
 	mavlink_msg_heartbeat_send(MAVLINK_COMM_0,
-			global_data.param[PARAM_SYSTEM_TYPE], MAV_AUTOPILOT_PIXHAWK);
-
-	// Send system status over both links
-
-	mavlink_msg_sys_status_send(MAVLINK_COMM_0, global_data.state.mav_mode, global_data.state.nav_mode,
-			global_data.state.status, global_data.cpu_usage, global_data.battery_voltage,
-			global_data.motor_block, communication_get_uart_drop_rate());
-	mavlink_msg_sys_status_send(MAVLINK_COMM_1, global_data.state.mav_mode, global_data.state.nav_mode,
-			global_data.state.status, global_data.cpu_usage, global_data.battery_voltage,
-			global_data.motor_block, communication_get_uart_drop_rate());
-
-	// Send auxiliary status over both links
-	mavlink_msg_aux_status_send(MAVLINK_COMM_1, global_data.cpu_usage,
-			global_data.i2c0_err_count, global_data.i2c1_err_count,
-			global_data.spi_err_count, global_data.spi_err_count,
-			communication_get_uart_drop_rate());
-	mavlink_msg_aux_status_send(MAVLINK_COMM_0, global_data.cpu_usage,
-			global_data.i2c0_err_count, global_data.i2c1_err_count,
-			global_data.spi_err_count, global_data.spi_err_count,
-			communication_get_uart_drop_rate());
-
-	//			mavlink_msg_raw_aux_send(MAVLINK_COMM_0, 0, 0, 0, 0,
-	//					battery_get_value(), global_data.temperature,
-	//					global_data.pressure_raw);
+			global_data.param[PARAM_SYSTEM_TYPE], MAV_AUTOPILOT_PIXHAWK, global_data.state.mav_mode, global_data.state.nav_mode,
+			global_data.state.status);
+	// Send first global system status
+	mavlink_msg_sys_status_send(MAVLINK_COMM_0, global_data.state.control_sensors_present_mask, global_data.state.control_sensors_enabled_mask,
+			global_data.state.control_sensors_health_mask, global_data.cpu_usage, global_data.battery_voltage, -1, -1, -1, communication_get_uart_drop_rate(), global_data.i2c0_err_count,
+			global_data.i2c1_err_count, global_data.spi_err_count, global_data.spi_err_count);
+	mavlink_msg_sys_status_send(MAVLINK_COMM_1, global_data.state.control_sensors_present_mask, global_data.state.control_sensors_enabled_mask,
+				global_data.state.control_sensors_health_mask, global_data.cpu_usage, global_data.battery_voltage, -1, -1, -1, communication_get_uart_drop_rate(), global_data.i2c0_err_count,
+				global_data.i2c1_err_count, global_data.spi_err_count, global_data.spi_err_count);
 }
-
-//void fuse_vision_altitude_200hz(void)
-//{
-//	// Filter states
-//	static float_vect3 pos_est3;
-//	static float_vect3 vel_est3;
-//
-//	// Just Vision Kalman Filter
-//	x_position_kalman3(&global_data.vision_data, &pos_est3, &vel_est3);
-//	y_position_kalman3(&global_data.vision_data, &pos_est3, &vel_est3);
-//	z_position_kalman3(&global_data.vision_data, &pos_est3, &vel_est3);
-//
-//	global_data.position.x = pos_est3.x;
-//	global_data.position.y = pos_est3.y;
-//	global_data.position.z = pos_est3.z;
-//
-//	global_data.velocity.x = vel_est3.x;
-//	global_data.velocity.y = vel_est3.y;
-//	global_data.velocity.z = vel_est3.z;
-//
-//	if (global_data.vision_data.new_data)
-//	{
-//		uint32_t vision_delay = (uint32_t) (global_data.vision_data.comp_end - global_data.vision_data.time_captured);
-//		// Debug Time for Vision Processing
-//		mavlink_msg_debug_send(global_data.param[PARAM_SEND_DEBUGCHAN], 100, ((float)vision_delay)/1000.f);
-//	}
-//
-//	global_data.vision_data.new_data = 0;
-//
-//	//Switch to Grounddistance sensor for z if we don't have vision
-////	if (global_data.state.vision_ok == 0)
-////	{
-////		if (global_data.state.ground_distance_ok == 1)
-////		{
-////			global_data.position.z = -global_data.ground_distance;
-////		}
-////		else
-////		{
-////			global_data.position.z = -1;
-////		}
-////		global_data.velocity.z = 0;
-////	}
-//}
 
 
 
@@ -707,14 +629,6 @@ void camera_shutter_handling(uint64_t loop_start_time)
 		mavlink_msg_image_triggered_send(MAVLINK_COMM_0, usec,
 				shutter_get_seq(), global_data.attitude.x,
 				global_data.attitude.y, global_data.attitude.z, global_data.ground_distance, global_data.position.y, global_data.position.x, global_data.position.z, global_data.vicon_data.x, global_data.vicon_data.y, global_data.vicon_data.z);
-
-//		mavlink_msg_image_triggered_send(MAVLINK_COMM_0, usec,
-//				shutter_get_seq(), global_data.attitude.x,
-//				global_data.attitude.y, global_data.attitude.z, global_data.ground_distance, global_data.position.x, global_data.position.y, global_data.position.z);
-
-//			mavlink_msg_image_triggered_send(MAVLINK_COMM_1, usec,
-//				shutter_get_seq(), global_data.attitude.x,
-//				global_data.attitude.y, global_data.attitude.z, global_data.ground_distance, global_data.position.x, global_data.position.y, global_data.position.z);
 	}
 }
 
