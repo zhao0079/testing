@@ -39,7 +39,7 @@
 #include "global_data.h"
 // Include comm
 #include "comm.h"
-#include "mavlink.h"
+#include "pixhawk/mavlink.h"
 #include "i2c_motor_mikrokopter.h"
 #include "pid.h"
 #include "radio_control.h"
@@ -54,12 +54,17 @@
 
 inline void remote_control(void)
 {
-
+	static uint32_t lossCounter = 0;
 	if (global_data.state.mav_mode & (uint8_t) MAV_MODE_FLAG_MANUAL_INPUT_ENABLED)
 	{
 		if (radio_control_status() == RADIO_CONTROL_ON)
 		{
 			global_data.state.remote_ok=1;
+			if (lossCounter > 0)
+			{
+				debug_message_buffer("REGAINED REMOTE SIGNAL AFTER LOSS!");
+			}
+			lossCounter = 0;
 			//get remote controll values
 			float gas_remote = PPM_SCALE_FACTOR * (ppm_get_channel(
 					global_data.param[PARAM_PPM_THROTTLE_CHANNEL]) - PPM_OFFSET);
@@ -324,6 +329,7 @@ inline void remote_control(void)
 		else
 		{
 			//No Remote signal
+			lossCounter++;
 
 			if (global_data.state.remote_ok == 1)
 			{
@@ -349,15 +355,23 @@ inline void remote_control(void)
 				}
 				else
 				{
-					if (global_data.state.fly == FLY_GROUNDED)
+					if (global_data.state.fly == FLY_GROUNDED || global_data.state.fly == FLY_WAIT_MOTORS)
 					{
+						if (global_data.state.mav_mode & MAV_MODE_FLAG_SAFETY_ARMED)
+						{
+
+							if (lossCounter < 5)
+							{
+								debug_message_buffer(
+										"EMERGENCY LANDING FINISHED. No remote signal");
+								debug_message_buffer(
+										"EMERGENCY LANDING NOW LOCKED");
+							}
+						}
+
+						// Set to disarmed
 						sys_set_mode(global_data.state.mav_mode & ~MAV_MODE_FLAG_SAFETY_ARMED);
 						sys_set_state(MAV_STATE_STANDBY);
-
-						debug_message_buffer(
-								"EMERGENCY LANDING FINISHED. No remote signal");
-						debug_message_buffer(
-								"EMERGENCY LANDING NOW LOCKED");
 					}
 					else
 					{

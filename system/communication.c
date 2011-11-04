@@ -384,8 +384,7 @@ void handle_mavlink_message(mavlink_channel_t chan,
 		mavlink_set_cam_shutter_t cam;
 		mavlink_msg_set_cam_shutter_decode(msg, &cam);
 		shutter_set(cam.interval, cam.exposure);
-		debug_message_buffer_sprintf("set_cam_shutter. interval %i",
-				cam.interval);
+		debug_message_buffer_sprintf("set_cam_shutter. interval %i", cam.interval);
 
 	}
 	break;
@@ -499,45 +498,40 @@ void handle_mavlink_message(mavlink_channel_t chan,
 					}
 
 					//check if we want to start or land
-					if (global_data.state.status == MAV_STATE_ACTIVE
-							|| global_data.state.status == MAV_STATE_CRITICAL)
+					if (global_data.state.status == MAV_STATE_ACTIVE || global_data.state.status == MAV_STATE_CRITICAL)
 					{
 						if (sp.z > -0.1)
 						{
 							if (!(global_data.state.fly == FLY_GROUNDED
 									|| global_data.state.fly == FLY_SINKING
-									|| global_data.state.fly
-											== FLY_WAIT_LANDING
+									|| global_data.state.fly == FLY_WAIT_LANDING
 									|| global_data.state.fly == FLY_LANDING
 									|| global_data.state.fly == FLY_RAMP_DOWN))
 							{
-								//if setpoint is lower that ground iate landing
+								//if setpoint is lower that ground initiate landing
 								global_data.state.fly = FLY_SINKING;
-								global_data.param[PARAM_POSITION_SETPOINT_Z]
-										= -0.2;//with lowpass
-								debug_message_buffer(
-										"Sinking for LANDING. (z-sp lower than 10cm)");
+								global_data.param[PARAM_POSITION_SETPOINT_Z] = -0.2;//with lowpass
+								debug_message_buffer("Sinking for LANDING. (z-sp lower than 10cm)");
 							}
 							else if (!(global_data.state.fly == FLY_GROUNDED))
 							{
-								global_data.param[PARAM_POSITION_SETPOINT_Z]
-										= -0.2;//with lowpass
+								global_data.param[PARAM_POSITION_SETPOINT_Z] = -0.2;//with lowpass
 							}
 						}
-						else if (global_data.state.fly == FLY_GROUNDED && sp.z
-								< -0.50)
+						else if (global_data.state.fly == FLY_GROUNDED && sp.z < -0.50)
 						{
 							//start if we were grounded and get a sp over 0.5m
-							global_data.state.fly = FLY_WAIT_MOTORS;
-							debug_message_buffer(
-									"STARTING wait motors. (z-sp higher than 50cm)");
+							if (global_data.state.mav_mode & MAV_MODE_FLAG_SAFETY_ARMED)
+							{
+								global_data.state.fly = FLY_WAIT_MOTORS;
+								debug_message_buffer("STARTING wait motors. (z-sp higher than 50cm)");
+							}
 							//set point changed with lowpass, after 5s it will be ok.
 						}
 					}
 
 					//SINK TO 0.7m if we are critical or emergency
-					if (global_data.state.status == MAV_STATE_EMERGENCY
-							|| global_data.state.status == MAV_STATE_CRITICAL)
+					if (global_data.state.status == MAV_STATE_EMERGENCY || global_data.state.status == MAV_STATE_CRITICAL)
 					{
 						global_data.param[PARAM_POSITION_SETPOINT_Z] = -0.7;//with lowpass
 					}

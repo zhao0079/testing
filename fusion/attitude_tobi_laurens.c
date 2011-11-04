@@ -21,7 +21,7 @@
 #include "altitude_speed.h"
 #include "transformation.h"
 #include "gps_transformations.h"
-#include "mavlink.h"
+#include "pixhawk/mavlink.h"
 
 //#define VELOCITY_HOLD 0.999f
 //#define ACCELERATION_HOLD 0.99f
@@ -35,7 +35,7 @@ void vect_norm(float_vect3 *vect)
 {
 	float length = sqrt(
 			vect->x * vect->x + vect->y * vect->y + vect->z * vect->z);
-	if (length != 0)
+	if (length != 0.0f)
 	{
 		vect->x /= length;
 		vect->y /= length;
@@ -97,72 +97,72 @@ void attitude_tobi_laurens_init(void)
 	//initalize matrices
 
 	static m_elem kal_a[12 * 12] =
-	{ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	{ 1.0f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-			0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 1.0f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-			0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 1.0f, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-			0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 1.0f, 0, 0, 0, 0, 0, 0, 0, 0,
 
-			0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 1.0f, 0, 0, 0, 0, 0, 0, 0,
 
-			0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 1.0f, 0, 0, 0, 0, 0, 0,
 
-			0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 1.0f, 0, 0, 0, 0, 0,
 
-			0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 1.0f, 0, 0, 0, 0,
 
-			0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 1.0f, 0, 0, 0,
 
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 1.0f, 0, 0,
 
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.0f, 0,
 
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.0f };
 
 	static m_elem kal_c[9 * 12] =
-	{ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	{ 1.0f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-			0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 1.0f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-			0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 1.0f, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
-			0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 1.0f, 0, 0, 0, 0, 0, 0, 0, 0,
 
-			0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 1.0f, 0, 0, 0, 0, 0, 0, 0,
 
-			0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 1.0f, 0, 0, 0, 0, 0, 0,
 
-			0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+			0, 0, 0, 0, 0, 0, 1.0f, 0, 0, 1.0f, 0, 0,
 
-			0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0,
+			0, 0, 0, 0, 0, 0, 0, 1.0f, 0, 0, 1.0f, 0,
 
-			0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1 };
+			0, 0, 0, 0, 0, 0, 0, 0, 1.0f, 0, 0, 1.0f };
 
 
 
-#define FACTOR 0.5
-#define FACTORstart 1
+#define FACTOR 0.5f
+#define FACTORstart 1.0f
 
 
 	static m_elem kal_gain[12 * 9] =
-	{ 		0.004 , 0    ,   0    ,   0    ,   0    ,   0    ,   0   ,    0    ,   0,
-			0   ,    0.004 , 0   ,    0   ,    0   ,    0   ,    0   ,    0   ,    0,
-			0   ,    0    ,   0.004 , 0   ,    0   ,    0   ,    0   ,    0   ,    0,
-			0   ,    0    ,   0   ,    0.06, 	0   ,    0   ,    0   ,    0   ,    0,
-			0   ,    0   ,    0   ,    0    ,   0.06, 	 0   ,    0   ,    0   ,    0,
-			0   ,    0    ,   0   ,    0    ,   0   ,    0.06, 	  0   ,    0   ,    0,
-			0.0000 , +0.0000002,0   ,    0 , 		0, 		 0,  	  0,  	   0    ,   0,
-			-0.0000002,0    ,   0   ,    0 , 		0, 		 0,  	  0,  	   0, 	    0,
+	{ 		0.004f , 0    ,   0    ,   0    ,   0    ,   0    ,   0   ,    0    ,   0,
+			0   ,    0.004f , 0   ,    0   ,    0   ,    0   ,    0   ,    0   ,    0,
+			0   ,    0    ,   0.004f , 0   ,    0   ,    0   ,    0   ,    0   ,    0,
+			0   ,    0    ,   0   ,    0.06f, 	0   ,    0   ,    0   ,    0   ,    0,
+			0   ,    0   ,    0   ,    0    ,   0.06f, 	 0   ,    0   ,    0   ,    0,
+			0   ,    0    ,   0   ,    0    ,   0   ,    0.06f, 	  0   ,    0   ,    0,
+			0.0000f , +0.0000002f,0   ,    0 , 		0, 		 0,  	  0,  	   0    ,   0,
+			-0.0000002f,0    ,   0   ,    0 , 		0, 		 0,  	  0,  	   0, 	    0,
 			0,    	 0 ,	  0   ,    0,  	    0,		 0,  	  0,  	   0, 	    0,
-			0  ,     0    ,   0   ,    0   ,    0    ,   0   ,    0.9 ,   0   ,    0,
-			0   ,    0   ,    0   ,    0   ,    0    ,   0   ,    0    ,   0.9 ,   0,
-			0   ,    0   ,    0   ,    0   ,    0   ,    0   ,    0    ,   0    ,   0.9
+			0  ,     0    ,   0   ,    0   ,    0    ,   0   ,    0.9f ,   0   ,    0,
+			0   ,    0   ,    0   ,    0   ,    0    ,   0   ,    0    ,   0.9f ,   0,
+			0   ,    0   ,    0   ,    0   ,    0   ,    0   ,    0    ,   0    ,   0.9f
 	};
 
 
-#define K 10*TIME_STEP
+#define K 10.0f*TIME_STEP
 
 	static m_elem kal_gain_start[12 * 9] =
 	{ K, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -177,9 +177,9 @@ void attitude_tobi_laurens_init(void)
 
 			0, 0, 0, 0, 0, K, 0, 0, 0,
 
-			0,0.00008, 0, 0, 0, 0, 0, 0, 0,
+			0,0.00008f, 0, 0, 0, 0, 0, 0, 0,
 
-			-0.00008 ,0, 0, 0, 0, 0, 0, 0, 0,
+			-0.00008f ,0, 0, 0, 0, 0, 0, 0, 0,
 
 			0, 0, 0, 0, 0, 0, 0, 0, K,
 
@@ -200,7 +200,7 @@ void attitude_tobi_laurens_init(void)
 	{ 0, 0, -9.81f, 0.f, -0.2f, -0.9f, 0, 0, 0, 0, 0, 0 };
 
 	kalman_init(&attitude_tobi_laurens_kal, 12, 9, kal_a, kal_c,
-			kal_gain_start, kal_gain, kal_x_apriori, kal_x_aposteriori, 1000);
+			kal_gain_start, kal_gain, kal_x_apriori, kal_x_aposteriori, 1000.0f);
 
 }
 
@@ -246,18 +246,17 @@ void attitude_tobi_laurens(void)
 
 #endif
 
-	float acc_norm = sqrt(global_data.accel_raw.x * global_data.accel_raw.x + global_data.accel_raw.y * global_data.accel_raw.y + global_data.accel_raw.z * global_data.accel_raw.z);
+	float acc_norm = sqrtf(global_data.accel_raw.x * global_data.accel_raw.x + global_data.accel_raw.y * global_data.accel_raw.y + global_data.accel_raw.z * global_data.accel_raw.z);
 	static float acc_norm_filt = SCA3100_COUNTS_PER_G;
-	float acc_norm_lp = 0.05;
-	acc_norm_filt = (1.0f - acc_norm_lp) * acc_norm_filt + acc_norm_lp
-			* acc_norm;
+	float acc_norm_lp = 0.05f;
+	acc_norm_filt = (1.0f - acc_norm_lp) * acc_norm_filt + acc_norm_lp * acc_norm;
 
 	//	static float acc_norm_filtz = SCA3100_COUNTS_PER_G;
 	//	float acc_norm_lpz = 0.05;
 	//	acc_norm_filtz = (1.0f - acc_norm_lpz) * acc_norm_filtz + acc_norm_lpz * -acc.z;
 
 	float acc_diff = fabs(acc_norm_filt - SCA3100_COUNTS_PER_G);
-	if (acc_diff > 200)
+	if (acc_diff > 200.0f)
 	{
 		//Don't correct when acc high
 		mask[0] = 0;
@@ -265,10 +264,10 @@ void attitude_tobi_laurens(void)
 		mask[2] = 0;
 
 	}
-	else if (acc_diff > 100)
+	else if (acc_diff > 100.0f)
 	{
 		//fade linearely out between 100 and 200
-		float mask_lin = (200.0f - acc_diff) / 100;
+		float mask_lin = (200.0f - acc_diff) / 100.0f;
 		mask[0] = mask_lin;
 		mask[1] = mask_lin;
 		mask[2] = mask_lin;
@@ -298,9 +297,9 @@ void attitude_tobi_laurens(void)
 //	gyro.y = (global_data.gyros_raw.y-global_data.param[PARAM_GYRO_OFFSET_Y]) * 0.000955;
 //	gyro.z = -(global_data.gyros_raw.z-global_data.param[PARAM_GYRO_OFFSET_Z]) * 0.001010;
 
-	gyro.x = -(global_data.gyros_raw.x-global_data.param[PARAM_GYRO_OFFSET_X]) * 0.001008;
-	gyro.y = (global_data.gyros_raw.y-global_data.param[PARAM_GYRO_OFFSET_Y]) * 0.001008;
-	gyro.z = -(global_data.gyros_raw.z-global_data.param[PARAM_GYRO_OFFSET_Z]) * 0.001010;
+	gyro.x = -(global_data.gyros_raw.x-global_data.param[PARAM_GYRO_OFFSET_X]) * 0.001008f;
+	gyro.y = (global_data.gyros_raw.y-global_data.param[PARAM_GYRO_OFFSET_Y]) * 0.001008f;
+	gyro.z = -(global_data.gyros_raw.z-global_data.param[PARAM_GYRO_OFFSET_Z]) * 0.001010f;
 
 
 
@@ -465,12 +464,12 @@ void attitude_tobi_laurens(void)
 	vect_cross_product(&y_n_b, &z_n_b, &x_n_b);
 
 	//save euler angles
-	global_data.attitude.x = atan2(z_n_b.y, z_n_b.z);
-	global_data.attitude.y = -asin(z_n_b.x);
+	global_data.attitude.x = atan2f(z_n_b.y, z_n_b.z);
+	global_data.attitude.y = -asinf(z_n_b.x);
 
 	if (global_data.state.yaw_estimation_mode == YAW_ESTIMATION_MODE_INTEGRATION)
 	{
-		global_data.attitude.z += 0.005 * global_data.gyros_si.z;
+		global_data.attitude.z += 0.005f * global_data.gyros_si.z;
 	}
 	else if (global_data.state.yaw_estimation_mode == YAW_ESTIMATION_MODE_GLOBAL_VISION)
 	{
@@ -492,7 +491,7 @@ void attitude_tobi_laurens(void)
 	else
 	{
 //		static hackMagLowpass = 0.0f;
-		global_data.attitude.z = global_data.attitude.z*0.9f+0.1f*atan2(y_n_b.x, x_n_b.x);
+		global_data.attitude.z = global_data.attitude.z*0.9f+0.1f*atan2f(y_n_b.x, x_n_b.x);
 	}
 
 	//save rates
