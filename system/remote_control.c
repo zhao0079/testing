@@ -115,6 +115,7 @@ inline void remote_control(void)
 				//switch on motors
 				global_data.state.status = MAV_STATE_ACTIVE;
 				global_data.state.fly = FLY_WAIT_MOTORS;
+				global_data.state.mav_mode |= MAV_MODE_FLAG_SAFETY_ARMED;
 				//this will be done by setpoint
 				if (global_data.state.mav_mode & MAV_MODE_FLAG_TEST_ENABLED)
 				{
@@ -134,6 +135,7 @@ inline void remote_control(void)
 				//switch off motors
 				global_data.state.status = MAV_STATE_STANDBY;
 				global_data.state.fly = FLY_GROUNDED;
+				global_data.state.mav_mode &= ~MAV_MODE_FLAG_SAFETY_ARMED;
 
 			}
 

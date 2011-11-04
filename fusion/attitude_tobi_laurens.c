@@ -33,9 +33,9 @@ kalman_t attitude_tobi_laurens_kal;
 
 void vect_norm(float_vect3 *vect)
 {
-	float length = sqrt(
+	float length = sqrtf(
 			vect->x * vect->x + vect->y * vect->y + vect->z * vect->z);
-	if (length != 0.0f)
+	if (length != 0)
 	{
 		vect->x /= length;
 		vect->y /= length;
@@ -200,7 +200,7 @@ void attitude_tobi_laurens_init(void)
 	{ 0, 0, -9.81f, 0.f, -0.2f, -0.9f, 0, 0, 0, 0, 0, 0 };
 
 	kalman_init(&attitude_tobi_laurens_kal, 12, 9, kal_a, kal_c,
-			kal_gain_start, kal_gain, kal_x_apriori, kal_x_aposteriori, 1000.0f);
+			kal_gain_start, kal_gain, kal_x_apriori, kal_x_aposteriori, 1000);
 
 }
 
@@ -222,7 +222,7 @@ void attitude_tobi_laurens(void)
 	m_elem measurement[9] =
 	{ };
 	m_elem mask[9] =
-	{ 1, 1, 1, 0, 0, 0, 1, 1, 1 };
+	{ 1.0f, 1.0f, 1.0f, 0, 0, 0, 1.0f, 1.0f, 1.0f };
 
 	float_vect3 acc;
 	float_vect3 mag;
@@ -246,10 +246,11 @@ void attitude_tobi_laurens(void)
 
 #endif
 
-	float acc_norm = sqrtf(global_data.accel_raw.x * global_data.accel_raw.x + global_data.accel_raw.y * global_data.accel_raw.y + global_data.accel_raw.z * global_data.accel_raw.z);
+	float acc_norm = sqrt(global_data.accel_raw.x * global_data.accel_raw.x + global_data.accel_raw.y * global_data.accel_raw.y + global_data.accel_raw.z * global_data.accel_raw.z);
 	static float acc_norm_filt = SCA3100_COUNTS_PER_G;
 	float acc_norm_lp = 0.05f;
-	acc_norm_filt = (1.0f - acc_norm_lp) * acc_norm_filt + acc_norm_lp * acc_norm;
+	acc_norm_filt = (1.0f - acc_norm_lp) * acc_norm_filt + acc_norm_lp
+			* acc_norm;
 
 	//	static float acc_norm_filtz = SCA3100_COUNTS_PER_G;
 	//	float acc_norm_lpz = 0.05;

@@ -17,7 +17,6 @@ extern mavlink_system_t mavlink_system;
 
 #include "math.h"
 
-// 20ms (50Hz) why was it 33.33e-3 ??
 #define CONTROL_PID_POSITION_INTERVAL	0.020
 
 uint8_t pos_controller_counter = 0;
@@ -126,8 +125,8 @@ inline void control_quadrotor_position()
 	}
 
 	// Factor 0.05 to scale K_P, K_I to better human-readable values
-	global_data.attitude_setpoint_pos.y = 0.05 * -x_axis_correcture; //y angle
-	global_data.attitude_setpoint_pos.x = 0.05 * y_axis_correcture;
+	global_data.attitude_setpoint_pos.y = 0.05f * -x_axis_correcture; //y angle
+	global_data.attitude_setpoint_pos.x = 0.05f * y_axis_correcture;
 
 	//check for limits
 
@@ -160,9 +159,6 @@ inline void control_quadrotor_position()
 	{
 		global_data.attitude_setpoint_pos.y = -global_data.param[PARAM_PID_POS_LIM];
 		x_axis_controller.saturated=1;
-//		debug_message_buffer_sprintf(
-//				"ycontrol output - limited would be*1000=%i", (uint32_t) 1000
-//						* global_data.attitude_setpoint_pos.y);
 	}
 
 	//DEBUGGING
